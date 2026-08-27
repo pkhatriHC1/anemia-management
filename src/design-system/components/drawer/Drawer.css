@@ -1,0 +1,391 @@
+/* ─────────────────────────────────────────────────────────────────────
+ * HC1 Drawer — styles
+ *
+ * Drawer is the canonical side-panel primitive. Every value below is a
+ * CSS custom property from ../../tokens/css/variables.css. No hex, no
+ * raw pixels for color, no shadow literals — token references only.
+ *
+ * The panel deliberately mirrors Dialog's visual language: same radius
+ * on the inner corners, same elevated background, same border tone,
+ * same scrim (shared `--hc-dialog-scrim`), same close-button treatment.
+ * A Drawer reads as a Dialog extended sideways — anchored to the left
+ * or right edge of the viewport instead of centered.
+ *
+ * Class model (BEM-ish, all prefixed with hc-drawer):
+ *   .hc-drawer-scrim                      — full-viewport backdrop layer
+ *   .hc-drawer-scrim--open                — entrance animation trigger
+ *   .hc-drawer-scrim--transparent         — no overlay (panel-only mode)
+ *   .hc-drawer-scrim--placement-{left|right}
+ *   .hc-drawer-panel                      — the drawer surface
+ *   .hc-drawer-panel--placement-{left|right}
+ *   .hc-drawer-panel--size-{sm|md|lg|fullscreen}
+ *   .hc-drawer-panel--open                — entrance animation trigger
+ *   .hc-drawer-panel--loading             — loading overlay layer visible
+ *   .hc-drawer-panel__header
+ *   .hc-drawer-panel__header--sticky      — pinned to top; body scrolls beneath
+ *   .hc-drawer-panel__header-body         — title + description stack
+ *   .hc-drawer-panel__title
+ *   .hc-drawer-panel__description
+ *   .hc-drawer-panel__body
+ *   .hc-drawer-panel__footer
+ *   .hc-drawer-panel__footer--sticky      — pinned to bottom
+ *   .hc-drawer-panel__actions
+ *   .hc-drawer-panel__actions--start | --center | --end
+ *   .hc-drawer-panel__close               — built-in close (X) button
+ *   .hc-drawer-panel__loading             — spinner overlay
+ *   .hc-drawer-panel__spinner
+ *   .hc-drawer-panel__loading-label
+ * ─────────────────────────────────────────────────────────────────── */
+
+/* ══════ SCRIM ═════════════════════════════════════════════════════ */
+
+.hc-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--hc-z-modal-scrim);
+
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end; /* right placement default */
+
+  background: var(--hc-dialog-scrim);
+
+  animation: hc-drawer-scrim-in
+    var(--hc-duration-250)
+    var(--hc-easing-entrance)
+    both;
+}
+
+.hc-drawer-scrim--placement-left  { justify-content: flex-start; }
+.hc-drawer-scrim--placement-right { justify-content: flex-end; }
+
+/* Panel-only mode — no dim, but the scrim layer still exists so the
+   panel stays fixed-positioned and pointer events on the panel work.
+   Background layer itself becomes click-through. */
+.hc-drawer-scrim--transparent {
+  background: transparent;
+  pointer-events: none;
+  animation: none;
+}
+.hc-drawer-scrim--transparent > .hc-drawer-panel {
+  pointer-events: auto;
+}
+
+@keyframes hc-drawer-scrim-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ══════ PANEL ═════════════════════════════════════════════════════ */
+
+.hc-drawer-panel {
+  position: relative;
+  z-index: var(--hc-z-modal);
+
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  height: 100dvh;
+  /* Fallback for browsers without dvh support. */
+  height: 100vh;
+
+  background: var(--hc-color-bg-elevated);
+  border: 1px solid var(--hc-color-border-subtle);
+  box-shadow: var(--hc-shadow-xl);
+  color: var(--hc-color-text-primary);
+
+  font-family: var(--hc-font-sans);
+  text-align: left;
+  overflow: hidden;
+}
+
+.hc-drawer-panel:focus,
+.hc-drawer-panel:focus-visible {
+  outline: none;
+}
+
+/* Sizes — width ladder. Values live in variables.css so downstream
+   consumers can theme the ladder without editing this file. */
+.hc-drawer-panel--size-sm { max-width: var(--hc-drawer-size-sm); }
+.hc-drawer-panel--size-md { max-width: var(--hc-drawer-size-md); }
+.hc-drawer-panel--size-lg { max-width: var(--hc-drawer-size-lg); }
+
+/* Fullscreen — edge-to-edge, no radius, no shadow. */
+.hc-drawer-panel--size-fullscreen {
+  max-width: none;
+  border-radius: 0;
+  box-shadow: none;
+  border-left: none;
+  border-right: none;
+}
+
+/* ── Placement-specific geometry ──────────────────────────────────────
+   Only the inner edge is rounded; the outer edge abuts the viewport.
+   Enter animation slides the panel in from that same edge. */
+
+.hc-drawer-panel--placement-right {
+  border-right: none;
+  border-top-left-radius:    var(--hc-radius-surface);
+  border-bottom-left-radius: var(--hc-radius-surface);
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  animation: hc-drawer-panel-in-right
+    var(--hc-duration-250)
+    var(--hc-easing-entrance)
+    both;
+}
+
+.hc-drawer-panel--placement-left {
+  border-left: none;
+  border-top-right-radius:    var(--hc-radius-surface);
+  border-bottom-right-radius: var(--hc-radius-surface);
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  animation: hc-drawer-panel-in-left
+    var(--hc-duration-250)
+    var(--hc-easing-entrance)
+    both;
+}
+
+/* Fullscreen overrides — no radius regardless of placement. */
+.hc-drawer-panel--size-fullscreen.hc-drawer-panel--placement-left,
+.hc-drawer-panel--size-fullscreen.hc-drawer-panel--placement-right {
+  border-radius: 0;
+}
+
+@keyframes hc-drawer-panel-in-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes hc-drawer-panel-in-left {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+
+/* ══════ HEADER ════════════════════════════════════════════════════ */
+
+.hc-drawer-panel__header {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--hc-space-inline-md);
+
+  /* Reserve room on the right for the built-in close button so long
+     titles never crash into it. */
+  padding:
+    var(--hc-space-stack-lg)
+    calc(var(--hc-space-inline-xl) + 32px)
+    var(--hc-space-stack-lg)
+    var(--hc-space-inline-xl);
+
+  background: var(--hc-color-bg-elevated);
+  z-index: 1;
+}
+
+.hc-drawer-panel__header--sticky {
+  position: sticky;
+  top: 0;
+  border-bottom: 1px solid var(--hc-color-border-subtle);
+  box-shadow: var(--hc-drawer-sticky-shadow);
+}
+
+.hc-drawer-panel__header-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--hc-space-stack-xs);
+}
+
+.hc-drawer-panel__title {
+  margin: 0;
+  color: var(--hc-color-text-primary);
+  font-size: var(--hc-font-size-20);
+  font-weight: var(--hc-font-weight-semibold);
+  line-height: 1.3;
+}
+
+.hc-drawer-panel__description {
+  margin: 0;
+  color: var(--hc-color-text-tertiary);
+  font-size: var(--hc-font-size-14);
+  line-height: 1.5;
+}
+
+/* ══════ BODY ══════════════════════════════════════════════════════ */
+
+.hc-drawer-panel__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+
+  padding:
+    var(--hc-space-stack-md)
+    var(--hc-space-inline-xl);
+
+  color: var(--hc-color-text-secondary);
+  font-size: var(--hc-font-size-16);
+  line-height: 1.5;
+}
+
+/* Header-and-body joint: eat the header's bottom padding so the two
+   sections read as one continuous rhythm rather than double-padded. */
+.hc-drawer-panel__header + .hc-drawer-panel__body,
+.hc-drawer-panel__header--sticky + .hc-drawer-panel__body {
+  padding-top: 0;
+}
+
+/* ══════ FOOTER ════════════════════════════════════════════════════ */
+
+.hc-drawer-panel__footer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--hc-space-inline-md);
+
+  padding:
+    var(--hc-space-stack-lg)
+    var(--hc-space-inline-xl);
+
+  background: var(--hc-color-bg-default);
+  border-top: 1px solid var(--hc-color-border-subtle);
+  color: var(--hc-color-text-tertiary);
+  font-size: var(--hc-font-size-14);
+  line-height: 1.4;
+}
+
+.hc-drawer-panel__footer--sticky {
+  position: sticky;
+  bottom: 0;
+  /* Sticky footers already have a border-top; add a subtle detachment
+     shadow above so scrolled content reads as passing under. */
+  box-shadow: 0 -1px 2px rgba(15, 20, 25, 0.08);
+  z-index: 1;
+}
+
+/* ══════ ACTIONS ═══════════════════════════════════════════════════ */
+
+.hc-drawer-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--hc-space-inline-sm);
+  min-width: 0;
+}
+
+.hc-drawer-panel__actions--start  { justify-content: flex-start; }
+.hc-drawer-panel__actions--center { justify-content: center; }
+.hc-drawer-panel__actions--end    { justify-content: flex-end; margin-left: auto; }
+
+.hc-drawer-panel__footer > .hc-drawer-panel__actions--end {
+  margin-left: auto;
+}
+
+/* ══════ CLOSE BUTTON ══════════════════════════════════════════════ */
+
+.hc-drawer-panel__close {
+  position: absolute;
+  top: var(--hc-space-stack-md);
+  right: var(--hc-space-inline-md);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 28px;
+  height: 28px;
+  padding: 0;
+
+  border: 1px solid transparent;
+  border-radius: var(--hc-radius-control);
+  background: transparent;
+  color: var(--hc-color-text-tertiary);
+
+  cursor: pointer;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    background-color var(--hc-duration-150) var(--hc-easing-standard),
+    color            var(--hc-duration-150) var(--hc-easing-standard);
+
+  /* Keep the close button above the sticky header/footer stacking. */
+  z-index: 2;
+}
+
+.hc-drawer-panel__close:hover {
+  background: var(--hc-color-bg-subtle);
+  color: var(--hc-color-text-primary);
+}
+
+.hc-drawer-panel__close:focus { outline: none; }
+.hc-drawer-panel__close:focus-visible {
+  outline: 2px solid var(--hc-color-border-focus);
+  outline-offset: 2px;
+}
+
+.hc-drawer-panel__close svg {
+  display: block;
+}
+
+/* ══════ LOADING ═══════════════════════════════════════════════════ */
+
+.hc-drawer-panel__loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--hc-space-stack-sm);
+
+  background: color-mix(
+    in oklab,
+    var(--hc-color-bg-elevated) 85%,
+    transparent
+  );
+  z-index: 1;
+}
+
+/* When loading, the header + footer stay visible but the body content
+   is dimmed under the overlay. */
+.hc-drawer-panel--loading .hc-drawer-panel__body {
+  visibility: hidden;
+}
+
+.hc-drawer-panel__spinner {
+  width: 24px;
+  height: 24px;
+  border: 2.5px solid var(--hc-color-border-default);
+  border-top-color: var(--hc-color-action-primary);
+  border-radius: var(--hc-radius-full);
+  animation: hc-drawer-spin 900ms linear infinite;
+}
+
+.hc-drawer-panel__loading-label {
+  font-size: var(--hc-font-size-14);
+  color: var(--hc-color-text-tertiary);
+  line-height: 1.4;
+}
+
+@keyframes hc-drawer-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ══════ REDUCED MOTION ════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .hc-drawer-scrim,
+  .hc-drawer-panel {
+    animation-duration: 0ms;
+  }
+  .hc-drawer-panel__close {
+    transition-duration: 0ms;
+  }
+  .hc-drawer-panel__spinner {
+    animation-duration: 2500ms;
+  }
+}

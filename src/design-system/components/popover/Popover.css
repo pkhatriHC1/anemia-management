@@ -1,0 +1,157 @@
+/* ─────────────────────────────────────────────────────────────────────
+ * HC1 Popover — styles
+ *
+ * Popover is the canonical floating surface primitive. It reads as a
+ * lightweight floating Card — same radius, elevated background, subtle
+ * border — lifted with the overlay elevation tier. Arrow geometry
+ * mirrors Tooltip so the whole floating family stays visually cohesive.
+ *
+ * Every value below is a CSS custom property from
+ * ../../tokens/css/variables.css. No hex, no raw pixels for color,
+ * no shadow literals — token references only.
+ *
+ * Class model (BEM-ish, all prefixed with hc-popover):
+ *   .hc-popover-scrim              — full-viewport backdrop (modal mode only)
+ *   .hc-popover                    — floating panel (portaled to body)
+ *   .hc-popover--open              — entrance animation trigger
+ *   .hc-popover--side-top
+ *   .hc-popover--side-bottom
+ *   .hc-popover--side-left
+ *   .hc-popover--side-right
+ *   .hc-popover__arrow             — triangular pointer (auto-positioned)
+ * ─────────────────────────────────────────────────────────────────── */
+
+/* ══════ SCRIM (modal mode) ════════════════════════════════════════ */
+
+.hc-popover-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--hc-z-modal-scrim);
+  background: var(--hc-popover-scrim);
+  animation: hc-popover-scrim-in
+    var(--hc-duration-150)
+    var(--hc-easing-entrance)
+    both;
+}
+
+@keyframes hc-popover-scrim-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ══════ PANEL ═════════════════════════════════════════════════════ */
+
+.hc-popover {
+  position: fixed;
+  z-index: var(--hc-z-popover);
+
+  padding: var(--hc-popover-pad-y) var(--hc-popover-pad-x);
+  min-width: var(--hc-popover-min-width);
+  max-width: var(--hc-popover-max-width);
+
+  background: var(--hc-popover-bg);
+  color:      var(--hc-popover-fg);
+  border:     1px solid var(--hc-popover-border);
+  border-radius: var(--hc-popover-radius);
+  box-shadow: var(--hc-popover-shadow);
+
+  font-family: var(--hc-font-sans);
+  font-size:   var(--hc-font-size-14);
+  font-weight: var(--hc-font-weight-regular);
+  line-height: 1.5;
+  text-align: left;
+  overflow-wrap: break-word;
+
+  animation: hc-popover-in
+    var(--hc-duration-150)
+    var(--hc-easing-standard)
+    both;
+}
+
+.hc-popover:focus,
+.hc-popover:focus-visible {
+  outline: none;
+}
+
+/* Modal mode: bump z above the scrim. The scrim itself lives at
+   --hc-z-modal-scrim (60); the panel lifts one tier higher so it
+   paints above the scrim. */
+.hc-popover-scrim .hc-popover {
+  z-index: var(--hc-z-modal);
+}
+
+/* ══════ ARROW ═════════════════════════════════════════════════════ */
+
+/**
+ * Rotated square gives a clean diamond-tip on any monitor without the
+ * anti-alias fuzz that clip-path polygons would introduce. Rendered as
+ * a filled span with the same fill as the panel; sits half-inside the
+ * panel edge so only a triangular tip protrudes.
+ */
+.hc-popover__arrow {
+  position: absolute;
+  width:  var(--hc-popover-arrow-size);
+  height: var(--hc-popover-arrow-size);
+  background: var(--hc-popover-bg);
+  border: 1px solid var(--hc-popover-border);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+/* Arrow position per side. The `left` (or `top`) value comes from
+   inline style (JS-measured to track the trigger centre). The
+   perpendicular offset — how far the arrow sits from the panel edge —
+   is a fixed negative half-size so the tip pokes out cleanly. */
+.hc-popover--side-top    .hc-popover__arrow {
+  bottom: calc(var(--hc-popover-arrow-half) * -1);
+  border-top: 0;
+  border-left: 0;
+}
+.hc-popover--side-bottom .hc-popover__arrow {
+  top:    calc(var(--hc-popover-arrow-half) * -1);
+  border-bottom: 0;
+  border-right: 0;
+}
+.hc-popover--side-left   .hc-popover__arrow {
+  right:  calc(var(--hc-popover-arrow-half) * -1);
+  border-bottom: 0;
+  border-left: 0;
+}
+.hc-popover--side-right  .hc-popover__arrow {
+  left:   calc(var(--hc-popover-arrow-half) * -1);
+  border-top: 0;
+  border-right: 0;
+}
+
+.hc-popover--side-top    .hc-popover__arrow,
+.hc-popover--side-bottom .hc-popover__arrow {
+  transform: translate(calc(var(--hc-popover-arrow-half) * -1), 0) rotate(45deg);
+}
+.hc-popover--side-left   .hc-popover__arrow,
+.hc-popover--side-right  .hc-popover__arrow {
+  transform: translate(0, calc(var(--hc-popover-arrow-half) * -1)) rotate(45deg);
+}
+
+/* ══════ MOTION ═════════════════════════════════════════════════════ */
+
+/* Entrance keyframe — subtle scale + fade from the panel's centre.
+   Matches Tooltip's motion feel but on a floating Card surface. */
+@keyframes hc-popover-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ══════ REDUCED MOTION ════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .hc-popover,
+  .hc-popover-scrim {
+    animation-duration: 0ms;
+  }
+}

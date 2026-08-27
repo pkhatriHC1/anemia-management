@@ -1,0 +1,371 @@
+/* ─────────────────────────────────────────────────────────────────────
+ * HC1 Textarea — styles
+ *
+ * Textarea mirrors Input visually — same border tone, same radius, same
+ * focus ring, same hover cue, same disabled + readonly + validation
+ * treatments, same helper/counter footer. The only real difference is
+ * that the frame is height-flexible: paddingY exists (Input has none),
+ * the control is a real <textarea>, and minRows / maxRows drive the
+ * initial and cap heights.
+ *
+ * Every value below is a CSS custom property from
+ * ../../tokens/css/variables.css. No hex, no raw pixels for color,
+ * no shadow literals — token references only.
+ *
+ * Class model (BEM-ish, all prefixed with hc-textarea to prevent collisions):
+ *   .hc-textarea-field                      — outermost wrapper
+ *   .hc-textarea-field--full-width          — grow to parent width
+ *   .hc-textarea-field--disabled            — dim label + description
+ *   .hc-textarea-field__label-row           — label + optional marker
+ *   .hc-textarea-field__label
+ *   .hc-textarea-field__description         — subtitle under the label
+ *   .hc-textarea-field__marker              — required (*) or (Optional)
+ *   .hc-textarea-field__marker--required
+ *   .hc-textarea-field__marker--optional
+ *   .hc-textarea-field__footer              — helper / message + counter
+ *   .hc-textarea-field__helper
+ *   .hc-textarea-field__message
+ *   .hc-textarea-field__message--error
+ *   .hc-textarea-field__message--warning
+ *   .hc-textarea-field__message--success
+ *   .hc-textarea-field__counter
+ *   .hc-textarea-field__counter--over
+ *
+ *   .hc-textarea                            — the visual frame
+ *   .hc-textarea--size-{sm|md|lg}
+ *   .hc-textarea--disabled
+ *   .hc-textarea--readonly
+ *   .hc-textarea--loading
+ *   .hc-textarea--auto-resize
+ *   .hc-textarea--error / --warning / --success
+ *   .hc-textarea--resize-{none|vertical}
+ *   .hc-textarea__control                   — the native <textarea>
+ *   .hc-textarea__spinner                   — loading spinner
+ * ─────────────────────────────────────────────────────────────────── */
+
+/* ══════ FIELD WRAPPER ══════════════════════════════════════════════ */
+
+.hc-textarea-field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--hc-space-stack-xs);
+  font-family: var(--hc-font-sans);
+  color: var(--hc-color-text-primary);
+  min-width: 0;
+}
+.hc-textarea-field--full-width {
+  display: flex;
+  width: 100%;
+}
+
+/* Label row ────────────────────────────────────────────────────────── */
+
+.hc-textarea-field__label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--hc-space-inline-sm);
+  min-width: 0;
+}
+
+.hc-textarea-field__label {
+  font-size: var(--hc-font-size-14);
+  line-height: 1.4;
+  font-weight: var(--hc-font-weight-semibold);
+  color: var(--hc-color-text-primary);
+  cursor: pointer;
+}
+
+.hc-textarea-field--disabled .hc-textarea-field__label,
+.hc-textarea-field--disabled .hc-textarea-field__marker,
+.hc-textarea-field--disabled .hc-textarea-field__description {
+  color: var(--hc-color-text-disabled);
+  cursor: not-allowed;
+}
+
+.hc-textarea-field__description {
+  font-size: var(--hc-font-size-12);
+  line-height: 1.5;
+  color: var(--hc-color-text-tertiary);
+}
+
+.hc-textarea-field__marker {
+  font-size: var(--hc-font-size-12);
+  font-weight: var(--hc-font-weight-regular);
+  color: var(--hc-color-text-tertiary);
+  line-height: 1;
+}
+.hc-textarea-field__marker--required {
+  color: var(--hc-color-status-error-fg);
+  font-weight: var(--hc-font-weight-semibold);
+  margin-left: var(--hc-space-4);
+}
+
+/* Footer (helper / message / counter) ──────────────────────────────── */
+
+.hc-textarea-field__footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--hc-space-inline-md);
+  min-width: 0;
+}
+
+.hc-textarea-field__helper,
+.hc-textarea-field__message {
+  font-size: var(--hc-font-size-12);
+  line-height: 1.4;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.hc-textarea-field__helper {
+  color: var(--hc-color-text-tertiary);
+}
+.hc-textarea-field__message--error   { color: var(--hc-color-status-error-fg); }
+.hc-textarea-field__message--warning { color: var(--hc-color-status-warning-fg); }
+.hc-textarea-field__message--success { color: var(--hc-color-status-success-fg); }
+
+.hc-textarea-field__counter {
+  font-size: var(--hc-font-size-12);
+  line-height: 1.4;
+  color: var(--hc-color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.hc-textarea-field__counter--over {
+  color: var(--hc-color-status-error-fg);
+  font-weight: var(--hc-font-weight-semibold);
+}
+
+/* ══════ FRAME (the visual textarea box) ═══════════════════════════ */
+
+.hc-textarea {
+  position: relative;
+  display: flex;
+  width: 100%;
+
+  border: 1px solid var(--hc-color-border-default);
+  border-radius: var(--hc-radius-control);
+  background: var(--hc-color-bg-default);
+  color: var(--hc-color-text-primary);
+
+  font-family: var(--hc-font-sans);
+
+  cursor: text;
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    background-color var(--hc-duration-150) var(--hc-easing-standard),
+    border-color     var(--hc-duration-150) var(--hc-easing-standard),
+    color            var(--hc-duration-150) var(--hc-easing-standard),
+    outline-color    var(--hc-duration-150) var(--hc-easing-standard);
+}
+
+/* Hover — only when interactive (matches Input). */
+.hc-textarea:hover:not(.hc-textarea--disabled):not(.hc-textarea--readonly):not(.hc-textarea--error):not(.hc-textarea--warning):not(.hc-textarea--success) {
+  border-color: var(--hc-color-border-strong);
+}
+
+/* Focus — the one universal treatment: 2px outline, 2px offset, brand.
+   focus-within so we catch focus on the inner textarea. Identical to
+   Input so mixed forms read as one system. */
+.hc-textarea:focus-within {
+  outline: 2px solid var(--hc-color-border-focus);
+  outline-offset: 2px;
+  border-color: var(--hc-color-border-focus);
+}
+
+/* ══════ SIZES ═════════════════════════════════════════════════════ */
+
+/* Textarea sizes only differ in font + padding + line-height. The frame
+   height is driven by rows (via the child textarea's `rows` attribute and
+   the JS auto-resize measurement). */
+
+.hc-textarea--size-sm {
+  padding: var(--hc-textarea-pad-y-sm) var(--hc-space-inline-sm);
+  font-size: var(--hc-font-size-12);
+  line-height: var(--hc-textarea-line-sm);
+}
+.hc-textarea--size-md {
+  padding: var(--hc-textarea-pad-y-md) var(--hc-space-inline-md);
+  font-size: var(--hc-font-size-14);
+  line-height: var(--hc-textarea-line-md);
+}
+.hc-textarea--size-lg {
+  padding: var(--hc-textarea-pad-y-lg) var(--hc-space-inline-md);
+  font-size: var(--hc-font-size-16);
+  line-height: var(--hc-textarea-line-lg);
+}
+
+/* ══════ CONTROL (the actual <textarea>) ═══════════════════════════ */
+
+.hc-textarea__control {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+
+  /* Multi-line surface: allow the browser to wrap and scroll but never
+     spawn a horizontal scrollbar. Auto-resize toggles overflow-y at the
+     maxRows cap; without auto-resize, the browser handles vertical
+     scrolling itself. */
+  resize: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  /* Default rendered height: minRows × line-height. Auto-resize
+     overrides this via inline style at runtime. */
+  min-height: calc(var(--hc-textarea-min-rows, 3) * 1em * 1.4);
+}
+
+/* Size-specific min-height using the concrete line-height ladder so
+   heights are stable across font sizes. */
+.hc-textarea--size-sm .hc-textarea__control {
+  min-height: calc(var(--hc-textarea-min-rows, 3) * var(--hc-textarea-line-sm));
+}
+.hc-textarea--size-md .hc-textarea__control {
+  min-height: calc(var(--hc-textarea-min-rows, 3) * var(--hc-textarea-line-md));
+}
+.hc-textarea--size-lg .hc-textarea__control {
+  min-height: calc(var(--hc-textarea-min-rows, 3) * var(--hc-textarea-line-lg));
+}
+
+/* Max-height (only when NOT auto-resizing — auto-resize sets height inline
+   so the JS-measured height wins). Prevents the frame from becoming absurd
+   if the consumer doesn't set maxRows. */
+.hc-textarea:not(.hc-textarea--auto-resize).hc-textarea--size-sm .hc-textarea__control {
+  max-height: calc(var(--hc-textarea-max-rows, 12) * var(--hc-textarea-line-sm));
+}
+.hc-textarea:not(.hc-textarea--auto-resize).hc-textarea--size-md .hc-textarea__control {
+  max-height: calc(var(--hc-textarea-max-rows, 12) * var(--hc-textarea-line-md));
+}
+.hc-textarea:not(.hc-textarea--auto-resize).hc-textarea--size-lg .hc-textarea__control {
+  max-height: calc(var(--hc-textarea-max-rows, 12) * var(--hc-textarea-line-lg));
+}
+
+/* When auto-resize is on, the JS-measured inline height wins, but we still
+   need to prevent the browser from painting a scrollbar between the JS
+   measurement and the reflow. */
+.hc-textarea--auto-resize .hc-textarea__control {
+  overflow-y: hidden;
+}
+/* Once we hit maxRows the JS clamps height and lets the browser paint
+   a scrollbar. That's driven by overflow-y: auto on the base rule; we
+   restore it here so scrolling works past the cap. */
+.hc-textarea--auto-resize.hc-textarea--size-sm .hc-textarea__control {
+  max-height: calc(var(--hc-textarea-max-rows, 12) * var(--hc-textarea-line-sm));
+}
+.hc-textarea--auto-resize.hc-textarea--size-md .hc-textarea__control {
+  max-height: calc(var(--hc-textarea-max-rows, 12) * var(--hc-textarea-line-md));
+}
+.hc-textarea--auto-resize.hc-textarea--size-lg .hc-textarea__control {
+  max-height: calc(var(--hc-textarea-max-rows, 12) * var(--hc-textarea-line-lg));
+}
+
+.hc-textarea__control::placeholder {
+  color: var(--hc-color-text-tertiary);
+  opacity: 1;
+}
+.hc-textarea__control:disabled {
+  cursor: not-allowed;
+  color: var(--hc-color-text-disabled);
+  -webkit-text-fill-color: var(--hc-color-text-disabled); /* Safari */
+}
+.hc-textarea__control:read-only {
+  cursor: default;
+}
+
+/* User-drag-resize handle. Off by default; opt-in via `resize='vertical'`. */
+.hc-textarea--resize-vertical .hc-textarea__control {
+  resize: vertical;
+}
+
+/* ══════ SPINNER ═══════════════════════════════════════════════════ */
+
+.hc-textarea__spinner {
+  position: absolute;
+  right: var(--hc-space-inline-sm);
+  top: var(--hc-space-inline-sm);
+
+  display: inline-block;
+  flex-shrink: 0;
+  border: 2px solid var(--hc-color-border-default);
+  border-top-color: var(--hc-color-action-primary);
+  border-radius: var(--hc-radius-full);
+  animation: hc-textarea-spin 900ms linear infinite;
+
+  pointer-events: none;
+}
+.hc-textarea--size-sm .hc-textarea__spinner { width: 12px; height: 12px; }
+.hc-textarea--size-md .hc-textarea__spinner { width: 14px; height: 14px; }
+.hc-textarea--size-lg .hc-textarea__spinner { width: 18px; height: 18px; }
+
+@keyframes hc-textarea-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ══════ STATE MODIFIERS ═══════════════════════════════════════════ */
+
+/* Disabled — mirror the child's :disabled with a class so the frame
+   picks up the muted look without a functional selector on the child. */
+.hc-textarea--disabled {
+  background: var(--hc-color-bg-subtle);
+  border-color: var(--hc-color-border-subtle);
+  color: var(--hc-color-text-disabled);
+  cursor: not-allowed;
+}
+.hc-textarea--disabled .hc-textarea__control::placeholder {
+  color: var(--hc-color-text-disabled);
+}
+
+/* Read-only — filled surface, not the same as disabled: user can focus
+   and select the text. */
+.hc-textarea--readonly {
+  background: var(--hc-color-bg-subtle);
+  border-color: var(--hc-color-border-subtle);
+}
+
+/* Validation frames — border color matches status. Focus ring keeps the
+   status color too so error frames don't "unerror" on focus. Same rule
+   Input uses. */
+.hc-textarea--error   { border-color: var(--hc-color-status-error-fg); }
+.hc-textarea--warning { border-color: var(--hc-color-status-warning-fg); }
+.hc-textarea--success { border-color: var(--hc-color-status-success-fg); }
+
+.hc-textarea--error:focus-within {
+  border-color: var(--hc-color-status-error-fg);
+  outline-color: var(--hc-color-status-error-fg);
+}
+.hc-textarea--warning:focus-within {
+  border-color: var(--hc-color-status-warning-fg);
+  outline-color: var(--hc-color-status-warning-fg);
+}
+.hc-textarea--success:focus-within {
+  border-color: var(--hc-color-status-success-fg);
+  outline-color: var(--hc-color-status-success-fg);
+}
+
+/* Loading — cursor cue; the spinner sits in the top-right of the frame. */
+.hc-textarea--loading {
+  cursor: progress;
+}
+.hc-textarea--loading .hc-textarea__control {
+  cursor: progress;
+}
+
+/* ══════ REDUCED MOTION ════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .hc-textarea          { transition-duration: 0ms; }
+  .hc-textarea__spinner { animation-duration: 2500ms; }
+}

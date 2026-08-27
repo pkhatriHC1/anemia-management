@@ -1,0 +1,247 @@
+/* ─────────────────────────────────────────────────────────────────────
+ * HC1 EmptyState — styles
+ *
+ * EmptyState is the canonical zero-state primitive. Every value below
+ * is a CSS custom property from ../../tokens/css/variables.css. No hex,
+ * no raw pixels for color, no bespoke shadows — token references only.
+ *
+ * Two layout modes:
+ *   .hc-empty--layout-centered   → generous padding, tall min-height
+ *   .hc-empty--layout-contained  → compact padding, shorter min-height
+ *
+ * Variants only tint the icon container — the surrounding layout,
+ * typography, and actions stay neutral so the empty state's *content*
+ * carries the meaning.
+ *
+ * Class model (BEM-ish, all prefixed with hc-empty):
+ *   .hc-empty
+ *   .hc-empty--variant-{name}
+ *   .hc-empty--layout-{centered|contained}
+ *   .hc-empty--loading
+ *   .hc-empty__icon            (round tinted container)
+ *   .hc-empty__illustration    (larger uncontained slot)
+ *   .hc-empty__title           (heading)
+ *   .hc-empty__description     (paragraph)
+ *   .hc-empty__actions         (row of Buttons)
+ *   .hc-empty__footer          (small text under a subtle divider)
+ *   .hc-empty__skeleton*       (loading placeholder parts)
+ * ─────────────────────────────────────────────────────────────── */
+
+/* ══════ ROOT ══════════════════════════════════════════════════════ */
+
+.hc-empty {
+  /* Defaults — overridden by .hc-empty--layout-{name}. */
+  --hc-empty-pad-x:     var(--hc-space-inline-xl);
+  --hc-empty-pad-y:     var(--hc-space-section-md);
+  --hc-empty-min-h:     320px;
+  --hc-empty-max-w:     460px;
+
+  --hc-empty-icon-bg:   var(--hc-color-bg-subtle);
+  --hc-empty-icon-fg:   var(--hc-color-text-tertiary);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  padding: var(--hc-empty-pad-y) var(--hc-empty-pad-x);
+  min-height: var(--hc-empty-min-h);
+
+  font-family: var(--hc-font-sans);
+  color: var(--hc-color-text-primary);
+  background: transparent;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* Every direct child that carries text width should respect the
+   max-width so lines wrap comfortably instead of stretching edge to
+   edge on wide layouts. */
+.hc-empty > .hc-empty__title,
+.hc-empty > .hc-empty__description,
+.hc-empty > .hc-empty__actions,
+.hc-empty > .hc-empty__footer {
+  max-width: var(--hc-empty-max-w);
+  width: 100%;
+}
+
+/* ══════ LAYOUT ═══════════════════════════════════════════════════ */
+
+.hc-empty--layout-centered {
+  --hc-empty-pad-x: var(--hc-space-inline-xl);   /* 24 */
+  --hc-empty-pad-y: var(--hc-space-section-md);  /* 48 */
+  --hc-empty-min-h: 320px;
+  --hc-empty-max-w: 460px;
+}
+
+.hc-empty--layout-contained {
+  --hc-empty-pad-x: var(--hc-space-inline-lg);   /* 16 */
+  --hc-empty-pad-y: var(--hc-space-section-sm);  /* 32 */
+  --hc-empty-min-h: 240px;
+  --hc-empty-max-w: 420px;
+}
+
+/* ══════ VARIANT (icon tint only) ══════════════════════════════════ */
+
+.hc-empty--variant-default {
+  --hc-empty-icon-bg: var(--hc-color-bg-subtle);
+  --hc-empty-icon-fg: var(--hc-color-text-tertiary);
+}
+.hc-empty--variant-search {
+  --hc-empty-icon-bg: var(--hc-color-bg-subtle);
+  --hc-empty-icon-fg: var(--hc-color-text-tertiary);
+}
+.hc-empty--variant-onboarding {
+  --hc-empty-icon-bg: var(--hc-color-brand-50);
+  --hc-empty-icon-fg: var(--hc-color-action-primary);
+}
+.hc-empty--variant-error {
+  --hc-empty-icon-bg: var(--hc-color-status-error-bg);
+  --hc-empty-icon-fg: var(--hc-color-status-error-fg);
+}
+.hc-empty--variant-permission {
+  --hc-empty-icon-bg: var(--hc-color-status-warning-bg);
+  --hc-empty-icon-fg: var(--hc-color-status-warning-fg);
+}
+.hc-empty--variant-offline {
+  --hc-empty-icon-bg: var(--hc-color-bg-subtle);
+  --hc-empty-icon-fg: var(--hc-color-text-secondary);
+}
+
+/* ══════ ICON ══════════════════════════════════════════════════════ */
+
+.hc-empty__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width:  56px;
+  height: 56px;
+  border-radius: var(--hc-radius-full);
+  background: var(--hc-empty-icon-bg);
+  color:      var(--hc-empty-icon-fg);
+  flex-shrink: 0;
+}
+.hc-empty__icon svg {
+  width:  24px;
+  height: 24px;
+  display: block;
+}
+
+/* ══════ ILLUSTRATION ══════════════════════════════════════════════ */
+
+.hc-empty__illustration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width:  200px;
+  max-height: 160px;
+  margin-bottom: var(--hc-space-stack-md);
+}
+.hc-empty__illustration > svg,
+.hc-empty__illustration > img {
+  max-width:  100%;
+  max-height: 100%;
+  display: block;
+}
+
+/* ══════ TITLE ═════════════════════════════════════════════════════ */
+
+.hc-empty__title {
+  margin: 0;
+  margin-top: var(--hc-space-stack-md);
+  color: var(--hc-color-text-primary);
+
+  font-family: var(--hc-font-sans);
+  font-size:   var(--hc-font-size-20);       /* headingS — matches Card comfortable title */
+  font-weight: var(--hc-font-weight-semibold);
+  line-height: 1.4;
+}
+
+/* ══════ DESCRIPTION ═══════════════════════════════════════════════ */
+
+.hc-empty__description {
+  margin: 0;
+  margin-top: var(--hc-space-stack-xs);
+  color: var(--hc-color-text-tertiary);
+
+  font-family: var(--hc-font-sans);
+  font-size:   var(--hc-font-size-16);       /* body */
+  line-height: 1.5;
+}
+
+/* ══════ ACTIONS ═══════════════════════════════════════════════════ */
+
+.hc-empty__actions {
+  margin-top: var(--hc-space-stack-lg);
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--hc-space-inline-sm);
+}
+
+/* ══════ FOOTER ════════════════════════════════════════════════════ */
+
+.hc-empty__footer {
+  margin-top: var(--hc-space-stack-lg);
+  padding-top: var(--hc-space-stack-md);
+  border-top: 1px solid var(--hc-color-border-subtle);
+  color: var(--hc-color-text-tertiary);
+  font-size: var(--hc-font-size-14);
+  line-height: 1.5;
+}
+
+/* ══════ LOADING SKELETON ══════════════════════════════════════════ */
+
+.hc-empty--loading {
+  color: transparent;
+}
+
+.hc-empty__skeleton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--hc-space-stack-sm);
+  width: 100%;
+  max-width: var(--hc-empty-max-w);
+}
+
+.hc-empty__skeleton-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--hc-radius-full);
+  background: var(--hc-color-bg-subtle);
+  margin-bottom: var(--hc-space-stack-sm);
+  animation: hc-empty-pulse 1400ms ease-in-out infinite;
+}
+.hc-empty__skeleton-title {
+  height: 20px;
+  width: 60%;
+  border-radius: var(--hc-radius-chip);
+  background: var(--hc-color-bg-subtle);
+  animation: hc-empty-pulse 1400ms ease-in-out infinite;
+  animation-delay: 100ms;
+}
+.hc-empty__skeleton-desc {
+  height: 14px;
+  width: 80%;
+  border-radius: var(--hc-radius-chip);
+  background: var(--hc-color-bg-subtle);
+  animation: hc-empty-pulse 1400ms ease-in-out infinite;
+  animation-delay: 200ms;
+}
+
+@keyframes hc-empty-pulse {
+  0%,  100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+/* ══════ REDUCED MOTION ═══════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .hc-empty__skeleton-icon,
+  .hc-empty__skeleton-title,
+  .hc-empty__skeleton-desc {
+    animation-duration: 3500ms;
+  }
+}

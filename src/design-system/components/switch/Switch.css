@@ -1,0 +1,373 @@
+/* ─────────────────────────────────────────────────────────────────────
+ * HC1 Switch — styles
+ *
+ * Switch mirrors Checkbox and Radio in terms of row rhythm, typography,
+ * focus ring, hover cue, disabled and invalid treatment. The only new
+ * geometry is the pill-shaped track + circular thumb. Every value below
+ * is a CSS custom property from ../../tokens/css/variables.css. No hex,
+ * no raw pixels for color, no shadow literals — token references only.
+ *
+ * The native <input type="checkbox" role="switch"> stays in the DOM so
+ * keyboard (Space), form submission, and screen readers all work
+ * natively. role="switch" tells AT this is a two-state toggle, not a
+ * tri-state checkbox.
+ *
+ * Class model (BEM-ish, all prefixed with hc-switch):
+ *   .hc-switch                        — root label wrapper
+ *   .hc-switch--size-{sm|md|lg}
+ *   .hc-switch--checked               — on state
+ *   .hc-switch--disabled
+ *   .hc-switch--invalid
+ *   .hc-switch--required
+ *   .hc-switch--loading
+ *   .hc-switch--has-text              — root grows to fit text
+ *   .hc-switch__input                 — the native <input>
+ *   .hc-switch__indicator             — visual container (also .hc-switch__track)
+ *   .hc-switch__track                 — the pill (same node as indicator)
+ *   .hc-switch__thumb                 — the circular slider
+ *   .hc-switch__spinner               — loading spinner inside thumb
+ *   .hc-switch__text                  — label + description column
+ *   .hc-switch__label
+ *   .hc-switch__label-required        — the * marker
+ *   .hc-switch__description
+ * ─────────────────────────────────────────────────────────────────── */
+
+/* ══════ ROOT ══════════════════════════════════════════════════════ */
+
+.hc-switch {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--hc-space-inline-sm);
+  min-height: var(--hc-switch-row-md);
+  font-family: var(--hc-font-sans);
+  color: var(--hc-color-text-primary);
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.hc-switch--size-sm { min-height: var(--hc-switch-row-sm); gap: var(--hc-space-inline-sm); }
+.hc-switch--size-md { min-height: var(--hc-switch-row-md); gap: var(--hc-space-inline-sm); }
+.hc-switch--size-lg { min-height: var(--hc-switch-row-lg); gap: var(--hc-space-inline-md); }
+
+/* Bare (no text) — collapse row height so a Switch in a table cell
+   doesn't inject unnecessary vertical space. */
+.hc-switch:not(.hc-switch--has-text) {
+  min-height: 0;
+  align-items: center;
+}
+
+/* ══════ NATIVE INPUT (visually hidden but interactive) ══════════════ */
+
+.hc-switch__input {
+  /* Match the visible track so the input's hit target + focus ring both
+     sit exactly under the pill. Sized inline (not display:none) so
+     screen readers still see it as a real switch and native focus
+     behavior stays intact. */
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 0;
+  padding: 0;
+  width: var(--hc-switch-track-w-md);
+  height: var(--hc-switch-track-h-md);
+  opacity: 0;
+  cursor: inherit;
+}
+
+.hc-switch--size-sm .hc-switch__input {
+  width: var(--hc-switch-track-w-sm);
+  height: var(--hc-switch-track-h-sm);
+}
+.hc-switch--size-md .hc-switch__input {
+  width: var(--hc-switch-track-w-md);
+  height: var(--hc-switch-track-h-md);
+}
+.hc-switch--size-lg .hc-switch__input {
+  width: var(--hc-switch-track-w-lg);
+  height: var(--hc-switch-track-h-lg);
+}
+
+/* Align the native input over the visible track for rows with text so
+   the focus ring lands on the pill, not the row. Mirrors the same
+   vertical center calc the track uses. */
+.hc-switch--size-sm.hc-switch--has-text .hc-switch__input {
+  top: calc((var(--hc-switch-row-sm) - var(--hc-switch-track-h-sm)) / 2);
+}
+.hc-switch--size-md.hc-switch--has-text .hc-switch__input {
+  top: calc((var(--hc-switch-row-md) - var(--hc-switch-track-h-md)) / 2);
+}
+.hc-switch--size-lg.hc-switch--has-text .hc-switch__input {
+  top: calc((var(--hc-switch-row-lg) - var(--hc-switch-track-h-lg)) / 2);
+}
+
+/* ══════ TRACK (the visible pill) ═══════════════════════════════════ */
+
+.hc-switch__track,
+.hc-switch__indicator {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+
+  width: var(--hc-switch-track-w-md);
+  height: var(--hc-switch-track-h-md);
+  padding: 0;
+
+  border: 1px solid var(--hc-color-border-strong);
+  border-radius: var(--hc-radius-full);
+  background: var(--hc-color-bg-muted);
+
+  position: relative;
+
+  transition:
+    background-color var(--hc-duration-150) var(--hc-easing-standard),
+    border-color     var(--hc-duration-150) var(--hc-easing-standard);
+}
+
+.hc-switch--size-sm .hc-switch__track {
+  width: var(--hc-switch-track-w-sm);
+  height: var(--hc-switch-track-h-sm);
+}
+.hc-switch--size-md .hc-switch__track {
+  width: var(--hc-switch-track-w-md);
+  height: var(--hc-switch-track-h-md);
+}
+.hc-switch--size-lg .hc-switch__track {
+  width: var(--hc-switch-track-w-lg);
+  height: var(--hc-switch-track-h-lg);
+}
+
+/* Vertical alignment: for rows with text, the track sits centered on the
+   row so it optically aligns with the label's baseline. Uses the same
+   offset calc as Checkbox / Radio. */
+.hc-switch--has-text.hc-switch--size-sm .hc-switch__track {
+  margin-top: calc((var(--hc-switch-row-sm) - var(--hc-switch-track-h-sm)) / 2);
+}
+.hc-switch--has-text.hc-switch--size-md .hc-switch__track {
+  margin-top: calc((var(--hc-switch-row-md) - var(--hc-switch-track-h-md)) / 2);
+}
+.hc-switch--has-text.hc-switch--size-lg .hc-switch__track {
+  margin-top: calc((var(--hc-switch-row-lg) - var(--hc-switch-track-h-lg)) / 2);
+}
+
+/* ══════ THUMB (the sliding circle) ═════════════════════════════════ */
+
+.hc-switch__thumb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: var(--hc-switch-thumb-md);
+  height: var(--hc-switch-thumb-md);
+
+  border-radius: var(--hc-radius-full);
+  background: var(--hc-color-bg-default);
+  color: var(--hc-color-text-tertiary);   /* spinner tint when loading */
+  box-shadow: var(--hc-shadow-xs);
+
+  /* Position the thumb at the left edge of the track with a 2px inset
+     so the thumb doesn't touch the pill border. transform slides it to
+     the right on the checked state. */
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  transform: translate(0, -50%);
+
+  transition:
+    transform       var(--hc-duration-150) var(--hc-easing-standard),
+    background-color var(--hc-duration-150) var(--hc-easing-standard),
+    color            var(--hc-duration-150) var(--hc-easing-standard);
+}
+
+.hc-switch--size-sm .hc-switch__thumb {
+  width: var(--hc-switch-thumb-sm);
+  height: var(--hc-switch-thumb-sm);
+}
+.hc-switch--size-md .hc-switch__thumb {
+  width: var(--hc-switch-thumb-md);
+  height: var(--hc-switch-thumb-md);
+}
+.hc-switch--size-lg .hc-switch__thumb {
+  width: var(--hc-switch-thumb-lg);
+  height: var(--hc-switch-thumb-lg);
+}
+
+/* Translate distance for the checked state = track width − thumb width
+   − 4px (2px inset on each side). Painted per size so the thumb always
+   sits flush inside the pill in both positions. */
+.hc-switch--checked.hc-switch--size-sm .hc-switch__thumb {
+  transform: translate(
+    calc(var(--hc-switch-track-w-sm) - var(--hc-switch-thumb-sm) - 4px),
+    -50%
+  );
+}
+.hc-switch--checked.hc-switch--size-md .hc-switch__thumb {
+  transform: translate(
+    calc(var(--hc-switch-track-w-md) - var(--hc-switch-thumb-md) - 4px),
+    -50%
+  );
+}
+.hc-switch--checked.hc-switch--size-lg .hc-switch__thumb {
+  transform: translate(
+    calc(var(--hc-switch-track-w-lg) - var(--hc-switch-thumb-lg) - 4px),
+    -50%
+  );
+}
+
+/* ══════ STATES ═════════════════════════════════════════════════════ */
+
+/* Hover — brand border cue on off; slight track darken. */
+.hc-switch:hover .hc-switch__track {
+  border-color: var(--hc-color-action-primary);
+}
+
+/* Focus — 2px brand outline around the track via adjacent sibling. */
+.hc-switch__input:focus-visible ~ .hc-switch__track,
+.hc-switch__input:focus-visible ~ .hc-switch__indicator {
+  outline: 2px solid var(--hc-color-border-focus);
+  outline-offset: 2px;
+}
+
+/* Checked (on) — brand-filled track; thumb stays white. */
+.hc-switch--checked .hc-switch__track {
+  background: var(--hc-color-action-primary);
+  border-color: var(--hc-color-action-primary);
+}
+.hc-switch--checked:hover .hc-switch__track {
+  background: var(--hc-color-action-primary-hover);
+  border-color: var(--hc-color-action-primary-hover);
+}
+.hc-switch--checked .hc-switch__thumb {
+  background: var(--hc-color-text-inverse);
+  color: var(--hc-color-action-primary);
+}
+
+/* Invalid — red border/track; red focus ring; red fill when checked. */
+.hc-switch--invalid .hc-switch__track {
+  border-color: var(--hc-color-status-error-fg);
+}
+.hc-switch--invalid.hc-switch--checked .hc-switch__track {
+  background: var(--hc-color-status-error-fg);
+  border-color: var(--hc-color-status-error-fg);
+}
+.hc-switch--invalid .hc-switch__input:focus-visible ~ .hc-switch__track {
+  outline-color: var(--hc-color-status-error-fg);
+}
+.hc-switch--invalid:hover .hc-switch__track {
+  border-color: var(--hc-color-status-error-fg);
+}
+.hc-switch--invalid.hc-switch--checked:hover .hc-switch__track {
+  background: color-mix(in oklab, var(--hc-color-status-error-fg) 88%, black);
+  border-color: color-mix(in oklab, var(--hc-color-status-error-fg) 88%, black);
+}
+
+/* Disabled — dim the row; kill hover cues; faded track. */
+.hc-switch--disabled {
+  cursor: not-allowed;
+  color: var(--hc-color-text-disabled);
+}
+.hc-switch--disabled .hc-switch__track {
+  background: var(--hc-color-bg-subtle);
+  border-color: var(--hc-color-border-subtle);
+}
+.hc-switch--disabled.hc-switch--checked .hc-switch__track {
+  background: var(--hc-color-action-primary-disabled);
+  border-color: var(--hc-color-action-primary-disabled);
+}
+.hc-switch--disabled:hover .hc-switch__track {
+  background: var(--hc-color-bg-subtle);
+  border-color: var(--hc-color-border-subtle);
+}
+.hc-switch--disabled.hc-switch--checked:hover .hc-switch__track {
+  background: var(--hc-color-action-primary-disabled);
+  border-color: var(--hc-color-action-primary-disabled);
+}
+.hc-switch--disabled .hc-switch__thumb {
+  box-shadow: none;
+  background: var(--hc-color-bg-default);
+}
+.hc-switch--disabled .hc-switch__label,
+.hc-switch--disabled .hc-switch__description {
+  color: var(--hc-color-text-disabled);
+}
+
+/* Loading — same visual dim as disabled + spinning glyph in the thumb. */
+.hc-switch--loading {
+  cursor: progress;
+}
+.hc-switch--loading .hc-switch__thumb {
+  color: var(--hc-color-action-primary);
+}
+.hc-switch--loading.hc-switch--checked .hc-switch__thumb {
+  color: var(--hc-color-action-primary);
+}
+
+/* ══════ TEXT COLUMN ════════════════════════════════════════════════ */
+
+.hc-switch__text {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--hc-space-stack-xs);
+  min-width: 0;
+  padding-top: 0;
+}
+
+.hc-switch__label {
+  color: var(--hc-color-text-primary);
+  font-weight: var(--hc-font-weight-medium);
+  line-height: 1.4;
+  display: inline;
+}
+
+.hc-switch--size-sm .hc-switch__label { font-size: var(--hc-font-size-12); line-height: var(--hc-switch-row-sm); }
+.hc-switch--size-md .hc-switch__label { font-size: var(--hc-font-size-14); line-height: var(--hc-switch-row-md); }
+.hc-switch--size-lg .hc-switch__label { font-size: var(--hc-font-size-16); line-height: var(--hc-switch-row-lg); }
+
+/* When a description is present, revert to normal leading so the
+   two-line stack reads correctly. */
+.hc-switch__text:has(.hc-switch__description) .hc-switch__label {
+  line-height: 1.4;
+}
+
+.hc-switch__label-required {
+  color: var(--hc-color-status-error-fg);
+  margin-left: 4px;
+  font-weight: var(--hc-font-weight-semibold);
+}
+
+.hc-switch__description {
+  color: var(--hc-color-text-tertiary);
+  font-weight: var(--hc-font-weight-regular);
+  line-height: 1.5;
+  display: block;
+}
+
+.hc-switch--size-sm .hc-switch__description { font-size: var(--hc-font-size-12); }
+.hc-switch--size-md .hc-switch__description { font-size: var(--hc-font-size-12); }
+.hc-switch--size-lg .hc-switch__description { font-size: var(--hc-font-size-14); }
+
+/* ══════ SPINNER ═══════════════════════════════════════════════════ */
+
+.hc-switch__spinner {
+  display: block;
+  color: currentColor;
+  animation: hc-switch-spin 800ms linear infinite;
+}
+
+@keyframes hc-switch-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ══════ REDUCED MOTION ════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .hc-switch__track,
+  .hc-switch__indicator,
+  .hc-switch__thumb {
+    transition-duration: 0ms;
+  }
+  .hc-switch__spinner {
+    animation-duration: 2400ms;
+  }
+}

@@ -1,0 +1,17 @@
+@import "tailwindcss";
+@import "@hc1/design-system/styles";
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: var(--hc-font-sans);
+  color: var(--hc-color-text-primary);
+  background: var(--hc-color-bg-default);
+}
+
+.tabular-nums-hc1 {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}

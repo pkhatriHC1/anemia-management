@@ -1,0 +1,257 @@
+/* ─────────────────────────────────────────────────────────────────────
+ * HC1 Toast — styles
+ *
+ * Toast is the canonical transient-feedback primitive. Every value
+ * below is a CSS custom property from ../../tokens/css/variables.css.
+ * No hex, no raw pixels for color, no bespoke shadows — token
+ * references only.
+ *
+ * The Toast feels like a floating Alert inside a Card: the surface is
+ * an elevated white card with a variant-colored left accent bar and a
+ * variant-tinted icon. Content typography follows Alert; spacing rhythm
+ * follows Card.
+ *
+ * Class model (BEM-ish, all prefixed with hc-toast):
+ *   .hc-toast                            — root <div>
+ *   .hc-toast--variant-{name}            — 1 of 5 variants
+ *   .hc-toast--state-{visible|closing}   — lifecycle
+ *   .hc-toast__icon                      — leading-icon slot
+ *   .hc-toast__body                      — middle stack (title + description + actions)
+ *   .hc-toast__title                     — title (semibold)
+ *   .hc-toast__description               — description (regular)
+ *   .hc-toast__actions                   — primary-action row
+ *   .hc-toast__close                     — trailing "✕" <button>
+ * ─────────────────────────────────────────────────────────────────── */
+
+/* ══════ ROOT ══════════════════════════════════════════════════════ */
+
+.hc-toast {
+  /* Defaults — overridden by the per-variant selectors below. */
+  --hc-toast-accent:      var(--hc-color-status-info-fg);
+  --hc-toast-icon-color:  var(--hc-color-status-info-icon);
+
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--hc-space-inline-md);           /* 12 — matches Alert outer gap */
+
+  padding:
+    var(--hc-space-stack-md)                /* 12 vertical — matches Alert */
+    var(--hc-space-inline-lg);              /* 16 horizontal — matches Card comfortable */
+  padding-left: calc(var(--hc-space-inline-lg) + 4px);   /* room for the 4px accent stripe */
+
+  background:    var(--hc-color-bg-elevated);
+  color:         var(--hc-color-text-primary);
+  border: 1px solid var(--hc-color-border-default);
+  border-radius: var(--hc-radius-surface);  /* 12 — matches Card + Dialog + Alert */
+  box-shadow:    var(--hc-elevation-overlay);
+
+  font-family: var(--hc-font-sans);
+  text-align: left;
+  min-width: 320px;
+  max-width: 420px;
+  box-sizing: border-box;
+
+  /* Enter animation: slide-up + fade. Matches motion.overlayEnter. */
+  animation: hc-toast-enter var(--hc-duration-250) var(--hc-easing-entrance) both;
+}
+
+/* Left accent stripe — variant-colored bar that ties the surface to
+   the semantic tone without tinting the whole card. */
+.hc-toast::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  background: var(--hc-toast-accent);
+  border-top-left-radius: var(--hc-radius-surface);
+  border-bottom-left-radius: var(--hc-radius-surface);
+}
+
+/* ══════ VARIANTS ═════════════════════════════════════════════════
+ * Only two vars change per variant: the accent stripe color and the
+ * icon color. The body typography stays neutral so the message reads
+ * against the same background across every tone. */
+
+.hc-toast--variant-info {
+  --hc-toast-accent:     var(--hc-color-status-info-fg);
+  --hc-toast-icon-color: var(--hc-color-blue-600);
+}
+.hc-toast--variant-success {
+  --hc-toast-accent:     var(--hc-color-status-success-fg);
+  --hc-toast-icon-color: var(--hc-color-green-600);
+}
+.hc-toast--variant-warning {
+  --hc-toast-accent:     var(--hc-color-status-warning-fg);
+  --hc-toast-icon-color: var(--hc-color-yellow-600);
+}
+.hc-toast--variant-danger {
+  --hc-toast-accent:     var(--hc-color-action-danger);
+  --hc-toast-icon-color: var(--hc-color-red-600);
+}
+.hc-toast--variant-neutral {
+  --hc-toast-accent:     var(--hc-color-border-strong);
+  --hc-toast-icon-color: var(--hc-color-text-tertiary);
+}
+
+/* ══════ STATE ════════════════════════════════════════════════════ */
+
+.hc-toast--state-closing {
+  animation: hc-toast-exit var(--hc-duration-150) var(--hc-easing-exit) forwards;
+  pointer-events: none;
+}
+
+/* ══════ ICON ══════════════════════════════════════════════════════ */
+
+.hc-toast__icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--hc-toast-icon-color);
+
+  /* Baseline-align with the title — same trick as Alert.Icon. */
+  margin-top: 2px;
+}
+.hc-toast__icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+/* ══════ BODY ══════════════════════════════════════════════════════ */
+
+.hc-toast__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--hc-space-stack-xs);            /* 4 — Title / Description / Actions cadence */
+}
+
+/* ══════ TITLE ═════════════════════════════════════════════════════ */
+
+.hc-toast__title {
+  margin: 0;
+  font-family: var(--hc-font-sans);
+  font-size:   var(--hc-font-size-14);
+  font-weight: var(--hc-font-weight-semibold);
+  line-height: 1.4;
+  color: var(--hc-color-text-primary);
+}
+
+/* ══════ DESCRIPTION ═══════════════════════════════════════════════ */
+
+.hc-toast__description {
+  margin: 0;
+  font-family: var(--hc-font-sans);
+  font-size:   var(--hc-font-size-14);
+  line-height: 1.5;
+  color: var(--hc-color-text-secondary);
+  min-width: 0;
+}
+
+/* If the description is a paragraph — remove default UA margins. */
+.hc-toast__description p {
+  margin: 0;
+}
+.hc-toast__description p + p {
+  margin-top: var(--hc-space-stack-xs);
+}
+
+/* ══════ ACTIONS ═══════════════════════════════════════════════════ */
+
+.hc-toast__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--hc-space-inline-sm);           /* 8 — matches Alert / Card / Dialog */
+  margin-top: var(--hc-space-stack-sm);     /* 8 — separate from the description */
+  min-width: 0;
+}
+
+/* ══════ CLOSE ═════════════════════════════════════════════════════ */
+
+.hc-toast__close {
+  appearance: none;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--hc-color-text-tertiary);
+  cursor: pointer;
+  flex-shrink: 0;
+
+  width:  24px;
+  height: 24px;
+  border-radius: var(--hc-radius-full);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 14px;
+  line-height: 1;
+
+  /* Tug back into the padding so the close sits closer to the corner. */
+  margin-right: calc(-1 * var(--hc-space-inline-sm) / 2);
+  margin-top:   calc(-1 * 2px);
+
+  transition:
+    background-color var(--hc-duration-150) var(--hc-easing-standard),
+    color            var(--hc-duration-150) var(--hc-easing-standard);
+}
+
+.hc-toast__close:hover {
+  background: var(--hc-color-bg-subtle);
+  color:      var(--hc-color-text-primary);
+}
+
+.hc-toast__close:focus { outline: none; }
+.hc-toast__close:focus-visible {
+  outline: 2px solid var(--hc-color-border-focus);
+  outline-offset: 1px;
+}
+
+/* ══════ ANIMATIONS ════════════════════════════════════════════════
+ * Enter: slide-up 8px + fade. Exit: slide-down 4px + fade. Both share
+ * the overlay motion durations so Toast enter/exit feels the same as
+ * Dialog and Popover surfaces. */
+
+@keyframes hc-toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes hc-toast-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+}
+
+/* ══════ REDUCED MOTION ═══════════════════════════════════════════
+ * Under prefers-reduced-motion, animations resolve instantly. The
+ * Toast still appears and dismisses — it just doesn't slide. */
+@media (prefers-reduced-motion: reduce) {
+  .hc-toast {
+    animation-duration: 1ms;
+  }
+  .hc-toast--state-closing {
+    animation-duration: 1ms;
+  }
+  .hc-toast__close {
+    transition-duration: 0ms;
+  }
+}

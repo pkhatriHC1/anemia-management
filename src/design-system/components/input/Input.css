@@ -1,0 +1,392 @@
+/* ─────────────────────────────────────────────────────────────────────
+ * HC1 Input — styles
+ *
+ * Every value below is a CSS custom property from ../../tokens/css/variables.css.
+ * No hex, no raw pixels, no shadow literals — token references only.
+ * The one exception is the fixed 1px border width used everywhere in
+ * the design system and the 20px minimum clear/spinner target width.
+ *
+ * Class model (BEM-ish, all prefixed with hc-input to prevent collisions):
+ *   .hc-input-field                 — outermost wrapper: label + frame + footer
+ *   .hc-input-field--full-width     — grow to parent width
+ *   .hc-input-field__label-row      — label + optional/required marker
+ *   .hc-input-field__label          — the label text
+ *   .hc-input-field__marker         — required (*) or (Optional) marker
+ *   .hc-input-field__marker--required
+ *   .hc-input-field__marker--optional
+ *   .hc-input-field__footer         — helper / message + counter
+ *   .hc-input-field__helper         — helper text
+ *   .hc-input-field__message        — validation message
+ *   .hc-input-field__message--error
+ *   .hc-input-field__message--warning
+ *   .hc-input-field__message--success
+ *   .hc-input-field__counter        — character counter
+ *   .hc-input-field__counter--over  — over the maxLength
+ *
+ *   .hc-input                       — the visual frame (row)
+ *   .hc-input--size-{xs|sm|md|lg|xl}
+ *   .hc-input--disabled             — mirrors :disabled on the child
+ *   .hc-input--readonly             — mirrors [readonly] on the child
+ *   .hc-input--loading
+ *   .hc-input--error
+ *   .hc-input--warning
+ *   .hc-input--success
+ *   .hc-input__control              — the native <input>
+ *   .hc-input__icon                 — leading or trailing icon slot
+ *   .hc-input__icon--leading
+ *   .hc-input__icon--trailing
+ *   .hc-input__clear                — the clear (✕) button
+ *   .hc-input__spinner              — the loading spinner
+ * ─────────────────────────────────────────────────────────────────── */
+
+/* ══════ FIELD WRAPPER ══════════════════════════════════════════════ */
+
+.hc-input-field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--hc-space-stack-xs);
+  font-family: var(--hc-font-sans);
+  color: var(--hc-color-text-primary);
+  min-width: 0;
+}
+.hc-input-field--full-width {
+  display: flex;
+  width: 100%;
+}
+
+/* Label row ────────────────────────────────────────────────────────── */
+
+.hc-input-field__label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--hc-space-inline-sm);
+  min-width: 0;
+}
+
+.hc-input-field__label {
+  font-size: var(--hc-font-size-14);
+  line-height: 1.4;
+  font-weight: var(--hc-font-weight-semibold);
+  color: var(--hc-color-text-primary);
+  cursor: pointer;
+}
+
+.hc-input-field--disabled .hc-input-field__label,
+.hc-input-field--disabled .hc-input-field__marker {
+  color: var(--hc-color-text-disabled);
+  cursor: not-allowed;
+}
+
+.hc-input-field__marker {
+  font-size: var(--hc-font-size-12);
+  font-weight: var(--hc-font-weight-regular);
+  color: var(--hc-color-text-tertiary);
+  line-height: 1;
+}
+.hc-input-field__marker--required {
+  color: var(--hc-color-status-error-fg);
+  font-weight: var(--hc-font-weight-semibold);
+  margin-left: var(--hc-space-4);
+}
+
+/* Footer (helper / message / counter) ──────────────────────────────── */
+
+.hc-input-field__footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--hc-space-inline-md);
+  min-width: 0;
+}
+
+.hc-input-field__helper,
+.hc-input-field__message {
+  font-size: var(--hc-font-size-12);
+  line-height: 1.4;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.hc-input-field__helper {
+  color: var(--hc-color-text-tertiary);
+}
+.hc-input-field__message--error   { color: var(--hc-color-status-error-fg); }
+.hc-input-field__message--warning { color: var(--hc-color-status-warning-fg); }
+.hc-input-field__message--success { color: var(--hc-color-status-success-fg); }
+
+.hc-input-field__counter {
+  font-size: var(--hc-font-size-12);
+  line-height: 1.4;
+  color: var(--hc-color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.hc-input-field__counter--over {
+  color: var(--hc-color-status-error-fg);
+  font-weight: var(--hc-font-weight-semibold);
+}
+
+/* ══════ INPUT FRAME (row) ═════════════════════════════════════════ */
+
+.hc-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+
+  border: 1px solid var(--hc-color-border-default);
+  border-radius: var(--hc-radius-control);
+  background: var(--hc-color-bg-default);
+  color: var(--hc-color-text-primary);
+
+  font-family: var(--hc-font-sans);
+  line-height: 1;
+
+  cursor: text;
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    background-color var(--hc-duration-150) var(--hc-easing-standard),
+    border-color     var(--hc-duration-150) var(--hc-easing-standard),
+    color            var(--hc-duration-150) var(--hc-easing-standard),
+    outline-color    var(--hc-duration-150) var(--hc-easing-standard);
+}
+
+/* Hover — only when interactive */
+.hc-input:hover:not(.hc-input--disabled):not(.hc-input--readonly):not(.hc-input--error):not(.hc-input--warning):not(.hc-input--success) {
+  border-color: var(--hc-color-border-strong);
+}
+
+/* Focus — the one universal treatment: 2px outline, 2px offset, brand.
+   Matches Button. focus-within so we catch focus on the inner input. */
+.hc-input:focus-within {
+  outline: 2px solid var(--hc-color-border-focus);
+  outline-offset: 2px;
+  border-color: var(--hc-color-border-focus);
+}
+
+/* ══════ SIZES ═════════════════════════════════════════════════════ */
+
+.hc-input--size-xs {
+  height: 20px;
+  padding: 0 var(--hc-space-inline-xs);
+  gap: var(--hc-space-inline-xs);
+  font-size: var(--hc-font-size-12);
+  border-radius: var(--hc-radius-4);
+}
+.hc-input--size-sm {
+  height: 28px;
+  padding: 0 var(--hc-space-inline-sm);
+  gap: var(--hc-space-inline-xs);
+  font-size: var(--hc-font-size-12);
+}
+.hc-input--size-md {
+  height: 36px;
+  padding: 0 var(--hc-space-inline-md);
+  gap: var(--hc-space-inline-sm);
+  font-size: var(--hc-font-size-14);
+}
+.hc-input--size-lg {
+  height: 44px;
+  padding: 0 var(--hc-space-inline-md);
+  gap: var(--hc-space-inline-sm);
+  font-size: var(--hc-font-size-16);
+}
+.hc-input--size-xl {
+  height: 56px;
+  padding: 0 var(--hc-space-inline-lg);
+  gap: var(--hc-space-inline-md);
+  font-size: var(--hc-font-size-18);
+}
+
+/* ══════ CONTROL (the actual <input>) ══════════════════════════════ */
+
+.hc-input__control {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 1;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.hc-input__control::placeholder {
+  color: var(--hc-color-text-tertiary);
+  opacity: 1;
+}
+.hc-input__control:disabled {
+  cursor: not-allowed;
+  color: var(--hc-color-text-disabled);
+  -webkit-text-fill-color: var(--hc-color-text-disabled); /* Safari */
+}
+.hc-input__control:read-only {
+  cursor: default;
+}
+
+/* Kill browser cruft on search and number inputs so the visual is ours. */
+.hc-input__control::-webkit-search-decoration,
+.hc-input__control::-webkit-search-cancel-button,
+.hc-input__control::-webkit-search-results-button,
+.hc-input__control::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.hc-input__control[type="number"]::-webkit-outer-spin-button,
+.hc-input__control[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.hc-input__control[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* ══════ ICONS ═════════════════════════════════════════════════════ */
+
+.hc-input__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--hc-color-text-tertiary);
+  pointer-events: none; /* icons are decorative; consumers pass buttons if interactive */
+}
+.hc-input__icon svg { display: block; }
+
+.hc-input--size-xs .hc-input__icon svg { width: 12px; height: 12px; }
+.hc-input--size-sm .hc-input__icon svg { width: 14px; height: 14px; }
+.hc-input--size-md .hc-input__icon svg { width: 16px; height: 16px; }
+.hc-input--size-lg .hc-input__icon svg { width: 20px; height: 20px; }
+.hc-input--size-xl .hc-input__icon svg { width: 24px; height: 24px; }
+
+/* ══════ CLEAR BUTTON ══════════════════════════════════════════════ */
+
+.hc-input__clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: var(--hc-color-text-tertiary);
+  cursor: pointer;
+  border-radius: var(--hc-radius-full);
+  transition:
+    background-color var(--hc-duration-150) var(--hc-easing-standard),
+    color            var(--hc-duration-150) var(--hc-easing-standard);
+}
+.hc-input__clear:hover {
+  background: var(--hc-color-bg-subtle);
+  color: var(--hc-color-text-primary);
+}
+.hc-input__clear:active {
+  background: var(--hc-color-bg-muted);
+}
+.hc-input__clear:focus-visible {
+  outline: 2px solid var(--hc-color-border-focus);
+  outline-offset: 1px;
+}
+.hc-input__clear svg { display: block; }
+
+.hc-input--size-xs .hc-input__clear { width: 16px; height: 16px; }
+.hc-input--size-sm .hc-input__clear { width: 20px; height: 20px; }
+.hc-input--size-md .hc-input__clear { width: 22px; height: 22px; }
+.hc-input--size-lg .hc-input__clear { width: 24px; height: 24px; }
+.hc-input--size-xl .hc-input__clear { width: 28px; height: 28px; }
+
+.hc-input--size-xs .hc-input__clear svg { width: 10px; height: 10px; }
+.hc-input--size-sm .hc-input__clear svg { width: 12px; height: 12px; }
+.hc-input--size-md .hc-input__clear svg { width: 14px; height: 14px; }
+.hc-input--size-lg .hc-input__clear svg { width: 16px; height: 16px; }
+.hc-input--size-xl .hc-input__clear svg { width: 18px; height: 18px; }
+
+/* ══════ SPINNER ═══════════════════════════════════════════════════ */
+
+.hc-input__spinner {
+  display: inline-block;
+  flex-shrink: 0;
+  border: 2px solid var(--hc-color-border-default);
+  border-top-color: var(--hc-color-action-primary);
+  border-radius: var(--hc-radius-full);
+  animation: hc-input-spin 900ms linear infinite;
+}
+.hc-input--size-xs .hc-input__spinner { width: 10px; height: 10px; border-width: 1.5px; }
+.hc-input--size-sm .hc-input__spinner { width: 12px; height: 12px; }
+.hc-input--size-md .hc-input__spinner { width: 14px; height: 14px; }
+.hc-input--size-lg .hc-input__spinner { width: 18px; height: 18px; }
+.hc-input--size-xl .hc-input__spinner { width: 22px; height: 22px; border-width: 2.5px; }
+
+@keyframes hc-input-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ══════ STATE MODIFIERS ═══════════════════════════════════════════ */
+
+/* Disabled — mirror the child's :disabled with a class so the frame
+   picks up the muted look without a functional selector on the child. */
+.hc-input--disabled {
+  background: var(--hc-color-bg-subtle);
+  border-color: var(--hc-color-border-subtle);
+  color: var(--hc-color-text-disabled);
+  cursor: not-allowed;
+}
+.hc-input--disabled .hc-input__icon,
+.hc-input--disabled .hc-input__control::placeholder {
+  color: var(--hc-color-text-disabled);
+}
+
+/* Read-only — filled surface, not the same as disabled: user can focus
+   and select the text. */
+.hc-input--readonly {
+  background: var(--hc-color-bg-subtle);
+  border-color: var(--hc-color-border-subtle);
+}
+
+/* Validation frames — border color matches status. Focus ring keeps the
+   status color too so error frames don't "unerror" on focus. */
+.hc-input--error   { border-color: var(--hc-color-status-error-fg); }
+.hc-input--warning { border-color: var(--hc-color-status-warning-fg); }
+.hc-input--success { border-color: var(--hc-color-status-success-fg); }
+
+.hc-input--error:focus-within {
+  border-color: var(--hc-color-status-error-fg);
+  outline-color: var(--hc-color-status-error-fg);
+}
+.hc-input--warning:focus-within {
+  border-color: var(--hc-color-status-warning-fg);
+  outline-color: var(--hc-color-status-warning-fg);
+}
+.hc-input--success:focus-within {
+  border-color: var(--hc-color-status-success-fg);
+  outline-color: var(--hc-color-status-success-fg);
+}
+
+/* Give the leading icon a status color when the field is invalidated. */
+.hc-input--error   .hc-input__icon { color: var(--hc-color-status-error-fg); }
+.hc-input--warning .hc-input__icon { color: var(--hc-color-status-warning-fg); }
+.hc-input--success .hc-input__icon { color: var(--hc-color-status-success-fg); }
+
+/* Loading — cursor cue; the spinner sits in the trailing slot. */
+.hc-input--loading {
+  cursor: progress;
+}
+.hc-input--loading .hc-input__control {
+  cursor: progress;
+}
+
+/* ══════ REDUCED MOTION ════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .hc-input                { transition-duration: 0ms; }
+  .hc-input__clear         { transition-duration: 0ms; }
+  .hc-input__spinner       { animation-duration: 2500ms; }
+}

@@ -1,0 +1,141 @@
+/* ─────────────────────────────────────────────────────────────────────
+ * HC1 Skeleton — styles
+ *
+ * Skeleton is the canonical loading-placeholder primitive. Every value
+ * below is a CSS custom property from ../../tokens/css/variables.css.
+ * No hex, no raw pixels for color, no bespoke shadows.
+ *
+ * The shimmer is a subtle 200%-wide gradient that sweeps left to right.
+ * The base is `bg.subtle` (quiet on every HC1 background) and the
+ * highlight is `bg.muted` (a hair brighter). Under
+ * prefers-reduced-motion the animation is disabled entirely and the
+ * skeleton settles on the base surface.
+ *
+ * Class model (BEM-ish, all prefixed with hc-skeleton):
+ *   .hc-skeleton                     — root <span>
+ *   .hc-skeleton--variant-{name}     — sets default height + radius
+ *   .hc-skeleton--animated           — shimmer running
+ *   .hc-skeleton--static             — no animation
+ *   .hc-skeleton--last               — last bar of a `lines` group
+ *   .hc-skeleton-group               — wrapper for stacked `lines`
+ * ─────────────────────────────────────────────────────────────── */
+
+/* ══════ ROOT ══════════════════════════════════════════════════════ */
+
+.hc-skeleton {
+  display: inline-block;
+  vertical-align: middle;
+  box-sizing: border-box;
+  min-width: 0;
+
+  /* Base surface — quiet on every HC1 background. */
+  background-color: var(--hc-color-bg-subtle);
+
+  /* Shimmer highlight is layered as a background-image on top of the
+     base color. The image is transparent under prefers-reduced-motion
+     (see below). */
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--hc-color-bg-muted) 50%,
+    transparent 100%
+  );
+  background-repeat: no-repeat;
+  background-size: 200% 100%;
+  background-position: 200% 0;
+
+  /* Inherit paragraph text color = no text will ever render inside a
+     Skeleton, but if a consumer accidentally passes children they will
+     inherit currentColor and not clash with the shimmer. */
+  color: transparent;
+
+  /* Prevent selection — you can't select a shimmer. */
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ══════ VARIANTS ═══════════════════════════════════════════════════
+ * Each variant sets default width + height + border-radius. Inline
+ * styles from React override these when the consumer passes `width`,
+ * `height`, or `radius`.
+ * ─────────────────────────────────────────────────────────────── */
+
+.hc-skeleton--variant-text {
+  width:  100%;
+  height: 14px;
+  border-radius: var(--hc-radius-chip);
+}
+
+.hc-skeleton--variant-title {
+  width:  60%;
+  height: 24px;
+  border-radius: var(--hc-radius-chip);
+}
+
+.hc-skeleton--variant-circle {
+  width:  40px;
+  height: 40px;
+  border-radius: var(--hc-radius-full);
+  /* Circles usually sit next to text baselines; align to text baseline
+     rather than middle so avatars line up with their labels. */
+  vertical-align: baseline;
+}
+
+.hc-skeleton--variant-rectangle {
+  width:  100%;
+  height: 100px;
+  border-radius: 0;
+}
+
+.hc-skeleton--variant-rounded {
+  width:  100%;
+  height: 100px;
+  border-radius: var(--hc-radius-control);
+}
+
+/* ══════ ANIMATION ═════════════════════════════════════════════════ */
+
+.hc-skeleton--animated {
+  animation: hc-skeleton-shimmer 1400ms linear infinite;
+}
+
+.hc-skeleton--static {
+  /* No animation — keep the shimmer layer visible but frozen. */
+  animation: none;
+  background-image: none;
+}
+
+@keyframes hc-skeleton-shimmer {
+  0%   { background-position:  200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ══════ LINES GROUP ═══════════════════════════════════════════════
+ * When `lines > 1` is passed on a text/title variant, the component
+ * renders a stack. The outer wrapper handles the vertical rhythm.
+ * ─────────────────────────────────────────────────────────────── */
+
+.hc-skeleton-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hc-space-stack-sm);         /* 8 — same rhythm as body text */
+  width: 100%;
+  min-width: 0;
+}
+
+.hc-skeleton-group > .hc-skeleton {
+  display: block;
+}
+
+/* ══════ REDUCED MOTION ═══════════════════════════════════════════
+ * Disable the shimmer entirely and hide the gradient layer so nothing
+ * moves. The base surface stays visible.
+ * ─────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .hc-skeleton--animated,
+  .hc-skeleton--static {
+    animation: none;
+    background-image: none;
+  }
+}

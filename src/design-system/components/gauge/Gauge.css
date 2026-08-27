@@ -1,0 +1,53 @@
+/* ─────────────────────────────────────────────────────────────────────
+ * Gauge — radial arc score primitive.
+ *
+ * Diameter is passed via inline width on the SVG; this stylesheet only
+ * owns the wrapper layout and the arc/text CSS custom properties.
+ * ───────────────────────────────────────────────────────────────────── */
+
+.hc-gauge {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.hc-gauge__svg {
+  display: block;
+}
+
+.hc-gauge__track {
+  fill: none;
+  stroke: var(--hc-color-neutral-300);
+  stroke-linecap: round;
+}
+
+.hc-gauge__arc {
+  fill: none;
+  stroke: var(--hc-gauge-arc-color);
+  stroke-linecap: round;
+  transition: stroke-dasharray 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.hc-gauge__value {
+  font-weight: 700;
+  fill: var(--hc-gauge-arc-color);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-family: var(--hc-font-sans);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hc-gauge__arc {
+    transition: none;
+  }
+}
+
+/* Tier-scoped arc color. Consumed by both .hc-gauge__arc and
+   .hc-gauge__value via the shared --hc-gauge-arc-color variable. */
+.hc-gauge--tier-critical { --hc-gauge-arc-color: var(--hc-color-red-500); }
+.hc-gauge--tier-high     { --hc-gauge-arc-color: var(--hc-color-accent-700); }
+.hc-gauge--tier-medium   { --hc-gauge-arc-color: var(--hc-color-accent-700); }
+.hc-gauge--tier-low      { --hc-gauge-arc-color: var(--hc-color-neutral-600); }
+.hc-gauge--tier-normal   { --hc-gauge-arc-color: var(--hc-color-green-500); }

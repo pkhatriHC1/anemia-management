@@ -1,0 +1,299 @@
+/* ─────────────────────────────────────────────────────────────────────
+ * HC1 Alert — styles
+ *
+ * Alert is the canonical inline-feedback primitive. Every value below
+ * is a CSS custom property from ../../tokens/css/variables.css. No
+ * hex, no raw pixels for color, no bespoke shadows — token references
+ * only.
+ *
+ * The variant × appearance matrix is 5 × 3 = 15 combinations. Each
+ * one sets three CSS variables (--hc-alert-bg, --hc-alert-fg,
+ * --hc-alert-border) and one icon variable (--hc-alert-icon-color).
+ * The base .hc-alert selector consumes those variables, so the same
+ * layout code applies to every combination.
+ *
+ * Class model (BEM-ish, all prefixed with hc-alert):
+ *   .hc-alert                          — root <div>
+ *   .hc-alert--variant-{name}          — 1 of 5 variants
+ *   .hc-alert--appearance-{name}       — 1 of 3 appearances
+ *   .hc-alert--disabled
+ *   .hc-alert__icon                    — leading-icon slot
+ *   .hc-alert__body                    — middle stack (title + description + actions)
+ *   .hc-alert__title                   — title (semibold)
+ *   .hc-alert__description             — description (regular)
+ *   .hc-alert__actions                 — action row
+ *   .hc-alert__close                   — trailing "✕" <button>
+ * ─────────────────────────────────────────────────────────────────── */
+
+/* ══════ ROOT ══════════════════════════════════════════════════════ */
+
+.hc-alert {
+  /* Defaults — overridden by the variant × appearance selectors below. */
+  --hc-alert-bg:          var(--hc-color-status-info-bg);
+  --hc-alert-fg:          var(--hc-color-status-info-fg);
+  --hc-alert-border:      var(--hc-color-status-info-border);
+  --hc-alert-icon-color:  var(--hc-color-status-info-icon);
+
+  display: flex;
+  align-items: flex-start;
+  gap: var(--hc-space-inline-md);          /* 12 — matches Card.Header outer gap */
+
+  padding:
+    var(--hc-space-stack-md)               /* 12 vertical */
+    var(--hc-space-inline-lg);             /* 16 horizontal — matches Card comfortable */
+
+  background:    var(--hc-alert-bg);
+  color:         var(--hc-alert-fg);
+  border: 1px solid var(--hc-alert-border);
+  border-radius: var(--hc-radius-surface); /* 12 — matches Card + Dialog */
+
+  font-family: var(--hc-font-sans);
+  text-align: left;
+  min-width: 0;
+  box-sizing: border-box;
+
+  transition:
+    background-color var(--hc-duration-150) var(--hc-easing-standard),
+    border-color     var(--hc-duration-150) var(--hc-easing-standard),
+    color            var(--hc-duration-150) var(--hc-easing-standard),
+    opacity          var(--hc-duration-150) var(--hc-easing-standard);
+}
+
+/* ══════ VARIANT × APPEARANCE ═════════════════════════════════════════
+ * 5 variants × 3 appearances = 15 combinations. Each combination sets
+ * exactly four CSS variables. Icon color always follows the variant's
+ * *solid* ink so an icon on a soft warning still reads as its true
+ * warning color.
+ * ─────────────────────────────────────────────────────────────────── */
+
+/* ─── SOFT ─────────────────────────────────────────────────────── */
+
+.hc-alert--appearance-soft.hc-alert--variant-info {
+  --hc-alert-bg:         var(--hc-color-status-info-bg);
+  --hc-alert-fg:         var(--hc-color-status-info-fg);
+  --hc-alert-border:     var(--hc-color-status-info-border);
+  --hc-alert-icon-color: var(--hc-color-blue-600);
+}
+.hc-alert--appearance-soft.hc-alert--variant-success {
+  --hc-alert-bg:         var(--hc-color-status-success-bg);
+  --hc-alert-fg:         var(--hc-color-status-success-fg);
+  --hc-alert-border:     var(--hc-color-status-success-border);
+  --hc-alert-icon-color: var(--hc-color-green-600);
+}
+.hc-alert--appearance-soft.hc-alert--variant-warning {
+  --hc-alert-bg:         var(--hc-color-status-warning-bg);
+  --hc-alert-fg:         var(--hc-color-status-warning-fg);
+  --hc-alert-border:     var(--hc-color-status-warning-border);
+  --hc-alert-icon-color: var(--hc-color-yellow-600);
+}
+.hc-alert--appearance-soft.hc-alert--variant-danger {
+  --hc-alert-bg:         var(--hc-color-status-error-bg);
+  --hc-alert-fg:         var(--hc-color-status-error-fg);
+  --hc-alert-border:     var(--hc-color-status-error-border);
+  --hc-alert-icon-color: var(--hc-color-red-600);
+}
+.hc-alert--appearance-soft.hc-alert--variant-neutral {
+  --hc-alert-bg:         var(--hc-color-bg-subtle);
+  --hc-alert-fg:         var(--hc-color-text-secondary);
+  --hc-alert-border:     var(--hc-color-border-default);
+  --hc-alert-icon-color: var(--hc-color-text-tertiary);
+}
+
+/* ─── OUTLINE ──────────────────────────────────────────────────── */
+
+.hc-alert--appearance-outline.hc-alert--variant-info {
+  --hc-alert-bg:         var(--hc-color-bg-default);
+  --hc-alert-fg:         var(--hc-color-status-info-fg);
+  --hc-alert-border:     var(--hc-color-status-info-border);
+  --hc-alert-icon-color: var(--hc-color-blue-600);
+}
+.hc-alert--appearance-outline.hc-alert--variant-success {
+  --hc-alert-bg:         var(--hc-color-bg-default);
+  --hc-alert-fg:         var(--hc-color-status-success-fg);
+  --hc-alert-border:     var(--hc-color-status-success-border);
+  --hc-alert-icon-color: var(--hc-color-green-600);
+}
+.hc-alert--appearance-outline.hc-alert--variant-warning {
+  --hc-alert-bg:         var(--hc-color-bg-default);
+  --hc-alert-fg:         var(--hc-color-status-warning-fg);
+  --hc-alert-border:     var(--hc-color-status-warning-border);
+  --hc-alert-icon-color: var(--hc-color-yellow-600);
+}
+.hc-alert--appearance-outline.hc-alert--variant-danger {
+  --hc-alert-bg:         var(--hc-color-bg-default);
+  --hc-alert-fg:         var(--hc-color-status-error-fg);
+  --hc-alert-border:     var(--hc-color-status-error-border);
+  --hc-alert-icon-color: var(--hc-color-red-600);
+}
+.hc-alert--appearance-outline.hc-alert--variant-neutral {
+  --hc-alert-bg:         var(--hc-color-bg-default);
+  --hc-alert-fg:         var(--hc-color-text-secondary);
+  --hc-alert-border:     var(--hc-color-border-default);
+  --hc-alert-icon-color: var(--hc-color-text-tertiary);
+}
+
+/* ─── SOLID ────────────────────────────────────────────────────── */
+
+.hc-alert--appearance-solid.hc-alert--variant-info {
+  --hc-alert-bg:         var(--hc-color-status-info-fg);
+  --hc-alert-fg:         var(--hc-color-text-inverse);
+  --hc-alert-border:     var(--hc-color-status-info-fg);
+  --hc-alert-icon-color: var(--hc-color-text-inverse);
+}
+.hc-alert--appearance-solid.hc-alert--variant-success {
+  --hc-alert-bg:         var(--hc-color-status-success-fg);
+  --hc-alert-fg:         var(--hc-color-text-inverse);
+  --hc-alert-border:     var(--hc-color-status-success-fg);
+  --hc-alert-icon-color: var(--hc-color-text-inverse);
+}
+.hc-alert--appearance-solid.hc-alert--variant-warning {
+  --hc-alert-bg:         var(--hc-color-status-warning-fg);
+  --hc-alert-fg:         var(--hc-color-text-inverse);
+  --hc-alert-border:     var(--hc-color-status-warning-fg);
+  --hc-alert-icon-color: var(--hc-color-text-inverse);
+}
+.hc-alert--appearance-solid.hc-alert--variant-danger {
+  --hc-alert-bg:         var(--hc-color-action-danger);
+  --hc-alert-fg:         var(--hc-color-text-inverse);
+  --hc-alert-border:     var(--hc-color-action-danger);
+  --hc-alert-icon-color: var(--hc-color-text-inverse);
+}
+.hc-alert--appearance-solid.hc-alert--variant-neutral {
+  --hc-alert-bg:         var(--hc-color-action-secondary);
+  --hc-alert-fg:         var(--hc-color-text-inverse);
+  --hc-alert-border:     var(--hc-color-action-secondary);
+  --hc-alert-icon-color: var(--hc-color-text-inverse);
+}
+
+/* ══════ ICON ══════════════════════════════════════════════════════ */
+
+.hc-alert__icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--hc-alert-icon-color);
+
+  /* Sit visually aligned with the title's baseline — the title is 16/24
+     so a 20px icon parked at the top of the row reads centered on the
+     first line. */
+  margin-top: 2px;
+}
+.hc-alert__icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+/* ══════ BODY ══════════════════════════════════════════════════════ */
+
+.hc-alert__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--hc-space-stack-xs);        /* 4 — Title / Description / Actions cadence */
+}
+
+/* ══════ TITLE ═════════════════════════════════════════════════════ */
+
+.hc-alert__title {
+  margin: 0;
+  font-family: var(--hc-font-sans);
+  font-size:   var(--hc-font-size-16);
+  font-weight: var(--hc-font-weight-semibold);
+  line-height: 1.4;
+  color: inherit;
+}
+
+/* ══════ DESCRIPTION ═══════════════════════════════════════════════ */
+
+.hc-alert__description {
+  margin: 0;
+  font-family: var(--hc-font-sans);
+  font-size:   var(--hc-font-size-14);
+  line-height: 1.5;
+  color: inherit;
+  opacity: 0.92;                        /* soften a hair below the title */
+  min-width: 0;
+}
+
+/* If the description is a paragraph — remove default UA margins. */
+.hc-alert__description p {
+  margin: 0;
+}
+.hc-alert__description p + p {
+  margin-top: var(--hc-space-stack-xs);
+}
+
+/* ══════ ACTIONS ═══════════════════════════════════════════════════ */
+
+.hc-alert__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--hc-space-inline-sm);       /* 8 — matches Card.Actions + Dialog.Actions */
+  margin-top: var(--hc-space-stack-sm); /* 8 — separate from the description */
+  min-width: 0;
+}
+
+/* ══════ CLOSE ═════════════════════════════════════════════════════ */
+
+.hc-alert__close {
+  appearance: none;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  width:  24px;
+  height: 24px;
+  border-radius: var(--hc-radius-full);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 14px;
+  line-height: 1;
+
+  /* Tug back into the padding so the close sits closer to the corner,
+     matching Card / Dialog X placement. */
+  margin-right: calc(-1 * var(--hc-space-inline-sm) / 2);
+  margin-top:   calc(-1 * 2px);
+
+  transition:
+    background-color var(--hc-duration-150) var(--hc-easing-standard);
+}
+
+.hc-alert__close:hover:not(:disabled) {
+  background: color-mix(in oklab, currentColor 12%, transparent);
+}
+
+.hc-alert__close:focus { outline: none; }
+.hc-alert__close:focus-visible {
+  outline: 2px solid var(--hc-color-border-focus);
+  outline-offset: 1px;
+}
+
+.hc-alert__close:disabled {
+  cursor: not-allowed;
+}
+
+/* ══════ DISABLED ══════════════════════════════════════════════════ */
+
+.hc-alert--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ══════ REDUCED MOTION ═══════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .hc-alert,
+  .hc-alert__close {
+    transition-duration: 0ms;
+  }
+}

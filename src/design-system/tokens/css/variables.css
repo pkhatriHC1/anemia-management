@@ -1,0 +1,578 @@
+/* ─────────────────────────────────────────────────────────────────────
+ * HC1 Design Tokens — CSS custom properties.
+ *
+ * Mirrors the TS token modules in ../primitives and ../aliases.
+ * Kept in lock-step by hand today; a build step will generate this file
+ * from the TS source when the tokens package moves to npm.
+ *
+ * NAMING
+ *   Primitives: --hc-color-<family>-<step>, --hc-space-<n>, etc.
+ *   Aliases:    --hc-color-bg-*, --hc-text-*, --hc-action-*, --hc-status-*, etc.
+ *
+ * SCOPE
+ *   Applied to :root — so the playground and any future consumer that
+ *   imports this file can read tokens via var(--hc-*).
+ * ─────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* ═══ PRIMITIVE COLORS ═══════════════════════════════════════════
+     v0.9.1 — values sourced verbatim from the approved HC1 platform
+     palette (ClinicalIQ/tokens.json v3.0-draft). See BRAND_AUDIT.md
+     for reasoning. Anchor at 500 in every family. 950 slot holds the
+     same value as 900 as a placeholder pending design definition. */
+
+  --hc-color-white: #FFFFFF;
+  --hc-color-black: #000000;
+
+  /* brand — HC1 platform primary. #0D7782 anchor. */
+  --hc-color-brand-50:  #DAEEF0;
+  --hc-color-brand-100: #B4DDE2;
+  --hc-color-brand-200: #85C6CD;
+  --hc-color-brand-300: #4EAAB4;
+  --hc-color-brand-400: #248892;
+  --hc-color-brand-500: #0D7782;
+  --hc-color-brand-600: #086068;
+  --hc-color-brand-700: #044A50;
+  --hc-color-brand-800: #023138;
+  --hc-color-brand-900: #011B20;
+  --hc-color-brand-950: #011B20; /* placeholder — v3 has no 950 */
+
+  /* accent — amber. CTA + severity high/medium. #B75E0B anchor
+     (contrast-adjusted from the previous bright #F58126 to carry
+     white text at ≥4.5:1). Bright shades (300/400) remain available
+     for identity uses (chart series, decorative accents) but must
+     not carry white text. */
+  --hc-color-accent-50:  #FDECD1;
+  --hc-color-accent-100: #FBD79E;
+  --hc-color-accent-200: #F7B95E;
+  --hc-color-accent-300: #F1972E;
+  --hc-color-accent-400: #E17E15;
+  --hc-color-accent-500: #B75E0B;
+  --hc-color-accent-600: #914A08;
+  --hc-color-accent-700: #703906;
+  --hc-color-accent-800: #4A2504;
+  --hc-color-accent-900: #291402;
+  --hc-color-accent-950: #291402; /* placeholder — v3 has no 950 */
+
+  /* violet — RESERVED FOR AI MOMENTS ONLY.
+     Consumed exclusively through --hc-color-ai-*. Do not use violet
+     for a supporting color, a decorative accent, or any non-AI role.
+     See FOUNDATION.md §8. */
+  --hc-color-violet-50:  #E7DEF8;
+  --hc-color-violet-100: #D0BFF1;
+  --hc-color-violet-200: #B29AE7;
+  --hc-color-violet-300: #9575DD;
+  --hc-color-violet-400: #7A5CD5;
+  --hc-color-violet-500: #6C4DD1;
+  --hc-color-violet-600: #563AB0;
+  --hc-color-violet-700: #422B8B;
+  --hc-color-violet-800: #2D1D63;
+  --hc-color-violet-900: #1A1140;
+  --hc-color-violet-950: #1A1140; /* placeholder — v3 has no 950 */
+
+  /* neutral — cool-neutral bluish greys (~215° hue at low L, near-0
+     chroma at high L). Chosen to unify with the teal brand and read
+     clinical rather than consumer-warm. */
+  --hc-color-neutral-50:  #F4F6F8;
+  --hc-color-neutral-100: #EBEDF0;
+  --hc-color-neutral-200: #DBDEE3;
+  --hc-color-neutral-300: #C1C5CC;
+  --hc-color-neutral-400: #9EA3AB;
+  --hc-color-neutral-500: #767C84;
+  --hc-color-neutral-600: #565C66;
+  --hc-color-neutral-700: #3A3F48;
+  --hc-color-neutral-800: #21252B;
+  --hc-color-neutral-900: #0E1116;
+  --hc-color-neutral-950: #0E1116; /* placeholder — v3 has no 950 */
+
+  /* green — success. #2E7028 anchor (contrast-adjusted from previous
+     #388032 to clear WCAG AA — previous failed at ~4.1:1). */
+  --hc-color-green-50:  #DDF0D9;
+  --hc-color-green-100: #BFDFB9;
+  --hc-color-green-200: #93C48C;
+  --hc-color-green-300: #64A65D;
+  --hc-color-green-400: #3F8837;
+  --hc-color-green-500: #2E7028;
+  --hc-color-green-600: #235920;
+  --hc-color-green-700: #1A4318;
+  --hc-color-green-800: #112C10;
+  --hc-color-green-900: #071607;
+  --hc-color-green-950: #071607; /* placeholder — v3 has no 950 */
+
+  /* yellow — BACKGROUND ONLY (medium-severity surface tint).
+     Text on yellow surfaces MUST use accent-700, never a yellow shade.
+     v3 defines only 50–400; darker slots are placeholders = 400
+     pending design definition. */
+  --hc-color-yellow-50:  #FDF0C9;
+  --hc-color-yellow-100: #FBDC85;
+  --hc-color-yellow-200: #F5C443;
+  --hc-color-yellow-300: #E3AD19;
+  --hc-color-yellow-400: #B78810;
+  --hc-color-yellow-500: #B78810; /* placeholder — yellow is bg-only */
+  --hc-color-yellow-600: #B78810; /* placeholder */
+  --hc-color-yellow-700: #B78810; /* placeholder */
+  --hc-color-yellow-800: #B78810; /* placeholder */
+  --hc-color-yellow-900: #B78810; /* placeholder */
+  --hc-color-yellow-950: #B78810; /* placeholder */
+
+  /* red — critical severity + danger action. #B00A2F anchor.
+     Medical UI convention. */
+  --hc-color-red-50:  #F9D9DE;
+  --hc-color-red-100: #F0AEB8;
+  --hc-color-red-200: #E67888;
+  --hc-color-red-300: #D24358;
+  --hc-color-red-400: #B71C3A;
+  --hc-color-red-500: #B00A2F;
+  --hc-color-red-600: #8F0725;
+  --hc-color-red-700: #6E051D;
+  --hc-color-red-800: #4A0313;
+  --hc-color-red-900: #260109;
+  --hc-color-red-950: #260109; /* placeholder — v3 has no 950 */
+
+  /* blue — SUPPORTING UTILITY, NOT A BRAND OR SEMANTIC ROLE.
+     v3 does not define a blue scale (info feedback uses primary
+     teal instead). Retained here for chart series, data-viz, and
+     any consumer that needs a blue distinct from the brand teal.
+     Do not promote to a semantic role until v3 defines its meaning.
+     See BRAND_AUDIT.md §8.6. */
+  --hc-color-blue-50:  #EBF2FE;
+  --hc-color-blue-100: #CFDFFB;
+  --hc-color-blue-200: #A5C2F7;
+  --hc-color-blue-300: #77A2F1;
+  --hc-color-blue-400: #4A82E9;
+  --hc-color-blue-500: #2263DB;
+  --hc-color-blue-600: #1B4EB0;
+  --hc-color-blue-700: #143B84;
+  --hc-color-blue-800: #0D2757;
+  --hc-color-blue-900: #07152F;
+  --hc-color-blue-950: #030A18;
+
+  /* ═══ PRIMITIVE SPACING ══════════════════════════════════════════ */
+  --hc-space-0:   0px;
+  --hc-space-4:   4px;
+  --hc-space-8:   8px;
+  --hc-space-12:  12px;
+  --hc-space-16:  16px;
+  --hc-space-20:  20px;
+  --hc-space-24:  24px;
+  --hc-space-32:  32px;
+  --hc-space-40:  40px;
+  --hc-space-48:  48px;
+  --hc-space-64:  64px;
+  --hc-space-80:  80px;
+  --hc-space-96:  96px;
+  --hc-space-128: 128px;
+
+  /* ═══ PRIMITIVE RADIUS ═══════════════════════════════════════════ */
+  --hc-radius-0:    0px;
+  --hc-radius-4:    4px;
+  --hc-radius-8:    8px;
+  --hc-radius-12:   12px;
+  --hc-radius-16:   16px;
+  --hc-radius-24:   24px;
+  --hc-radius-full: 9999px;
+
+  /* ═══ PRIMITIVE TYPOGRAPHY ═══════════════════════════════════════ */
+  --hc-font-sans: "Source Sans Pro", system-ui, -apple-system, sans-serif;
+  --hc-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --hc-font-size-10: 10px;
+  --hc-font-size-12: 12px;
+  --hc-font-size-14: 14px;
+  --hc-font-size-16: 16px;
+  --hc-font-size-18: 18px;
+  --hc-font-size-20: 20px;
+  --hc-font-size-24: 24px;
+  --hc-font-size-30: 30px;
+  --hc-font-size-36: 36px;
+  --hc-font-size-48: 48px;
+  --hc-font-size-64: 64px;
+
+  --hc-font-weight-regular:  400;
+  --hc-font-weight-medium:   500;
+  --hc-font-weight-semibold: 600;
+  --hc-font-weight-bold:     700;
+
+  /* ═══ PRIMITIVE ELEVATION ════════════════════════════════════════ */
+  --hc-shadow-none: none;
+  --hc-shadow-xs:   0 1px 2px rgba(15, 20, 25, 0.06);
+  --hc-shadow-sm:   0 1px 3px rgba(15, 20, 25, 0.08), 0 1px 2px rgba(15, 20, 25, 0.04);
+  --hc-shadow-md:   0 4px 6px rgba(15, 20, 25, 0.08), 0 2px 4px rgba(15, 20, 25, 0.04);
+  --hc-shadow-lg:   0 10px 15px rgba(15, 20, 25, 0.10), 0 4px 6px rgba(15, 20, 25, 0.05);
+  --hc-shadow-xl:   0 20px 25px rgba(15, 20, 25, 0.12), 0 10px 10px rgba(15, 20, 25, 0.04);
+
+  /* ═══ PRIMITIVE MOTION ═══════════════════════════════════════════ */
+  --hc-duration-150: 150ms;
+  --hc-duration-250: 250ms;
+  --hc-duration-350: 350ms;
+
+  --hc-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --hc-easing-entrance: cubic-bezier(0, 0, 0.2, 1);
+  --hc-easing-exit:     cubic-bezier(0.4, 0, 1, 1);
+  --hc-easing-linear:   linear;
+
+  /* ═══ PRIMITIVE OPACITY ══════════════════════════════════════════ */
+  --hc-opacity-0:   0;
+  --hc-opacity-5:   0.05;
+  --hc-opacity-10:  0.1;
+  --hc-opacity-20:  0.2;
+  --hc-opacity-30:  0.3;
+  --hc-opacity-40:  0.4;
+  --hc-opacity-50:  0.5;
+  --hc-opacity-60:  0.6;
+  --hc-opacity-70:  0.7;
+  --hc-opacity-80:  0.8;
+  --hc-opacity-90:  0.9;
+  --hc-opacity-100: 1;
+
+  /* ═══ PRIMITIVE Z-INDEX ══════════════════════════════════════════ */
+  --hc-z-base:        0;
+  --hc-z-dropdown:    10;
+  --hc-z-sticky:      20;
+  --hc-z-overlay:     30;
+  --hc-z-popover:     40;
+  --hc-z-tooltip:     50;
+  --hc-z-modal-scrim: 60;
+  --hc-z-modal:       70;
+  --hc-z-toast:       80;
+  --hc-z-max:         999;
+
+  /* ═══ ALIAS: BACKGROUND ══════════════════════════════════════════ */
+  --hc-color-bg-default:  var(--hc-color-white);
+  --hc-color-bg-surface:  var(--hc-color-white);        /* v3: surface = white on page grey */
+  --hc-color-bg-elevated: var(--hc-color-white);
+  --hc-color-bg-subtle:   var(--hc-color-neutral-100);
+  --hc-color-bg-muted:    var(--hc-color-neutral-200);
+  --hc-color-bg-inverse:  var(--hc-color-neutral-900);
+  --hc-color-bg-page:     var(--hc-color-neutral-50);   /* subtle grey behind surfaces */
+  --hc-color-bg-scrim:    rgba(14, 17, 22, 0.5);        /* overlay scrim — grey.900 @ 50% */
+
+  /* ═══ ALIAS: BORDER ══════════════════════════════════════════════ */
+  --hc-color-border-subtle:  var(--hc-color-neutral-100);
+  --hc-color-border-default: var(--hc-color-neutral-200);
+  --hc-color-border-strong:  var(--hc-color-neutral-300);
+  --hc-color-border-focus:   var(--hc-color-brand-500);
+  --hc-color-border-inverse: var(--hc-color-neutral-700);
+
+  /* ═══ ALIAS: TEXT ════════════════════════════════════════════════ */
+  --hc-color-text-primary:    var(--hc-color-neutral-900);
+  --hc-color-text-secondary:  var(--hc-color-neutral-700);
+  --hc-color-text-tertiary:   var(--hc-color-neutral-500);
+  --hc-color-text-disabled:   var(--hc-color-neutral-400);
+  --hc-color-text-inverse:    var(--hc-color-white);
+  --hc-color-text-link:       var(--hc-color-brand-600);
+  --hc-color-text-link-hover: var(--hc-color-brand-700);
+  --hc-color-text-on-solid:   var(--hc-color-white);    /* text on any solid brand/action fill */
+
+  /* ═══ ALIAS: ACTION ══════════════════════════════════════════════ */
+  --hc-color-action-primary:          var(--hc-color-brand-500);
+  --hc-color-action-primary-hover:    var(--hc-color-brand-600);
+  --hc-color-action-primary-active:   var(--hc-color-brand-700);
+  --hc-color-action-primary-disabled: var(--hc-color-neutral-200);
+  --hc-color-action-secondary:        var(--hc-color-neutral-900);
+  --hc-color-action-accent:           var(--hc-color-accent-500);
+  --hc-color-action-danger:           var(--hc-color-red-500);
+
+  /* ═══ ALIAS: CTA (execute / irreversible actions) ════════════════
+     Reserved for actions that cannot be undone by clicking again:
+     Publish, Send, Approve, Finalize, Delete. Never the default.
+     Amber. Anchor is contrast-adjusted to carry white text. */
+  --hc-color-cta-default: var(--hc-color-accent-500);
+  --hc-color-cta-hover:   var(--hc-color-accent-600);
+  --hc-color-cta-active:  var(--hc-color-accent-700);
+  --hc-color-cta-border:  var(--hc-color-accent-600);
+
+  /* ═══ ALIAS: AI (AI-generated content moments only) ══════════════
+     Reserved for surfaces where the product is showing a clinician
+     a genuine AI-generated result: suggested care plan, anomaly
+     detected, summarized report. Never decorative, never brand
+     chrome. See FOUNDATION.md §8. */
+  --hc-color-ai-default:       var(--hc-color-violet-500);
+  --hc-color-ai-hover:         var(--hc-color-violet-600);
+  --hc-color-ai-subtle-bg:     var(--hc-color-violet-50);
+  --hc-color-ai-gradient-from: var(--hc-color-violet-700);
+  --hc-color-ai-gradient-via:  var(--hc-color-violet-500);
+  --hc-color-ai-gradient-to:   var(--hc-color-brand-300);
+
+  /* ═══ ALIAS: SEVERITY (state-scoped medical status) ══════════════
+     Five tiers. Each carries text + bg + bg-subtle + border. Icon
+     color = text color. Medical convention: never use color alone
+     — pair with an icon glyph for colorblind accessibility.
+     Distinct from status (event-scoped feedback) — do not merge. */
+
+  /* critical — most severe patient/data state */
+  --hc-color-severity-critical-text:      var(--hc-color-red-500);
+  --hc-color-severity-critical-bg:        var(--hc-color-red-50);
+  --hc-color-severity-critical-bg-subtle: var(--hc-color-red-50);   /* v3 025 tint dropped */
+  --hc-color-severity-critical-border:    var(--hc-color-red-100);
+
+  /* high */
+  --hc-color-severity-high-text:      var(--hc-color-accent-700);
+  --hc-color-severity-high-bg:        var(--hc-color-accent-100);
+  --hc-color-severity-high-bg-subtle: var(--hc-color-accent-50);
+  --hc-color-severity-high-border:    var(--hc-color-accent-200);
+
+  /* medium — bg is yellow (yellow bg-only, text uses accent-700) */
+  --hc-color-severity-medium-text:      var(--hc-color-accent-700);
+  --hc-color-severity-medium-bg:        var(--hc-color-yellow-50);
+  --hc-color-severity-medium-bg-subtle: var(--hc-color-yellow-50);
+  --hc-color-severity-medium-border:    var(--hc-color-yellow-100);
+
+  /* low — neutral tones (not a warning, but noted) */
+  --hc-color-severity-low-text:      var(--hc-color-neutral-600);
+  --hc-color-severity-low-bg:        var(--hc-color-neutral-200);
+  --hc-color-severity-low-bg-subtle: var(--hc-color-neutral-100);
+  --hc-color-severity-low-border:    var(--hc-color-neutral-300);
+
+  /* normal — everything is fine (green) */
+  --hc-color-severity-normal-text:      var(--hc-color-green-500);
+  --hc-color-severity-normal-bg:        var(--hc-color-green-50);
+  --hc-color-severity-normal-bg-subtle: var(--hc-color-green-50);
+  --hc-color-severity-normal-border:    var(--hc-color-green-100);
+
+  /* ═══ ALIAS: STATUS (event-scoped feedback) ══════════════════════
+     Four events: success / info / warning / error. Each fg + bg +
+     border + icon. Info uses primary teal (v3 model) — blue scale
+     is a supporting utility, not a semantic role. Distinct from
+     severity — do not merge. */
+
+  --hc-color-status-success-fg:     var(--hc-color-green-500);
+  --hc-color-status-success-bg:     var(--hc-color-green-50);
+  --hc-color-status-success-border: var(--hc-color-green-100);
+
+  --hc-color-status-warning-fg:     var(--hc-color-accent-700);
+  --hc-color-status-warning-bg:     var(--hc-color-yellow-50);
+  --hc-color-status-warning-border: var(--hc-color-yellow-100);
+
+  --hc-color-status-error-fg:       var(--hc-color-red-500);
+  --hc-color-status-error-bg:       var(--hc-color-red-50);
+  --hc-color-status-error-border:   var(--hc-color-red-100);
+
+  --hc-color-status-info-fg:        var(--hc-color-brand-500);   /* v3: info = primary teal */
+  --hc-color-status-info-bg:        var(--hc-color-brand-50);
+  --hc-color-status-info-border:    var(--hc-color-brand-100);
+
+  /* ═══ ALIAS: SPACING ═════════════════════════════════════════════ */
+  --hc-space-inline-xs: var(--hc-space-4);
+  --hc-space-inline-sm: var(--hc-space-8);
+  --hc-space-inline-md: var(--hc-space-12);
+  --hc-space-inline-lg: var(--hc-space-16);
+  --hc-space-inline-xl: var(--hc-space-24);
+
+  --hc-space-stack-xs:  var(--hc-space-4);
+  --hc-space-stack-sm:  var(--hc-space-8);
+  --hc-space-stack-md:  var(--hc-space-12);
+  --hc-space-stack-lg:  var(--hc-space-16);
+  --hc-space-stack-xl:  var(--hc-space-24);
+
+  --hc-space-section-sm: var(--hc-space-32);
+  --hc-space-section-md: var(--hc-space-48);
+  --hc-space-section-lg: var(--hc-space-64);
+  --hc-space-section-xl: var(--hc-space-96);
+
+  /* ═══ ALIAS: RADIUS ══════════════════════════════════════════════ */
+  --hc-radius-chip:     var(--hc-radius-4);
+  --hc-radius-control:  var(--hc-radius-8);
+  --hc-radius-surface:  var(--hc-radius-12);
+  --hc-radius-hero:     var(--hc-radius-16);
+  --hc-radius-circular: var(--hc-radius-full);
+
+  /* ═══ ALIAS: ELEVATION ═══════════════════════════════════════════ */
+  --hc-elevation-surface: var(--hc-shadow-none);
+  --hc-elevation-raised:  var(--hc-shadow-xs);
+  --hc-elevation-popover: var(--hc-shadow-md);
+  --hc-elevation-overlay: var(--hc-shadow-lg);
+  --hc-elevation-modal:   var(--hc-shadow-xl);
+
+  /* ═══ DIALOG (component) ═════════════════════════════════════════
+     The canonical overlay primitive. Panel widths and scrim tint live
+     here so components/dialog/Dialog.css can reference them without
+     re-authoring numbers. Fullscreen leaves inline sizing to CSS. */
+  --hc-dialog-size-sm: 400px;
+  --hc-dialog-size-md: 560px;
+  --hc-dialog-size-lg: 720px;
+  --hc-dialog-size-xl: 960px;
+
+  /* Derived from bg.inverse at 50% opacity so the scrim follows the
+     neutral ramp instead of a raw rgba literal. */
+  --hc-dialog-scrim:
+    color-mix(in oklab, var(--hc-color-bg-inverse) 50%, transparent);
+
+  /* ═══ DRAWER (component) ═════════════════════════════════════════
+     The canonical side-panel primitive. Widths live here so
+     components/drawer/Drawer.css can reference them without
+     re-authoring numbers. Fullscreen leaves inline sizing to CSS.
+     Height is always 100dvh. The scrim reuses --hc-dialog-scrim so
+     Drawer and Dialog read as one overlay family. */
+  --hc-drawer-size-sm: 360px;
+  --hc-drawer-size-md: 480px;
+  --hc-drawer-size-lg: 640px;
+
+  /* Shadow beneath a sticky drawer header/footer when the body scrolls.
+     Same tone as the Table sticky-header shadow so the family stays
+     visually cohesive. */
+  --hc-drawer-sticky-shadow: 0 1px 2px rgba(15, 20, 25, 0.08);
+
+  /* ═══ CHECKBOX (component) ═══════════════════════════════════════
+     Control box + row height ladder for the canonical Checkbox. Row
+     heights match the Button + Input size ladder (sm / md / lg) so an
+     inline Checkbox on the same row as a Button sits perfectly flush.
+     The box is a small square inside the row; the row provides
+     comfortable click target and vertical alignment with adjacent
+     text/inputs. Icon size is the check/dash glyph inside the box. */
+  --hc-checkbox-control-sm: 14px;
+  --hc-checkbox-control-md: 16px;
+  --hc-checkbox-control-lg: 20px;
+  --hc-checkbox-row-sm:     28px;
+  --hc-checkbox-row-md:     36px;
+  --hc-checkbox-row-lg:     44px;
+  --hc-checkbox-icon-sm:    10px;
+  --hc-checkbox-icon-md:    12px;
+  --hc-checkbox-icon-lg:    16px;
+
+  /* ═══ RADIO (component) ══════════════════════════════════════════
+     Radio reuses Checkbox's control + row ladder verbatim so the two
+     controls live side-by-side in forms without breaking vertical
+     rhythm. These vars alias the checkbox ladder; if we ever want
+     Radio to diverge, we do it here first — never inside Radio.css. */
+  --hc-radio-control-sm: var(--hc-checkbox-control-sm);
+  --hc-radio-control-md: var(--hc-checkbox-control-md);
+  --hc-radio-control-lg: var(--hc-checkbox-control-lg);
+  --hc-radio-row-sm:     var(--hc-checkbox-row-sm);
+  --hc-radio-row-md:     var(--hc-checkbox-row-md);
+  --hc-radio-row-lg:     var(--hc-checkbox-row-lg);
+
+  /* Inner filled dot when checked — half the control size, so a
+     16px box paints an 8px dot. */
+  --hc-radio-dot-sm: 6px;
+  --hc-radio-dot-md: 8px;
+  --hc-radio-dot-lg: 10px;
+
+  /* ═══ SWITCH (component) ═════════════════════════════════════════
+     Row heights alias the Checkbox ladder verbatim so a Switch on the
+     same row as any other form control sits flush. Track is a squat
+     pill (~1.75× wider than tall); thumb is a circle that glides
+     across on toggle. If we ever want Switch to diverge on row height,
+     we retint the alias here — not inside Switch.css. */
+  --hc-switch-row-sm:     var(--hc-checkbox-row-sm);
+  --hc-switch-row-md:     var(--hc-checkbox-row-md);
+  --hc-switch-row-lg:     var(--hc-checkbox-row-lg);
+
+  --hc-switch-track-w-sm: 24px;
+  --hc-switch-track-w-md: 28px;
+  --hc-switch-track-w-lg: 36px;
+
+  --hc-switch-track-h-sm: 14px;
+  --hc-switch-track-h-md: 16px;
+  --hc-switch-track-h-lg: 20px;
+
+  --hc-switch-thumb-sm:   10px;
+  --hc-switch-thumb-md:   12px;
+  --hc-switch-thumb-lg:   16px;
+
+  /* ═══ TEXTAREA (component) ═══════════════════════════════════════
+     Multi-line text input — the vertical companion to Input. Reuses
+     Input's font size + horizontal padding + border + state palette
+     verbatim. Textarea-specific: vertical padding (paddingY per size),
+     rendered line height per size (so minRows / maxRows compute to
+     stable px heights), and default row bounds. */
+  --hc-textarea-pad-y-sm: var(--hc-space-8);
+  --hc-textarea-pad-y-md: var(--hc-space-8);
+  --hc-textarea-pad-y-lg: var(--hc-space-12);
+
+  --hc-textarea-line-sm:  20px;
+  --hc-textarea-line-md:  22px;
+  --hc-textarea-line-lg:  24px;
+
+  /* ═══ TOOLTIP (component) ════════════════════════════════════════
+     Lightweight contextual hint primitive. Dark inverted surface so
+     tooltips read as members of the overlay family without competing
+     with product content. Arrow geometry, spacing, and delays live
+     here so downstream themes can retint the family without editing
+     component CSS. */
+  --hc-tooltip-bg:         var(--hc-color-bg-inverse);
+  --hc-tooltip-fg:         var(--hc-color-text-inverse);
+  --hc-tooltip-border:     var(--hc-color-border-inverse);
+  --hc-tooltip-radius:     var(--hc-radius-control);
+  --hc-tooltip-shadow:     var(--hc-shadow-md);
+  --hc-tooltip-max-width:  260px;
+
+  --hc-tooltip-pad-y:      var(--hc-space-4);
+  --hc-tooltip-pad-x:      var(--hc-space-8);
+  --hc-tooltip-offset:     8px;
+
+  --hc-tooltip-arrow-size: 8px;
+  --hc-tooltip-arrow-half: 4px;
+
+  --hc-tooltip-delay-show: 200ms;
+  --hc-tooltip-delay-hide: 100ms;
+
+  /* ═══ POPOVER (component) ════════════════════════════════════════
+     Interactive floating surface primitive. Reads as a lightweight
+     floating Card (surface radius, elevated background, subtle border)
+     lifted with the overlay elevation tier (shadow-lg). Arrow geometry
+     mirrors Tooltip so the whole floating family stays visually
+     cohesive. Padding follows Card — Popover carries real product
+     content, not caption annotation. */
+  --hc-popover-bg:         var(--hc-color-bg-elevated);
+  --hc-popover-fg:         var(--hc-color-text-primary);
+  --hc-popover-border:     var(--hc-color-border-subtle);
+  --hc-popover-radius:     var(--hc-radius-surface);
+  --hc-popover-shadow:     var(--hc-shadow-lg);
+  --hc-popover-min-width:  200px;
+  --hc-popover-max-width:  360px;
+
+  --hc-popover-pad-y:      var(--hc-space-stack-lg);
+  --hc-popover-pad-x:      var(--hc-space-inline-lg);
+  --hc-popover-offset:     8px;
+
+  --hc-popover-arrow-size: 8px;
+  --hc-popover-arrow-half: 4px;
+
+  /* Modal-mode scrim reuses Dialog's derived tint so a modal Popover
+     reads as a member of the overlay family (Dialog, Drawer, Popover). */
+  --hc-popover-scrim:      var(--hc-dialog-scrim);
+
+  /* ═══ BREADCRUMB (component) ═════════════════════════════════════
+     Hierarchical location strip. Body-S typography, secondary ink at
+     rest, primary ink on hover, brand focus ring. Row height matches
+     the sm Button so a breadcrumb + button in the same row sit flush.
+     Separator is a muted caret; consumers can override by passing an
+     alternative element to Breadcrumb.Separator. */
+  --hc-breadcrumb-row-h:            28px;
+  --hc-breadcrumb-pad-x:            var(--hc-space-4);
+  --hc-breadcrumb-pad-y:            2px;
+  --hc-breadcrumb-gap:              var(--hc-space-4);
+
+  --hc-breadcrumb-link-color:          var(--hc-color-text-secondary);
+  --hc-breadcrumb-link-color-hover:    var(--hc-color-text-primary);
+  --hc-breadcrumb-link-color-focus:    var(--hc-color-text-link);
+  --hc-breadcrumb-link-color-current:  var(--hc-color-text-primary);
+  --hc-breadcrumb-link-color-disabled: var(--hc-color-text-disabled);
+  --hc-breadcrumb-link-radius:         4px;
+  --hc-breadcrumb-link-ring-color:     var(--hc-color-border-focus);
+  --hc-breadcrumb-link-ring-width:     2px;
+  --hc-breadcrumb-link-ring-offset:    2px;
+
+  --hc-breadcrumb-separator-color:  var(--hc-color-text-tertiary);
+  --hc-breadcrumb-separator-size:   14px;
+  --hc-breadcrumb-separator-gap:    var(--hc-space-4);
+
+  /* ═══ TABLE (component) ══════════════════════════════════════════
+     Row-height ladder for the canonical Table. Values match the
+     Button size ladder (sm / md / lg) so an inline Button sits flush
+     with a table row. Header cells are the same height so header
+     rhythm is consistent. */
+  --hc-table-row-h-compact:     28px;
+  --hc-table-row-h-comfortable: 36px;
+  --hc-table-row-h-relaxed:     44px;
+
+  /* Sticky-header shadow. When the body scrolls under a sticky header
+     this shadow appears below the header. Derived from the same shadow
+     ramp used elsewhere so tone matches other floating surfaces. */
+  --hc-table-sticky-shadow: 0 1px 2px rgba(15, 20, 25, 0.08);
+
+  /* Selected-row accent bar — painted with box-shadow inset so it
+     doesn't disturb row height. */
+  --hc-table-selected-accent: var(--hc-color-action-primary);
+}

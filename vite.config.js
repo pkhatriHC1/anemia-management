@@ -8,8 +8,6 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: "@", replacement: resolve(__dirname, "./src") },
-      { find: "@hc1/design-system/styles", replacement: resolve(__dirname, "./src/design-system/tokens/css/variables.css") },
-      { find: "@hc1/design-system", replacement: resolve(__dirname, "./src/design-system") },
     ],
   },
 });

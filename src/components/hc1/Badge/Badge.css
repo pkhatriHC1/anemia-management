@@ -1,0 +1,233 @@
+/* ── Badge base ──────────────────────────────────────────── */
+.hc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--hc-badge-gap);
+  font-family: var(--hc-font-sans);
+  font-weight: var(--hc-badge-font-weight);
+  letter-spacing: var(--hc-badge-letter-spacing);
+  line-height: var(--hc-badge-line-height);
+  white-space: nowrap;
+  border-radius: var(--hc-badge-radius);
+  border: 1px solid transparent;
+  vertical-align: middle;
+}
+
+/* ── Sizes ────────────────────────────────────────────────── */
+.hc-badge--size-sm {
+  height: var(--hc-badge-height-sm);
+  padding: 0 var(--hc-badge-padding-x-sm);
+  font-size: var(--hc-badge-font-size-sm);
+}
+
+.hc-badge--size-md {
+  height: var(--hc-badge-height-md);
+  padding: 0 var(--hc-badge-padding-x-sm);
+  font-size: var(--hc-badge-font-size-sm);
+}
+
+.hc-badge--size-lg {
+  height: var(--hc-badge-height-lg);
+  padding: 0 var(--hc-badge-padding-x-lg);
+  font-size: var(--hc-badge-font-size-lg);
+}
+
+/* ── Count mode ──────────────────────────────────────────── */
+.hc-badge--count {
+  border-radius: var(--hc-badge-radius-count);
+  min-width: var(--hc-badge-height-md);
+  justify-content: center;
+}
+
+/* ── Removable ───────────────────────────────────────────── */
+.hc-badge--removable {
+  padding-right: var(--hc-space-inline-xs);
+}
+
+/* ── Disabled ────────────────────────────────────────────── */
+.hc-badge--disabled {
+  opacity: var(--hc-opacity-50);
+}
+
+.hc-badge--disabled .hc-badge__remove {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ── Dot ─────────────────────────────────────────────────── */
+.hc-badge__dot {
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.hc-badge__dot--default { background-color: var(--hc-badge-dot-default); }
+.hc-badge__dot--primary { background-color: var(--hc-badge-dot-primary); }
+.hc-badge__dot--success { background-color: var(--hc-badge-dot-success); }
+.hc-badge__dot--warning { background-color: var(--hc-badge-dot-warning); }
+.hc-badge__dot--danger { background-color: var(--hc-badge-dot-danger); }
+.hc-badge__dot--info { background-color: var(--hc-badge-dot-info); }
+.hc-badge__dot--neutral { background-color: var(--hc-badge-dot-neutral); }
+
+/* ── Leading icon ────────────────────────────────────────── */
+.hc-badge__leading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── Label ────────────────────────────────────────────────── */
+.hc-badge__label {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/* ── Trailing icon ────────────────────────────────────────── */
+.hc-badge__trailing {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── Remove button ───────────────────────────────────────── */
+.hc-badge__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--hc-badge-remove-size);
+  height: var(--hc-badge-remove-size);
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 50%;
+  transition:
+    background-color var(--hc-duration-150) var(--hc-easing-standard);
+}
+
+.hc-badge__remove:hover {
+  background-color: var(--hc-badge-remove-hover-bg);
+}
+
+.hc-badge__remove:focus-visible {
+  outline: 2px solid var(--hc-color-border-focus);
+  outline-offset: 1px;
+}
+
+/* ── Variant: default ────────────────────────────────────── */
+.hc-badge--variant-default.hc-badge--appearance-soft {
+  background-color: var(--hc-badge-default-soft-bg);
+  color: var(--hc-badge-default-soft-fg);
+}
+.hc-badge--variant-default.hc-badge--appearance-solid {
+  background-color: var(--hc-badge-default-solid-bg);
+  color: var(--hc-badge-default-solid-fg);
+}
+.hc-badge--variant-default.hc-badge--appearance-outline {
+  background-color: transparent;
+  border-color: var(--hc-badge-default-outline-border);
+  color: var(--hc-badge-default-outline-fg);
+}
+
+/* ── Variant: primary ────────────────────────────────────── */
+.hc-badge--variant-primary.hc-badge--appearance-soft {
+  background-color: var(--hc-badge-primary-soft-bg);
+  color: var(--hc-badge-primary-soft-fg);
+}
+.hc-badge--variant-primary.hc-badge--appearance-solid {
+  background-color: var(--hc-badge-primary-solid-bg);
+  color: var(--hc-badge-primary-solid-fg);
+}
+.hc-badge--variant-primary.hc-badge--appearance-outline {
+  background-color: transparent;
+  border-color: var(--hc-badge-primary-outline-border);
+  color: var(--hc-badge-primary-outline-fg);
+}
+
+/* ── Variant: success ────────────────────────────────────── */
+.hc-badge--variant-success.hc-badge--appearance-soft {
+  background-color: var(--hc-badge-success-soft-bg);
+  color: var(--hc-badge-success-soft-fg);
+}
+.hc-badge--variant-success.hc-badge--appearance-solid {
+  background-color: var(--hc-badge-success-solid-bg);
+  color: var(--hc-badge-success-solid-fg);
+}
+.hc-badge--variant-success.hc-badge--appearance-outline {
+  background-color: transparent;
+  border-color: var(--hc-badge-success-outline-border);
+  color: var(--hc-badge-success-outline-fg);
+}
+
+/* ── Variant: warning ────────────────────────────────────── */
+.hc-badge--variant-warning.hc-badge--appearance-soft {
+  background-color: var(--hc-badge-warning-soft-bg);
+  color: var(--hc-badge-warning-soft-fg);
+}
+.hc-badge--variant-warning.hc-badge--appearance-solid {
+  background-color: var(--hc-badge-warning-solid-bg);
+  color: var(--hc-badge-warning-solid-fg);
+}
+.hc-badge--variant-warning.hc-badge--appearance-outline {
+  background-color: transparent;
+  border-color: var(--hc-badge-warning-outline-border);
+  color: var(--hc-badge-warning-outline-fg);
+}
+
+/* ── Variant: danger ─────────────────────────────────────── */
+.hc-badge--variant-danger.hc-badge--appearance-soft {
+  background-color: var(--hc-badge-danger-soft-bg);
+  color: var(--hc-badge-danger-soft-fg);
+}
+.hc-badge--variant-danger.hc-badge--appearance-solid {
+  background-color: var(--hc-badge-danger-solid-bg);
+  color: var(--hc-badge-danger-solid-fg);
+}
+.hc-badge--variant-danger.hc-badge--appearance-outline {
+  background-color: transparent;
+  border-color: var(--hc-badge-danger-outline-border);
+  color: var(--hc-badge-danger-outline-fg);
+}
+
+/* ── Variant: info ───────────────────────────────────────── */
+.hc-badge--variant-info.hc-badge--appearance-soft {
+  background-color: var(--hc-badge-info-soft-bg);
+  color: var(--hc-badge-info-soft-fg);
+}
+.hc-badge--variant-info.hc-badge--appearance-solid {
+  background-color: var(--hc-badge-info-solid-bg);
+  color: var(--hc-badge-info-solid-fg);
+}
+.hc-badge--variant-info.hc-badge--appearance-outline {
+  background-color: transparent;
+  border-color: var(--hc-badge-info-outline-border);
+  color: var(--hc-badge-info-outline-fg);
+}
+
+/* ── Variant: neutral ────────────────────────────────────── */
+.hc-badge--variant-neutral.hc-badge--appearance-soft {
+  background-color: var(--hc-badge-neutral-soft-bg);
+  color: var(--hc-badge-neutral-soft-fg);
+}
+.hc-badge--variant-neutral.hc-badge--appearance-solid {
+  background-color: var(--hc-badge-neutral-solid-bg);
+  color: var(--hc-badge-neutral-solid-fg);
+}
+.hc-badge--variant-neutral.hc-badge--appearance-outline {
+  background-color: transparent;
+  border-color: var(--hc-badge-neutral-outline-border);
+  color: var(--hc-badge-neutral-outline-fg);
+}
+
+/* ── Reduced motion ──────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .hc-badge__remove {
+    transition-duration: 0.01ms;
+  }
+}

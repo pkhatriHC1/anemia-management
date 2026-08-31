@@ -143,6 +143,7 @@
   --hc-color-action-primary-hover: var(--hc-color-brand-600);
   --hc-color-action-primary-active: var(--hc-color-brand-700);
   --hc-color-action-primary-disabled: var(--hc-color-neutral-200);
+  --hc-color-action-secondary: var(--hc-color-neutral-900);
   --hc-color-action-danger: var(--hc-color-red-500);
   --hc-color-action-danger-hover: var(--hc-color-red-600);
   --hc-color-action-danger-active: var(--hc-color-red-700);
@@ -164,9 +165,17 @@
 
   /* ── Semantic Aliases — Status ──────────────────────────── */
   --hc-color-status-success: var(--hc-color-green-500);
+  --hc-color-status-success-bg: var(--hc-color-green-50);
+  --hc-color-status-success-border: var(--hc-color-green-100);
   --hc-color-status-warning: var(--hc-color-accent-700);
+  --hc-color-status-warning-bg: var(--hc-color-yellow-50);
+  --hc-color-status-warning-border: var(--hc-color-yellow-100);
   --hc-color-status-error: var(--hc-color-red-500);
+  --hc-color-status-error-bg: var(--hc-color-red-50);
+  --hc-color-status-error-border: var(--hc-color-red-100);
   --hc-color-status-info: var(--hc-color-brand-500);
+  --hc-color-status-info-bg: var(--hc-color-brand-50);
+  --hc-color-status-info-border: var(--hc-color-brand-100);
 
   /* ── Semantic Aliases — AI ──────────────────────────────── */
   --hc-color-ai-default: var(--hc-color-violet-500);
@@ -333,6 +342,95 @@
   --hc-button-border-secondary: var(--hc-color-border-default);
   --hc-button-border-cta: var(--hc-color-cta-border);
   --hc-button-radius: var(--hc-radius-control);
+
+  /* ── Component Tokens — Badge ──────────────────────────── */
+  --hc-badge-radius: var(--hc-radius-chip);
+  --hc-badge-radius-count: var(--hc-radius-circular);
+  --hc-badge-gap: var(--hc-space-inline-xs);
+  --hc-badge-padding-x-sm: var(--hc-space-inline-sm);
+  --hc-badge-padding-x-lg: var(--hc-space-inline-md);
+  --hc-badge-font: var(--hc-type-label);
+  --hc-badge-font-size-sm: var(--hc-font-size-12);
+  --hc-badge-font-size-lg: var(--hc-font-size-14);
+  --hc-badge-line-height: 16px;
+  --hc-badge-font-weight: var(--hc-font-weight-semibold);
+  --hc-badge-letter-spacing: 0.02em;
+  --hc-badge-dot-size-sm: 6px;
+  --hc-badge-dot-size-md: 8px;
+  --hc-badge-dot-size-lg: 10px;
+  --hc-badge-icon-size-sm: 12px;
+  --hc-badge-icon-size-md: 14px;
+  --hc-badge-icon-size-lg: 16px;
+  --hc-badge-height-sm: 20px;
+  --hc-badge-height-md: 24px;
+  --hc-badge-height-lg: 28px;
+  --hc-badge-remove-size: 14px;
+  --hc-badge-remove-hover-bg: var(--hc-color-bg-muted);
+
+  /* Badge variant — default (strong neutral) */
+  --hc-badge-default-soft-bg: var(--hc-color-bg-subtle);
+  --hc-badge-default-soft-fg: var(--hc-color-text-secondary);
+  --hc-badge-default-solid-bg: var(--hc-color-action-secondary);
+  --hc-badge-default-solid-fg: var(--hc-color-text-inverse);
+  --hc-badge-default-outline-border: var(--hc-color-border-strong);
+  --hc-badge-default-outline-fg: var(--hc-color-text-secondary);
+
+  /* Badge variant — primary (brand) */
+  --hc-badge-primary-soft-bg: var(--hc-color-bg-subtle);
+  --hc-badge-primary-soft-fg: var(--hc-color-action-primary);
+  --hc-badge-primary-solid-bg: var(--hc-color-action-primary);
+  --hc-badge-primary-solid-fg: var(--hc-color-text-inverse);
+  --hc-badge-primary-outline-border: var(--hc-color-action-primary);
+  --hc-badge-primary-outline-fg: var(--hc-color-action-primary);
+
+  /* Badge variant — success */
+  --hc-badge-success-soft-bg: var(--hc-color-status-success-bg);
+  --hc-badge-success-soft-fg: var(--hc-color-status-success);
+  --hc-badge-success-solid-bg: var(--hc-color-status-success);
+  --hc-badge-success-solid-fg: var(--hc-color-text-inverse);
+  --hc-badge-success-outline-border: var(--hc-color-status-success-border);
+  --hc-badge-success-outline-fg: var(--hc-color-status-success);
+
+  /* Badge variant — warning */
+  --hc-badge-warning-soft-bg: var(--hc-color-status-warning-bg);
+  --hc-badge-warning-soft-fg: var(--hc-color-status-warning);
+  --hc-badge-warning-solid-bg: var(--hc-color-accent-500);
+  --hc-badge-warning-solid-fg: var(--hc-color-text-inverse);
+  --hc-badge-warning-outline-border: var(--hc-color-status-warning-border);
+  --hc-badge-warning-outline-fg: var(--hc-color-status-warning);
+
+  /* Badge variant — danger */
+  --hc-badge-danger-soft-bg: var(--hc-color-status-error-bg);
+  --hc-badge-danger-soft-fg: var(--hc-color-status-error);
+  --hc-badge-danger-solid-bg: var(--hc-color-action-danger);
+  --hc-badge-danger-solid-fg: var(--hc-color-text-inverse);
+  --hc-badge-danger-outline-border: var(--hc-color-status-error-border);
+  --hc-badge-danger-outline-fg: var(--hc-color-status-error);
+
+  /* Badge variant — info */
+  --hc-badge-info-soft-bg: var(--hc-color-status-info-bg);
+  --hc-badge-info-soft-fg: var(--hc-color-status-info);
+  --hc-badge-info-solid-bg: var(--hc-color-status-info);
+  --hc-badge-info-solid-fg: var(--hc-color-text-inverse);
+  --hc-badge-info-outline-border: var(--hc-color-status-info-border);
+  --hc-badge-info-outline-fg: var(--hc-color-status-info);
+
+  /* Badge variant — neutral (quietest) */
+  --hc-badge-neutral-soft-bg: var(--hc-color-bg-subtle);
+  --hc-badge-neutral-soft-fg: var(--hc-color-text-tertiary);
+  --hc-badge-neutral-solid-bg: var(--hc-color-neutral-500);
+  --hc-badge-neutral-solid-fg: var(--hc-color-text-inverse);
+  --hc-badge-neutral-outline-border: var(--hc-color-border-default);
+  --hc-badge-neutral-outline-fg: var(--hc-color-text-tertiary);
+
+  /* Badge dot color (always solid tone) */
+  --hc-badge-dot-default: var(--hc-color-text-secondary);
+  --hc-badge-dot-primary: var(--hc-color-action-primary);
+  --hc-badge-dot-success: var(--hc-color-status-success);
+  --hc-badge-dot-warning: var(--hc-color-accent-500);
+  --hc-badge-dot-danger: var(--hc-color-action-danger);
+  --hc-badge-dot-info: var(--hc-color-status-info);
+  --hc-badge-dot-neutral: var(--hc-color-text-tertiary);
 }
 
 /* ── Global Reset ─────────────────────────────────────────── */

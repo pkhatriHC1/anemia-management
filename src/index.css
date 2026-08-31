@@ -1,14 +1,13 @@
 @import "tailwindcss";
-@import "@hc1/design-system/styles";
 
 html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;
-  font-family: var(--hc-font-sans);
-  color: var(--hc-color-text-primary);
-  background: var(--hc-color-bg-default);
+  font-family: 'Source Sans Pro', system-ui, sans-serif;
+  color: #273233;
+  background: #F7F7F7;
 }
 
 .tabular-nums-hc1 {

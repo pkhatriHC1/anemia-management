@@ -176,6 +176,25 @@
   --hc-font-sans: 'Source Sans Pro', system-ui, sans-serif;
   --hc-font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
+  /* Font sizes (primitives) */
+  --hc-font-size-10: 10px;
+  --hc-font-size-12: 12px;
+  --hc-font-size-14: 14px;
+  --hc-font-size-16: 16px;
+  --hc-font-size-18: 18px;
+  --hc-font-size-20: 20px;
+  --hc-font-size-24: 24px;
+  --hc-font-size-30: 30px;
+  --hc-font-size-36: 36px;
+  --hc-font-size-48: 48px;
+  --hc-font-size-64: 64px;
+
+  /* Font weights (primitives) */
+  --hc-font-weight-regular: 400;
+  --hc-font-weight-medium: 500;
+  --hc-font-weight-semibold: 600;
+  --hc-font-weight-bold: 700;
+
   /* Text roles: size / line-height / weight / letter-spacing */
   --hc-type-displayXL: 64px / 72px / 700 / -0.02em;
   --hc-type-displayL: 48px / 56px / 700 / -0.02em;

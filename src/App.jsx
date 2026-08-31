@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Search, Filter, ChevronDown, ArrowRight, ChevronLeft, MessageSquare, ClipboardList, User, Hash, Stethoscope } from "lucide-react";
-import { Button } from "./components/hc1/Button";
+import { Button } from "./components/hc1/Button/Button";
 import { StatusChip as HC1StatusChip } from "./components/hc1/StatusChip";
 import { Gauge as HC1Gauge } from "./components/hc1/Gauge";
 

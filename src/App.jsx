@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Search, Filter, ChevronDown, ArrowRight, ChevronLeft, MessageSquare, ClipboardList, User, Hash, Stethoscope } from "lucide-react";
-import { Button } from "./components/hc1/Button/Button";
+import { Button } from "./components/hc1/Button";
 import { StatusChip as HC1StatusChip } from "./components/hc1/StatusChip";
 import { Gauge as HC1Gauge } from "./components/hc1/Gauge";
 
@@ -423,12 +423,11 @@ const AISummaryZone=({p})=>{
         <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
           {Object.keys(evidenceStudies).map(e=>(
             <div key={e} style={{position:"relative"}} className="ev-pill-wrap">
-              <button onClick={()=>send(`Summarize ${e}`)}
-                style={{fontSize:12,fontWeight:600,color:C.success[400],background:"#fff",border:`1px solid rgba(56,128,50,0.3)`,borderRadius:6,padding:"4px 10px",cursor:"pointer",fontFamily:font}}
-                onMouseEnter={ev=>{ev.currentTarget.style.background=C.success[400];ev.currentTarget.style.color="#fff";ev.currentTarget.nextSibling.style.opacity=1;ev.currentTarget.nextSibling.style.pointerEvents="auto";}}
-                onMouseLeave={ev=>{ev.currentTarget.style.background="#fff";ev.currentTarget.style.color=C.success[400];ev.currentTarget.nextSibling.style.opacity=0;ev.currentTarget.nextSibling.style.pointerEvents="none";}}>
+              <Button variant="ghost" size="xs" onClick={()=>send(`Summarize ${e}`)}
+                onMouseEnter={ev=>{ev.currentTarget.nextSibling.style.opacity=1;ev.currentTarget.nextSibling.style.pointerEvents="auto";}}
+                onMouseLeave={ev=>{ev.currentTarget.nextSibling.style.opacity=0;ev.currentTarget.nextSibling.style.pointerEvents="none";}}>
                 {e}
-              </button>
+              </Button>
               <div style={{position:"absolute",bottom:"calc(100% + 6px)",left:"50%",transform:"translateX(-50%)",background:C.grey[800],color:"#fff",fontSize:10,fontFamily:font,padding:"4px 8px",borderRadius:5,whiteSpace:"nowrap",opacity:0,pointerEvents:"none",transition:"opacity 0.15s",zIndex:99}}>
                 Click to summarize in chat
                 <div style={{position:"absolute",top:"100%",left:"50%",transform:"translateX(-50%)",borderWidth:"4px",borderStyle:"solid",borderColor:`${C.grey[800]} transparent transparent transparent`}}/>
@@ -521,11 +520,7 @@ const AISummaryZone=({p})=>{
       {/* Quick prompts */}
       <div style={{padding:"8px 14px 4px",display:"flex",flexWrap:"wrap",gap:6,background:"#fff",borderTop:`1px solid ${C.grey[300]}`}}>
         {["Transfusion risk?","Differential?","Why IV iron?"].map(q=>(
-          <button key={q} onClick={()=>send(q)} style={{fontSize:12,color:C.grey[700],background:C.grey[200],border:`1px solid ${C.grey[300]}`,borderRadius:999,padding:"4px 12px",cursor:"pointer",fontFamily:font,fontWeight:500,transition:"all 0.12s"}}
-            onMouseEnter={e=>{e.currentTarget.style.background=C.grey[300];}}
-            onMouseLeave={e=>{e.currentTarget.style.background=C.grey[200];}}>
-            {q}
-          </button>
+          <Button key={q} variant="ghost" size="xs" onClick={()=>send(q)}>{q}</Button>
         ))}
       </div>
 
@@ -866,9 +861,8 @@ const PatientHeader=({p,onOpenIQ})=>{
       <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{p.conditions.map((c,i)=><span key={i} style={{fontSize:12,color:C.grey[600],background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:4,padding:"3px 9px",fontFamily:font}}>{c}</span>)}</div>
     </div>
     <Button variant="primary" size="sm" onClick={onOpenIQ}
-      leftIcon={<span style={{fontSize:12,color:"rgba(255,255,255,0.75)",lineHeight:1}}>✦</span>}
-      style={{boxShadow:"0 4px 14px rgba(23,79,98,0.45),0 1px 3px rgba(0,0,0,0.15),inset 0 1px 0 rgba(255,255,255,0.18)"}}>
-      <span style={{whiteSpace:"nowrap",letterSpacing:"0.04em"}}>IQ Assistant</span>
+      leftIcon={<span style={{fontSize:12,lineHeight:1}}>✦</span>}>
+      IQ Assistant
     </Button>
   </div>
 );};
@@ -937,8 +931,7 @@ const IQAssistantPanel=({p,onClose,expanded,onToggleExpand})=>{
     </div>
     <div style={{padding:"7px 14px 5px",display:"flex",flexWrap:"wrap",gap:5,background:"#fff",borderTop:`1px solid ${C.grey[300]}`}}>
       {["Transfusion risk?","Why IV iron?","Differential?","AABB guidelines?"].map(q=>(
-        <button key={q} onClick={()=>send(q)} style={{fontSize:10,color:C.grey[700],background:C.grey[200],border:`1px solid ${C.grey[300]}`,borderRadius:999,padding:"3px 10px",cursor:"pointer",fontFamily:font,fontWeight:500}}
-          onMouseEnter={e=>{e.currentTarget.style.background=C.grey[300];}} onMouseLeave={e=>{e.currentTarget.style.background=C.grey[200];}}>{q}</button>
+        <Button key={q} variant="ghost" size="xs" onClick={()=>send(q)}>{q}</Button>
       ))}
     </div>
     <div style={{padding:"7px 14px 10px",background:"#fff",display:"flex",gap:7,alignItems:"flex-end"}}>

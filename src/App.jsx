@@ -1,19 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Search, Filter, ChevronDown, ArrowRight, ChevronLeft, MessageSquare, ClipboardList, User, Hash, Stethoscope } from "lucide-react";
 import { Button } from "./components/hc1/Button";
 import { StatusChip as HC1StatusChip } from "./components/hc1/StatusChip";
 import { Gauge as HC1Gauge } from "./components/hc1/Gauge";
-
-// Inject global reset so 100dvh works correctly inside iFrame
-const GlobalReset = () => {
-  useEffect(() => {
-    const style = document.createElement("style");
-    style.textContent = "html,body,#root{height:100%;margin:0;padding:0;overflow:hidden;}*{box-sizing:border-box;}";
-    document.head.appendChild(style);
-    return () => document.head.removeChild(style);
-  }, []);
-  return null;
-};
 
 const C={grey:{100:"#FFFFFF",200:"#F7F7F7",300:"#E7E7E7",400:"#CFD1D1",500:"#A8ADAD",600:"#737E7F",700:"#545D5E",800:"#273233"},primary:{100:"#ECF4F5",200:"#CFE4E6",300:"#9EC9CD",400:"#56A0A8",500:"#0D7782",600:"#0B626B"},secondary:{100:"#E1F3F5",200:"#CFEBEE",300:"#AFDCE1",400:"#75CAD3",500:"#3CA6B0",600:"#1D828C"},orange:{100:"#FFEFE0",400:"#F58126"},yellow:{100:"#FFECC1",400:"#FFC432"},error:{100:"#F4DFE4",400:"#B00A2F"},success:{100:"#D7E7D6",400:"#388032"},red:{100:"#EFB0AB",400:"#C6473C"}};
 const font="'Source Sans Pro',system-ui,sans-serif";
@@ -1036,11 +1025,10 @@ const PatientRow=({p,onOpen})=>{
 export default function App(){
   const [screen,setScreen]=useState("worklist");const [activePatient,setActivePatient]=useState(null);const [defaultZone,setDefaultZone]=useState("overview");
   const [search,setSearch]=useState("");const [ctFilter,setCtFilter]=useState("All Case Types");
-  if(screen==="workspace"&&activePatient)return <><GlobalReset/><PatientWorkspace patient={activePatient} allPatients={PATIENTS} onBack={()=>setScreen("worklist")} onSelectPatient={p=>setActivePatient(p)} defaultZone={defaultZone}/></>;
+  if(screen==="workspace"&&activePatient)return <PatientWorkspace patient={activePatient} allPatients={PATIENTS} onBack={()=>setScreen("worklist")} onSelectPatient={p=>setActivePatient(p)} defaultZone={defaultZone}/>;
   const COLS=["PATIENT","LAB VALUES","TRS","RISK IDENTIFIERS","ACTIVE ORDER","PROVIDER","ANEMIA SEVERITY","ACTIONS"];
   const filtered=PATIENTS.filter(p=>(!search||p.name.toLowerCase().includes(search.toLowerCase())||p.id.toLowerCase().includes(search.toLowerCase())||p.provider.toLowerCase().includes(search.toLowerCase()))&&(ctFilter==="All Case Types"||p.caseType===ctFilter));
   return(
-  <><GlobalReset/>
   <div style={{display:"flex",flexDirection:"column",height:"100dvh",fontFamily:font,background:C.grey[200],overflow:"hidden"}}>
     <div style={{height:56,flexShrink:0,background:C.grey[100],borderBottom:`0.5px solid ${C.grey[300]}`,display:"flex",alignItems:"center",padding:"0 24px"}}>
       <span style={{fontSize:14,fontWeight:700,fontFamily:font,marginRight:16}}><span style={{color:C.grey[800]}}>hc</span><span style={{color:C.orange[400]}}>1</span><span style={{color:C.grey[800]}}> ClinicalIQ</span></span>
@@ -1064,5 +1052,4 @@ export default function App(){
       </div>
     </div>
   </div>
-  </>
-);}
+  );}

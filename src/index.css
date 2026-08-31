@@ -3,17 +3,51 @@
 :root {
   /* HC1 Design System — CSS Custom Properties (--hc-*) */
 
-  /* Color Primitives */
+  /* ── Color Primitives ────────────────────────────────────── */
+  --hc-color-white: #FFFFFF;
+  --hc-color-black: #000000;
+
+  /* Brand (teal) */
+  --hc-color-brand-50: #ECF4F5;
+  --hc-color-brand-100: #CFE4E6;
+  --hc-color-brand-200: #9EC9CD;
+  --hc-color-brand-300: #4EAAB4;
+  --hc-color-brand-400: #2A8A93;
   --hc-color-brand-500: #0D7782;
   --hc-color-brand-600: #086068;
   --hc-color-brand-700: #044A50;
-  --hc-color-brand-300: #4EAAB4;
+  --hc-color-brand-800: #023A3F;
+  --hc-color-brand-900: #012A2E;
+  --hc-color-brand-950: #001A1C;
+
+  /* Accent (amber) */
+  --hc-color-accent-50: #FEF6DD;
+  --hc-color-accent-100: #FDE9B5;
+  --hc-color-accent-200: #FBD082;
+  --hc-color-accent-300: #F5B04A;
+  --hc-color-accent-400: #E09028;
   --hc-color-accent-500: #B75E0B;
   --hc-color-accent-600: #914A08;
   --hc-color-accent-700: #703906;
-  --hc-color-red-500: #B00A2F;
-  --hc-color-red-600: #8F0725;
-  --hc-color-red-700: #6E051D;
+  --hc-color-accent-800: #4F2A04;
+  --hc-color-accent-900: #2F1902;
+  --hc-color-accent-950: #1A0E01;
+
+  /* Violet (AI) */
+  --hc-color-violet-50: #F3EEFD;
+  --hc-color-violet-100: #E6DBFA;
+  --hc-color-violet-200: #D0B5F4;
+  --hc-color-violet-300: #B48DED;
+  --hc-color-violet-400: #9764E4;
+  --hc-color-violet-500: #6C4DD1;
+  --hc-color-violet-600: #5A3DB8;
+  --hc-color-violet-700: #4A2F9A;
+  --hc-color-violet-800: #3A2478;
+  --hc-color-violet-900: #2A1956;
+  --hc-color-violet-950: #1A1038;
+
+  /* Neutral */
+  --hc-color-neutral-50: #F4F6F8;
   --hc-color-neutral-100: #EBEDF0;
   --hc-color-neutral-200: #DBDEE3;
   --hc-color-neutral-300: #C1C5CC;
@@ -21,102 +55,242 @@
   --hc-color-neutral-500: #767C84;
   --hc-color-neutral-600: #565C66;
   --hc-color-neutral-700: #3A3F48;
+  --hc-color-neutral-800: #272D33;
   --hc-color-neutral-900: #0E1116;
   --hc-color-neutral-950: #06080B;
-  --hc-color-green-500: #2E7028;
-  --hc-color-yellow-50: #FEF6DD;
 
-  /* Semantic Aliases — Background */
-  --hc-color-bg-default: #FFFFFF;
+  /* Green */
+  --hc-color-green-50: #E8F4E6;
+  --hc-color-green-100: #D7E7D6;
+  --hc-color-green-200: #B5D4B2;
+  --hc-color-green-300: #8FBC8B;
+  --hc-color-green-400: #5A9A54;
+  --hc-color-green-500: #2E7028;
+  --hc-color-green-600: #245A20;
+  --hc-color-green-700: #1A4418;
+  --hc-color-green-800: #122E10;
+  --hc-color-green-900: #0A1C08;
+  --hc-color-green-950: #041004;
+
+  /* Yellow (bg-only) */
+  --hc-color-yellow-50: #FEF6DD;
+  --hc-color-yellow-100: #FEF0C7;
+  --hc-color-yellow-200: #FDE49A;
+  --hc-color-yellow-300: #FDD563;
+  --hc-color-yellow-400: #FCC23A;
+  --hc-color-yellow-500: #B78810;
+  --hc-color-yellow-600: #94700C;
+  --hc-color-yellow-700: #705408;
+  --hc-color-yellow-800: #4C3A05;
+  --hc-color-yellow-900: #2E2303;
+  --hc-color-yellow-950: #1A1401;
+
+  /* Red */
+  --hc-color-red-50: #FCF0F3;
+  --hc-color-red-100: #F9DDE3;
+  --hc-color-red-200: #F2BAC8;
+  --hc-color-red-300: #E98CA1;
+  --hc-color-red-400: #D95573;
+  --hc-color-red-500: #B00A2F;
+  --hc-color-red-600: #8F0725;
+  --hc-color-red-700: #6E051D;
+  --hc-color-red-800: #4E0415;
+  --hc-color-red-900: #2E030D;
+  --hc-color-red-950: #1B0207;
+
+  /* Blue (utility) */
+  --hc-color-blue-50: #EEF4FE;
+  --hc-color-blue-100: #D9E6FD;
+  --hc-color-blue-200: #BCD3FB;
+  --hc-color-blue-300: #8EB8F8;
+  --hc-color-blue-400: #5894F3;
+  --hc-color-blue-500: #2263DB;
+  --hc-color-blue-600: #1A4EBA;
+  --hc-color-blue-700: #143D95;
+  --hc-color-blue-800: #0E2D70;
+  --hc-color-blue-900: #0A1F4E;
+  --hc-color-blue-950: #06122E;
+
+  /* ── Semantic Aliases — Background ───────────────────────── */
+  --hc-color-bg-default: var(--hc-color-white);
+  --hc-color-bg-surface: var(--hc-color-white);
+  --hc-color-bg-elevated: var(--hc-color-white);
   --hc-color-bg-subtle: var(--hc-color-neutral-100);
   --hc-color-bg-muted: var(--hc-color-neutral-200);
-  --hc-color-bg-page: #F4F6F8;
+  --hc-color-bg-page: var(--hc-color-neutral-50);
   --hc-color-bg-inverse: var(--hc-color-neutral-900);
   --hc-color-bg-scrim: rgba(14, 17, 22, 0.5);
 
-  /* Semantic Aliases — Border */
+  /* ── Semantic Aliases — Border ──────────────────────────── */
   --hc-color-border-subtle: var(--hc-color-neutral-100);
   --hc-color-border-default: var(--hc-color-neutral-200);
   --hc-color-border-strong: var(--hc-color-neutral-300);
   --hc-color-border-focus: var(--hc-color-brand-500);
+  --hc-color-border-inverse: var(--hc-color-neutral-700);
 
-  /* Semantic Aliases — Text */
+  /* ── Semantic Aliases — Text ────────────────────────────── */
   --hc-color-text-primary: var(--hc-color-neutral-900);
   --hc-color-text-secondary: var(--hc-color-neutral-700);
   --hc-color-text-tertiary: var(--hc-color-neutral-500);
   --hc-color-text-disabled: var(--hc-color-neutral-400);
-  --hc-color-text-inverse: #FFFFFF;
-  --hc-color-text-onSolid: #FFFFFF;
+  --hc-color-text-inverse: var(--hc-color-white);
+  --hc-color-text-onSolid: var(--hc-color-white);
   --hc-color-text-link: var(--hc-color-brand-600);
   --hc-color-text-linkHover: var(--hc-color-brand-700);
 
-  /* Semantic Aliases — Action */
+  /* ── Semantic Aliases — Action ──────────────────────────── */
   --hc-color-action-primary: var(--hc-color-brand-500);
-  --hc-color-action-primaryHover: var(--hc-color-brand-600);
-  --hc-color-action-primaryActive: var(--hc-color-brand-700);
-  --hc-color-action-primaryDisabled: var(--hc-color-neutral-200);
+  --hc-color-action-primary-hover: var(--hc-color-brand-600);
+  --hc-color-action-primary-active: var(--hc-color-brand-700);
+  --hc-color-action-primary-disabled: var(--hc-color-neutral-200);
   --hc-color-action-danger: var(--hc-color-red-500);
-  --hc-color-action-dangerHover: var(--hc-color-red-600);
-  --hc-color-action-dangerActive: var(--hc-color-red-700);
+  --hc-color-action-danger-hover: var(--hc-color-red-600);
+  --hc-color-action-danger-active: var(--hc-color-red-700);
+  --hc-color-action-accent: var(--hc-color-accent-500);
 
-  /* Semantic Aliases — CTA */
+  /* ── Semantic Aliases — CTA ─────────────────────────────── */
   --hc-color-cta-default: var(--hc-color-accent-500);
   --hc-color-cta-hover: var(--hc-color-accent-600);
   --hc-color-cta-active: var(--hc-color-accent-700);
   --hc-color-cta-border: var(--hc-color-accent-600);
 
-  /* Semantic Aliases — Severity */
+  /* ── Semantic Aliases — Severity ────────────────────────── */
   --hc-color-severity-critical: var(--hc-color-red-500);
   --hc-color-severity-high: var(--hc-color-accent-700);
   --hc-color-severity-medium: var(--hc-color-accent-700);
+  --hc-color-severity-medium-bg: var(--hc-color-yellow-50);
   --hc-color-severity-low: var(--hc-color-neutral-600);
   --hc-color-severity-normal: var(--hc-color-green-500);
 
-  /* Semantic Aliases — Status */
+  /* ── Semantic Aliases — Status ──────────────────────────── */
   --hc-color-status-success: var(--hc-color-green-500);
+  --hc-color-status-warning: var(--hc-color-accent-700);
   --hc-color-status-error: var(--hc-color-red-500);
   --hc-color-status-info: var(--hc-color-brand-500);
 
-  /* Radius */
+  /* ── Semantic Aliases — AI ──────────────────────────────── */
+  --hc-color-ai-default: var(--hc-color-violet-500);
+  --hc-color-ai-gradient: linear-gradient(135deg, var(--hc-color-violet-700), var(--hc-color-violet-500), var(--hc-color-brand-300));
+
+  /* ── Typography ─────────────────────────────────────────── */
+  --hc-font-sans: 'Source Sans Pro', system-ui, sans-serif;
+  --hc-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Text roles: size / line-height / weight / letter-spacing */
+  --hc-type-displayXL: 64px / 72px / 700 / -0.02em;
+  --hc-type-displayL: 48px / 56px / 700 / -0.02em;
+  --hc-type-headingXL: 36px / 44px / 700 / -0.01em;
+  --hc-type-headingL: 30px / 36px / 700 / -0.01em;
+  --hc-type-headingM: 24px / 32px / 600 / 0em;
+  --hc-type-headingS: 20px / 28px / 600 / 0em;
+  --hc-type-bodyL: 18px / 28px / 400 / 0em;
+  --hc-type-body: 16px / 24px / 400 / 0em;
+  --hc-type-bodyS: 14px / 20px / 400 / 0em;
+  --hc-type-caption: 12px / 16px / 400 / 0em;
+  --hc-type-label: 12px / 16px / 600 / 0.02em;
+
+  /* ── Spacing ───────────────────────────────────────────── */
+  /* inline (element padding) */
+  --hc-space-inline-xs: 4px;
+  --hc-space-inline-sm: 8px;
+  --hc-space-inline-md: 12px;
+  --hc-space-inline-lg: 16px;
+  --hc-space-inline-xl: 24px;
+  /* stack (vertical sibling gap) */
+  --hc-space-stack-xs: 4px;
+  --hc-space-stack-sm: 8px;
+  --hc-space-stack-md: 12px;
+  --hc-space-stack-lg: 16px;
+  --hc-space-stack-xl: 24px;
+  /* section (page section gap) */
+  --hc-space-section-sm: 32px;
+  --hc-space-section-md: 48px;
+  --hc-space-section-lg: 64px;
+  --hc-space-section-xl: 96px;
+  /* primitives */
+  --hc-space-0: 0px;
+  --hc-space-4: 4px;
+  --hc-space-8: 8px;
+  --hc-space-12: 12px;
+  --hc-space-16: 16px;
+  --hc-space-20: 20px;
+  --hc-space-24: 24px;
+  --hc-space-32: 32px;
+  --hc-space-40: 40px;
+  --hc-space-48: 48px;
+  --hc-space-64: 64px;
+  --hc-space-80: 80px;
+  --hc-space-96: 96px;
+  --hc-space-128: 128px;
+
+  /* ── Radius ─────────────────────────────────────────────── */
+  --hc-radius-none: 0px;
   --hc-radius-chip: 4px;
   --hc-radius-control: 8px;
   --hc-radius-surface: 12px;
   --hc-radius-hero: 16px;
   --hc-radius-circular: 9999px;
 
-  /* Elevation */
+  /* ── Elevation ──────────────────────────────────────────── */
   --hc-elevation-surface: none;
   --hc-elevation-raised: 0 1px 2px rgba(15, 20, 25, 0.06);
   --hc-elevation-popover: 0 4px 6px rgba(15, 20, 25, 0.08), 0 2px 4px rgba(15, 20, 25, 0.04);
   --hc-elevation-overlay: 0 10px 15px rgba(15, 20, 25, 0.10), 0 4px 6px rgba(15, 20, 25, 0.05);
   --hc-elevation-modal: 0 20px 25px rgba(15, 20, 25, 0.12), 0 10px 10px rgba(15, 20, 25, 0.04);
 
-  /* Motion */
+  /* ── Motion ─────────────────────────────────────────────── */
   --hc-duration-150: 150ms;
   --hc-duration-250: 250ms;
+  --hc-duration-350: 350ms;
   --hc-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --hc-easing-entrance: cubic-bezier(0, 0, 0.2, 1);
+  --hc-easing-exit: cubic-bezier(0.4, 0, 1, 1);
+  --hc-easing-linear: linear;
+  /* Alias roles */
+  --hc-motion-hoverIn: var(--hc-duration-150) var(--hc-easing-standard);
+  --hc-motion-hoverOut: var(--hc-duration-250) var(--hc-easing-standard);
+  --hc-motion-overlayEnter: var(--hc-duration-250) var(--hc-easing-entrance);
+  --hc-motion-overlayExit: var(--hc-duration-150) var(--hc-easing-exit);
+  --hc-motion-transitionSlow: var(--hc-duration-350) var(--hc-easing-standard);
 
-  /* Spacing */
-  --hc-space-inline-xs: 4px;
-  --hc-space-inline-sm: 8px;
-  --hc-space-inline-md: 12px;
-  --hc-space-inline-lg: 16px;
-  --hc-space-inline-xl: 24px;
-  --hc-space-stack-xs: 4px;
-  --hc-space-stack-sm: 8px;
-  --hc-space-stack-md: 12px;
-  --hc-space-stack-lg: 16px;
-  --hc-space-stack-xl: 24px;
-  --hc-space-section-sm: 32px;
-  --hc-space-section-md: 48px;
-  --hc-space-section-lg: 64px;
-  --hc-space-section-xl: 96px;
+  /* ── Z-Index ────────────────────────────────────────────── */
+  --hc-z-base: 0;
+  --hc-z-dropdown: 100;
+  --hc-z-sticky: 200;
+  --hc-z-overlay: 300;
+  --hc-z-popover: 400;
+  --hc-z-tooltip: 500;
+  --hc-z-modal-scrim: 600;
+  --hc-z-modal: 700;
+  --hc-z-toast: 800;
+  --hc-z-max: 9999;
 
-  /* Component Tokens — Button */
+  /* ── Opacity ─────────────────────────────────────────────── */
+  --hc-opacity-0: 0;
+  --hc-opacity-5: 0.05;
+  --hc-opacity-10: 0.1;
+  --hc-opacity-20: 0.2;
+  --hc-opacity-30: 0.3;
+  --hc-opacity-40: 0.4;
+  --hc-opacity-50: 0.5;
+  --hc-opacity-60: 0.6;
+  --hc-opacity-70: 0.7;
+  --hc-opacity-80: 0.8;
+  --hc-opacity-90: 0.9;
+  --hc-opacity-100: 1;
+
+  /* ── Breakpoints ────────────────────────────────────────── */
+  --hc-bp-sm: 640px;
+  --hc-bp-md: 768px;
+  --hc-bp-lg: 1024px;
+  --hc-bp-xl: 1280px;
+  --hc-bp-2xl: 1536px;
+
+  /* ── Component Tokens — Button ─────────────────────────── */
   --hc-button-bg-primary: var(--hc-color-action-primary);
-  --hc-button-bg-primary-hover: var(--hc-color-action-primaryHover);
-  --hc-button-bg-primary-active: var(--hc-color-action-primaryActive);
-  --hc-button-bg-primary-disabled: var(--hc-color-action-primaryDisabled);
+  --hc-button-bg-primary-hover: var(--hc-color-action-primary-hover);
+  --hc-button-bg-primary-active: var(--hc-color-action-primary-active);
+  --hc-button-bg-primary-disabled: var(--hc-color-action-primary-disabled);
   --hc-button-bg-secondary: var(--hc-color-bg-default);
   --hc-button-bg-secondary-hover: var(--hc-color-bg-subtle);
   --hc-button-bg-secondary-active: var(--hc-color-bg-muted);
@@ -127,8 +301,8 @@
   --hc-button-bg-cta-hover: var(--hc-color-cta-hover);
   --hc-button-bg-cta-active: var(--hc-color-cta-active);
   --hc-button-bg-danger: var(--hc-color-action-danger);
-  --hc-button-bg-danger-hover: var(--hc-color-action-dangerHover);
-  --hc-button-bg-danger-active: var(--hc-color-action-dangerActive);
+  --hc-button-bg-danger-hover: var(--hc-color-action-danger-hover);
+  --hc-button-bg-danger-active: var(--hc-color-action-danger-active);
   --hc-button-text-primary: var(--hc-color-text-onSolid);
   --hc-button-text-secondary: var(--hc-color-text-primary);
   --hc-button-text-ghost: var(--hc-color-text-primary);
@@ -142,16 +316,44 @@
   --hc-button-radius: var(--hc-radius-control);
 }
 
+/* ── Global Reset ─────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;
-  font-family: 'Source Sans Pro', system-ui, sans-serif;
+  font-family: var(--hc-font-sans);
   color: var(--hc-color-text-primary);
   background: var(--hc-color-bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Focus Visibility (a11y ship-gate) ───────────────────── */
+:focus-visible {
+  outline: 2px solid var(--hc-color-border-focus);
+  outline-offset: 2px;
+}
+
+/* ── Reduced Motion ──────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Utility Classes ─────────────────────────────────────── */
 .tabular-nums-hc1 {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";

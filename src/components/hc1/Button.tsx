@@ -113,7 +113,7 @@ export function Button({
           {leftIcon}
         </span>
       )}
-      {children && !isIcon && <span className="hc-btn__label">{children}</span>}
+      {children && !isIcon && <span className="hc-btn__label inline-flex items-center whitespace-nowrap">{children}</span>}
       {isIcon && !loading && children}
       {!loading && rightIcon && !isIcon && (
         <span className="inline-flex shrink-0 items-center" aria-hidden="true">

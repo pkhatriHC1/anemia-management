@@ -1027,7 +1027,7 @@ const PatientRow=({p,onOpen})=>{
           </div>;
         })()}
       </td>
-      <td style={{padding:"12px 16px",minWidth:150}} onClick={e=>e.stopPropagation()}><Button variant="primary" size="sm" onClick={()=>onOpen(p,"cp")}>Generate Care Plan <ArrowRight size={11}/></Button></td>
+      <td style={{padding:"12px 16px",minWidth:150}} onClick={e=>e.stopPropagation()}><Button variant="primary" size="sm" onClick={()=>onOpen(p,"cp")} rightIcon={<ArrowRight size={11}/>}>Generate Care Plan</Button></td>
     </tr>
     {trsOpen&&<TRSDrawer p={p} onClose={()=>setTrsOpen(false)}/>}
   </>;

@@ -17,40 +17,92 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 const BASE =
   "inline-flex items-center justify-center gap-1.5 font-normal whitespace-nowrap cursor-pointer select-none transition-colors focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed";
 
-const VARIANT_CLASS: Record<Variant, string> = {
-  primary:
-    "bg-[var(--hc-button-bg-primary)] text-[var(--hc-button-text-primary)] hover:bg-[var(--hc-button-bg-primary-hover)] active:bg-[var(--hc-button-bg-primary-active)] disabled:bg-[var(--hc-button-bg-primary-disabled)] disabled:text-[var(--hc-button-text-disabled)]",
-  secondary:
-    "bg-[var(--hc-button-bg-secondary)] text-[var(--hc-button-text-secondary)] border border-[var(--hc-button-border-secondary)] hover:bg-[var(--hc-button-bg-secondary-hover)] active:bg-[var(--hc-button-bg-secondary-active)] disabled:text-[var(--hc-button-text-disabled)]",
-  ghost:
-    "bg-[var(--hc-button-bg-ghost)] text-[var(--hc-button-text-ghost)] hover:bg-[var(--hc-button-bg-ghost-hover)] active:bg-[var(--hc-button-bg-ghost-active)] disabled:text-[var(--hc-button-text-disabled)]",
-  danger:
-    "bg-[var(--hc-button-bg-danger)] text-[var(--hc-button-text-danger)] hover:bg-[var(--hc-button-bg-danger-hover)] active:bg-[var(--hc-button-bg-danger-active)] disabled:bg-[var(--hc-button-bg-primary-disabled)] disabled:text-[var(--hc-button-text-disabled)]",
-  cta:
-    "bg-[var(--hc-button-bg-cta)] text-[var(--hc-button-text-cta)] border border-[var(--hc-button-border-cta)] hover:bg-[var(--hc-button-bg-cta-hover)] active:bg-[var(--hc-button-bg-cta-active)] disabled:bg-[var(--hc-button-bg-primary-disabled)] disabled:text-[var(--hc-button-text-disabled)]",
-  link:
-    "bg-transparent text-[var(--hc-button-text-link)] hover:text-[var(--hc-button-text-link-hover)] underline-offset-2 hover:underline disabled:text-[var(--hc-button-text-disabled)]",
-  icon:
-    "bg-transparent text-[var(--hc-color-text-secondary)] hover:bg-[var(--hc-button-bg-ghost-hover)] active:bg-[var(--hc-button-bg-ghost-active)] disabled:text-[var(--hc-button-text-disabled)]",
-};
-
 const SIZE_CLASS: Record<Size, string> = {
-  xs: "text-xs h-5 px-1 rounded-[var(--hc-radius-control)]",
-  sm: "text-xs h-7 px-2 rounded-[var(--hc-radius-control)]",
-  md: "text-sm h-9 px-3 rounded-[var(--hc-radius-control)]",
-  lg: "text-base h-11 px-4 rounded-[var(--hc-radius-control)]",
-  xl: "text-lg h-14 px-6 rounded-[var(--hc-radius-control)]",
+  xs: "text-xs h-5 px-1",
+  sm: "text-xs h-7 px-2",
+  md: "text-sm h-9 px-3",
+  lg: "text-base h-11 px-4",
+  xl: "text-lg h-14 px-6",
 };
 
 const ICON_SIZE_CLASS: Record<Size, string> = {
-  xs: "h-5 w-5 p-1 rounded-[var(--hc-radius-control)]",
-  sm: "h-7 w-7 p-1.5 rounded-[var(--hc-radius-control)]",
-  md: "h-9 w-9 p-2 rounded-[var(--hc-radius-control)]",
-  lg: "h-11 w-11 p-2.5 rounded-[var(--hc-radius-control)]",
-  xl: "h-14 w-14 p-4 rounded-[var(--hc-radius-control)]",
+  xs: "h-5 w-5 p-1",
+  sm: "h-7 w-7 p-1.5",
+  md: "h-9 w-9 p-2",
+  lg: "h-11 w-11 p-2.5",
+  xl: "h-14 w-14 p-4",
 };
 
 const ICON_PX: Record<Size, number> = { xs: 12, sm: 14, md: 16, lg: 20, xl: 24 };
+
+const VARIANT_STYLE: Record<Variant, React.CSSProperties> = {
+  primary: {
+    backgroundColor: "var(--hc-button-bg-primary)",
+    color: "var(--hc-button-text-primary)",
+    borderRadius: "var(--hc-button-radius)",
+  },
+  secondary: {
+    backgroundColor: "var(--hc-button-bg-secondary)",
+    color: "var(--hc-button-text-secondary)",
+    border: "1px solid var(--hc-button-border-secondary)",
+    borderRadius: "var(--hc-button-radius)",
+  },
+  ghost: {
+    backgroundColor: "transparent",
+    color: "var(--hc-button-text-ghost)",
+    borderRadius: "var(--hc-button-radius)",
+  },
+  danger: {
+    backgroundColor: "var(--hc-button-bg-danger)",
+    color: "var(--hc-button-text-danger)",
+    borderRadius: "var(--hc-button-radius)",
+  },
+  cta: {
+    backgroundColor: "var(--hc-button-bg-cta)",
+    color: "var(--hc-button-text-cta)",
+    border: "1px solid var(--hc-button-border-cta)",
+    borderRadius: "var(--hc-button-radius)",
+  },
+  link: {
+    backgroundColor: "transparent",
+    color: "var(--hc-button-text-link)",
+  },
+  icon: {
+    backgroundColor: "transparent",
+    color: "var(--hc-color-text-secondary)",
+    borderRadius: "var(--hc-button-radius)",
+  },
+};
+
+const VARIANT_HOVER: Record<Variant, React.CSSProperties> = {
+  primary: { backgroundColor: "var(--hc-button-bg-primary-hover)" },
+  secondary: { backgroundColor: "var(--hc-button-bg-secondary-hover)" },
+  ghost: { backgroundColor: "var(--hc-button-bg-ghost-hover)" },
+  danger: { backgroundColor: "var(--hc-button-bg-danger-hover)" },
+  cta: { backgroundColor: "var(--hc-button-bg-cta-hover)" },
+  link: { color: "var(--hc-button-text-link-hover)", textDecoration: "underline" },
+  icon: { backgroundColor: "var(--hc-button-bg-ghost-hover)" },
+};
+
+const VARIANT_ACTIVE: Record<Variant, React.CSSProperties> = {
+  primary: { backgroundColor: "var(--hc-button-bg-primary-active)" },
+  secondary: { backgroundColor: "var(--hc-button-bg-secondary-active)" },
+  ghost: { backgroundColor: "var(--hc-button-bg-ghost-active)" },
+  danger: { backgroundColor: "var(--hc-button-bg-danger-active)" },
+  cta: { backgroundColor: "var(--hc-button-bg-cta-active)" },
+  link: {},
+  icon: { backgroundColor: "var(--hc-button-bg-ghost-active)" },
+};
+
+const VARIANT_DISABLED: Record<Variant, React.CSSProperties> = {
+  primary: { backgroundColor: "var(--hc-button-bg-primary-disabled)", color: "var(--hc-button-text-disabled)" },
+  secondary: { color: "var(--hc-button-text-disabled)" },
+  ghost: { color: "var(--hc-button-text-disabled)" },
+  danger: { backgroundColor: "var(--hc-button-bg-primary-disabled)", color: "var(--hc-button-text-disabled)" },
+  cta: { backgroundColor: "var(--hc-button-bg-primary-disabled)", color: "var(--hc-button-text-disabled)" },
+  link: { color: "var(--hc-button-text-disabled)" },
+  icon: { color: "var(--hc-button-text-disabled)" },
+};
 
 export function Button({
   variant = "primary",
@@ -67,11 +119,21 @@ export function Button({
   ...props
 }: ButtonProps) {
   const isIcon = iconOnly || variant === "icon";
+  const [hovered, setHovered] = React.useState(false);
+  const [pressed, setPressed] = React.useState(false);
 
   const handleClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
     if (loading || disabled) return;
     onClick?.(e);
   };
+
+  const stateStyle = disabled
+    ? VARIANT_DISABLED[variant]
+    : pressed
+    ? VARIANT_ACTIVE[variant]
+    : hovered
+    ? VARIANT_HOVER[variant]
+    : {};
 
   return (
     <button
@@ -82,18 +144,23 @@ export function Button({
       tabIndex={disabled ? -1 : undefined}
       className={cn(
         BASE,
-        VARIANT_CLASS[variant],
         isIcon ? ICON_SIZE_CLASS[size] : SIZE_CLASS[size],
         fullWidth && !isIcon && "w-full",
         loading && "cursor-wait",
         className
       )}
       style={{
+        ...VARIANT_STYLE[variant],
+        ...stateStyle,
         transitionDuration: "var(--hc-duration-150)",
         transitionTimingFunction: "var(--hc-easing-standard)",
         outlineColor: "var(--hc-color-border-focus)",
         ...props.style,
       }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => { setHovered(false); setPressed(false); }}
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
       onClick={handleClick}
       {...props}
     >
@@ -113,7 +180,9 @@ export function Button({
           {leftIcon}
         </span>
       )}
-      {children && !isIcon && <span className="hc-btn__label inline-flex items-center whitespace-nowrap">{children}</span>}
+      {children && !isIcon && (
+        <span className="hc-btn__label inline-flex items-center whitespace-nowrap">{children}</span>
+      )}
       {isIcon && !loading && children}
       {!loading && rightIcon && !isIcon && (
         <span className="inline-flex shrink-0 items-center" aria-hidden="true">

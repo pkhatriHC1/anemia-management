@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Search, Filter, ChevronDown, ArrowRight, ChevronLeft, MessageSquare, ClipboardList, User, Hash, Stethoscope } from "lucide-react";
+import { Search, Filter, ChevronDown, ArrowRight, ChevronLeft, MessageSquare, ClipboardList, User, Hash, Stethoscope, CircleAlert as AlertCircle, TriangleAlert as AlertTriangle, Info, ShieldCheck } from "lucide-react";
 import { Button } from "./components/hc1/Button";
-import { StatusChip as HC1StatusChip } from "./components/hc1/StatusChip";
+import { Badge } from "./components/hc1/Badge";
 import { Gauge as HC1Gauge } from "./components/hc1/Gauge";
 
 const C={grey:{100:"#FFFFFF",200:"#F7F7F7",300:"#E7E7E7",400:"#CFD1D1",500:"#A8ADAD",600:"#737E7F",700:"#545D5E",800:"#273233"},primary:{100:"#ECF4F5",200:"#CFE4E6",300:"#9EC9CD",400:"#56A0A8",500:"#0D7782",600:"#0B626B"},secondary:{100:"#E1F3F5",200:"#CFEBEE",300:"#AFDCE1",400:"#75CAD3",500:"#3CA6B0",600:"#1D828C"},orange:{100:"#FFEFE0",400:"#F58126"},yellow:{100:"#FFECC1",400:"#FFC432"},error:{100:"#F4DFE4",400:"#B00A2F"},success:{100:"#D7E7D6",400:"#388032"},red:{100:"#EFB0AB",400:"#C6473C"}};
@@ -9,7 +9,9 @@ const font="'Source Sans Pro',system-ui,sans-serif";
 // 4-tier severity chip — SEVERE / MODERATE / MILD / NORMAL — used for TRS, Anemia Grade
 const SEV4_TIER={severe:"critical",moderate:"high",mild:"medium",normal:"normal"};
 const SEV4_LABEL={severe:"SEVERE",moderate:"MODERATE",mild:"MILD",normal:"NORMAL"};
-const SevChip=({tier})=><HC1StatusChip tier={SEV4_TIER[tier]||"normal"} label={SEV4_LABEL[tier]||"NORMAL"}/>;
+const SEV4_VARIANT={critical:"danger",high:"warning",medium:"warning",normal:"success"};
+const SEV4_ICON={critical:AlertCircle,high:AlertTriangle,medium:AlertTriangle,normal:ShieldCheck};
+const SevChip=({tier})=>{const t=SEV4_TIER[tier]||"normal";const Icon=SEV4_ICON[t];return <Badge variant={SEV4_VARIANT[t]} appearance="soft" size="sm" leadingIcon={<Icon strokeWidth={1.5}/>}>{SEV4_LABEL[tier]||"NORMAL"}</Badge>;};
 // Map TRS trsSev → 4-tier: very-high → severe, high → moderate, medium → mild, low → normal
 const trsTier=(sev)=>sev==="very-high"?"severe":sev==="high"?"moderate":sev==="medium"?"mild":"normal";
 const TRC={"very-high":C.error[400],"high":C.orange[400],"medium":"#92600A","low":C.success[400]};
@@ -26,7 +28,10 @@ const Send=({size=12})=><svg width={size} height={size} viewBox="0 0 24 24" fill
 const CheckCircle=({size=24,color})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
 
 const normSev=(s)=>s==="critical"?"critical":s==="high"||s==="borderline"?"high":"low";
-const StatusChip=({status})=><HC1StatusChip tier={normSev(status)}/>;
+const LAB_VARIANT={critical:"danger",high:"warning",low:"neutral"};
+const LAB_ICON={critical:AlertCircle,high:AlertTriangle,low:Info};
+const LAB_LABEL={critical:"Critical",high:"High",low:"Low"};
+const StatusChip=({status})=>{const t=normSev(status);const Icon=LAB_ICON[t];return <Badge variant={LAB_VARIANT[t]} appearance="soft" size="sm" leadingIcon={<Icon strokeWidth={1.5}/>}>{LAB_LABEL[t]}</Badge>;};
 // Small right-aligned step action row: optional back button + primary/cta action on the right.
 // nextOrange=true marks execute/irreversible steps (Approve & Create Orders, Activate Order,
 // Send to All Recipients). Nav-only steps stay primary.

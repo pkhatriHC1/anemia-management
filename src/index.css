@@ -1,13 +1,155 @@
 @import "tailwindcss";
 
+:root {
+  /* HC1 Design System — CSS Custom Properties (--hc-*) */
+
+  /* Color Primitives */
+  --hc-color-brand-500: #0D7782;
+  --hc-color-brand-600: #086068;
+  --hc-color-brand-700: #044A50;
+  --hc-color-brand-300: #4EAAB4;
+  --hc-color-accent-500: #B75E0B;
+  --hc-color-accent-600: #914A08;
+  --hc-color-accent-700: #703906;
+  --hc-color-red-500: #B00A2F;
+  --hc-color-red-600: #8F0725;
+  --hc-color-red-700: #6E051D;
+  --hc-color-neutral-100: #EBEDF0;
+  --hc-color-neutral-200: #DBDEE3;
+  --hc-color-neutral-300: #C1C5CC;
+  --hc-color-neutral-400: #9EA3AB;
+  --hc-color-neutral-500: #767C84;
+  --hc-color-neutral-600: #565C66;
+  --hc-color-neutral-700: #3A3F48;
+  --hc-color-neutral-900: #0E1116;
+  --hc-color-neutral-950: #06080B;
+  --hc-color-green-500: #2E7028;
+  --hc-color-yellow-50: #FEF6DD;
+
+  /* Semantic Aliases — Background */
+  --hc-color-bg-default: #FFFFFF;
+  --hc-color-bg-subtle: var(--hc-color-neutral-100);
+  --hc-color-bg-muted: var(--hc-color-neutral-200);
+  --hc-color-bg-page: #F4F6F8;
+  --hc-color-bg-inverse: var(--hc-color-neutral-900);
+  --hc-color-bg-scrim: rgba(14, 17, 22, 0.5);
+
+  /* Semantic Aliases — Border */
+  --hc-color-border-subtle: var(--hc-color-neutral-100);
+  --hc-color-border-default: var(--hc-color-neutral-200);
+  --hc-color-border-strong: var(--hc-color-neutral-300);
+  --hc-color-border-focus: var(--hc-color-brand-500);
+
+  /* Semantic Aliases — Text */
+  --hc-color-text-primary: var(--hc-color-neutral-900);
+  --hc-color-text-secondary: var(--hc-color-neutral-700);
+  --hc-color-text-tertiary: var(--hc-color-neutral-500);
+  --hc-color-text-disabled: var(--hc-color-neutral-400);
+  --hc-color-text-inverse: #FFFFFF;
+  --hc-color-text-onSolid: #FFFFFF;
+  --hc-color-text-link: var(--hc-color-brand-600);
+  --hc-color-text-linkHover: var(--hc-color-brand-700);
+
+  /* Semantic Aliases — Action */
+  --hc-color-action-primary: var(--hc-color-brand-500);
+  --hc-color-action-primaryHover: var(--hc-color-brand-600);
+  --hc-color-action-primaryActive: var(--hc-color-brand-700);
+  --hc-color-action-primaryDisabled: var(--hc-color-neutral-200);
+  --hc-color-action-danger: var(--hc-color-red-500);
+  --hc-color-action-dangerHover: var(--hc-color-red-600);
+  --hc-color-action-dangerActive: var(--hc-color-red-700);
+
+  /* Semantic Aliases — CTA */
+  --hc-color-cta-default: var(--hc-color-accent-500);
+  --hc-color-cta-hover: var(--hc-color-accent-600);
+  --hc-color-cta-active: var(--hc-color-accent-700);
+  --hc-color-cta-border: var(--hc-color-accent-600);
+
+  /* Semantic Aliases — Severity */
+  --hc-color-severity-critical: var(--hc-color-red-500);
+  --hc-color-severity-high: var(--hc-color-accent-700);
+  --hc-color-severity-medium: var(--hc-color-accent-700);
+  --hc-color-severity-low: var(--hc-color-neutral-600);
+  --hc-color-severity-normal: var(--hc-color-green-500);
+
+  /* Semantic Aliases — Status */
+  --hc-color-status-success: var(--hc-color-green-500);
+  --hc-color-status-error: var(--hc-color-red-500);
+  --hc-color-status-info: var(--hc-color-brand-500);
+
+  /* Radius */
+  --hc-radius-chip: 4px;
+  --hc-radius-control: 8px;
+  --hc-radius-surface: 12px;
+  --hc-radius-hero: 16px;
+  --hc-radius-circular: 9999px;
+
+  /* Elevation */
+  --hc-elevation-surface: none;
+  --hc-elevation-raised: 0 1px 2px rgba(15, 20, 25, 0.06);
+  --hc-elevation-popover: 0 4px 6px rgba(15, 20, 25, 0.08), 0 2px 4px rgba(15, 20, 25, 0.04);
+  --hc-elevation-overlay: 0 10px 15px rgba(15, 20, 25, 0.10), 0 4px 6px rgba(15, 20, 25, 0.05);
+  --hc-elevation-modal: 0 20px 25px rgba(15, 20, 25, 0.12), 0 10px 10px rgba(15, 20, 25, 0.04);
+
+  /* Motion */
+  --hc-duration-150: 150ms;
+  --hc-duration-250: 250ms;
+  --hc-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Spacing */
+  --hc-space-inline-xs: 4px;
+  --hc-space-inline-sm: 8px;
+  --hc-space-inline-md: 12px;
+  --hc-space-inline-lg: 16px;
+  --hc-space-inline-xl: 24px;
+  --hc-space-stack-xs: 4px;
+  --hc-space-stack-sm: 8px;
+  --hc-space-stack-md: 12px;
+  --hc-space-stack-lg: 16px;
+  --hc-space-stack-xl: 24px;
+  --hc-space-section-sm: 32px;
+  --hc-space-section-md: 48px;
+  --hc-space-section-lg: 64px;
+  --hc-space-section-xl: 96px;
+
+  /* Component Tokens — Button */
+  --hc-button-bg-primary: var(--hc-color-action-primary);
+  --hc-button-bg-primary-hover: var(--hc-color-action-primaryHover);
+  --hc-button-bg-primary-active: var(--hc-color-action-primaryActive);
+  --hc-button-bg-primary-disabled: var(--hc-color-action-primaryDisabled);
+  --hc-button-bg-secondary: var(--hc-color-bg-default);
+  --hc-button-bg-secondary-hover: var(--hc-color-bg-subtle);
+  --hc-button-bg-secondary-active: var(--hc-color-bg-muted);
+  --hc-button-bg-ghost: transparent;
+  --hc-button-bg-ghost-hover: var(--hc-color-bg-subtle);
+  --hc-button-bg-ghost-active: var(--hc-color-bg-muted);
+  --hc-button-bg-cta: var(--hc-color-cta-default);
+  --hc-button-bg-cta-hover: var(--hc-color-cta-hover);
+  --hc-button-bg-cta-active: var(--hc-color-cta-active);
+  --hc-button-bg-danger: var(--hc-color-action-danger);
+  --hc-button-bg-danger-hover: var(--hc-color-action-dangerHover);
+  --hc-button-bg-danger-active: var(--hc-color-action-dangerActive);
+  --hc-button-text-primary: var(--hc-color-text-onSolid);
+  --hc-button-text-secondary: var(--hc-color-text-primary);
+  --hc-button-text-ghost: var(--hc-color-text-primary);
+  --hc-button-text-cta: var(--hc-color-text-onSolid);
+  --hc-button-text-danger: var(--hc-color-text-onSolid);
+  --hc-button-text-link: var(--hc-color-text-link);
+  --hc-button-text-link-hover: var(--hc-color-text-linkHover);
+  --hc-button-text-disabled: var(--hc-color-text-disabled);
+  --hc-button-border-secondary: var(--hc-color-border-default);
+  --hc-button-border-cta: var(--hc-color-cta-border);
+  --hc-button-radius: var(--hc-radius-control);
+}
+
 html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;
   font-family: 'Source Sans Pro', system-ui, sans-serif;
-  color: #273233;
-  background: #F7F7F7;
+  color: var(--hc-color-text-primary);
+  background: var(--hc-color-bg-page);
 }
 
 .tabular-nums-hc1 {

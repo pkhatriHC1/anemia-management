@@ -1,73 +1,116 @@
 import * as React from "react";
+import { cn } from "@/lib/utils";
 
 type Tier = "critical" | "high" | "medium" | "low" | "normal";
+type GaugeSize = "xs" | "sm" | "md" | "lg" | "xl";
 
-const TIER_COLOR: Record<Tier, string> = {
-  critical: "#B00A2F",
-  high: "#F58126",
-  medium: "#92600A",
-  low: "#388032",
-  normal: "#388032",
-};
-
-export interface GaugeProps {
+export interface GaugeProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "children"> {
   value: number;
-  tier?: Tier;
+  max?: number;
+  tier: Tier;
+  size?: GaugeSize;
   sizePx?: number;
+  hideValue?: boolean;
+  ariaLabel?: string;
 }
 
-export function Gauge({ value, tier = "low", sizePx = 44 }: GaugeProps) {
-  const size = sizePx;
-  const stroke = Math.max(3, size * 0.1);
-  const radius = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const pct = Math.min(Math.max(value / 10, 0), 1);
-  const dash = circumference * pct;
-  const color = TIER_COLOR[tier];
+const SIZE_PX: Record<GaugeSize, number> = {
+  xs: 32,
+  sm: 40,
+  md: 56,
+  lg: 72,
+  xl: 96,
+};
+
+const TIER_COLOR_VAR: Record<Tier, string> = {
+  critical: "var(--hc-color-severity-critical)",
+  high: "var(--hc-color-severity-high)",
+  medium: "var(--hc-color-severity-medium)",
+  low: "var(--hc-color-severity-low)",
+  normal: "var(--hc-color-severity-normal)",
+};
+
+const ARC_PATH = "M7 24 A16 16 0 0 1 39 24";
+const ARC_LENGTH = Math.PI * 16;
+
+export function Gauge({
+  value,
+  max = 10,
+  tier,
+  size = "md",
+  sizePx,
+  hideValue = false,
+  ariaLabel,
+  className,
+  ...props
+}: GaugeProps) {
+  const diameter = sizePx ?? SIZE_PX[size];
+  const fraction = Math.min(Math.max(value / max, 0), 1);
+  const dash = ARC_LENGTH * fraction;
+  const arcColor = TIER_COLOR_VAR[tier];
+  const defaultLabel = `Score ${value} of ${max}, ${tier}`;
+  const label = ariaLabel ?? defaultLabel;
 
   return (
     <div
-      style={{ width: size, height: size, position: "relative", flexShrink: 0 }}
+      className={cn("hc-gauge", `hc-gauge--tier-${tier}`, className)}
+      style={{
+        width: diameter,
+        height: diameter,
+        position: "relative",
+        flexShrink: 0,
+        ...props.style,
+      }}
     >
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
+      <svg
+        width={diameter}
+        height={diameter}
+        viewBox="0 0 46 30"
+        role="img"
+        aria-label={label}
+        style={{ display: "block", overflow: "visible" }}
+      >
+        <title>{label}</title>
+        <path
+          d={ARC_PATH}
           fill="none"
-          stroke="#E7E7E7"
-          strokeWidth={stroke}
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth={stroke}
+          stroke="var(--hc-color-neutral-300)"
+          strokeWidth={4}
           strokeLinecap="round"
-          strokeDasharray={`${dash} ${circumference}`}
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
-          style={{ transition: "stroke-dasharray 0.4s ease" }}
+        />
+        <path
+          d={ARC_PATH}
+          fill="none"
+          stroke={arcColor}
+          strokeWidth={4}
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${ARC_LENGTH}`}
+          style={{
+            transition: "stroke-dasharray 200ms cubic-bezier(0.2, 0, 0, 1)",
+          }}
         />
       </svg>
-      <span
-        style={{
-          position: "absolute",
-          inset: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: size * 0.32,
-          fontWeight: 600,
-          color,
-          fontFamily: "'Source Sans Pro', system-ui, sans-serif",
-          fontVariantNumeric: "tabular-nums",
-          lineHeight: 1,
-        }}
-      >
-        {value}
-      </span>
+      {!hideValue && (
+        <span
+          className="tabular-nums-hc1"
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: diameter * 0.28,
+            fontWeight: 700,
+            color: arcColor,
+            fontFamily: "'Source Sans Pro', system-ui, sans-serif",
+            lineHeight: 1,
+            pointerEvents: "none",
+            paddingTop: diameter * 0.05,
+          }}
+        >
+          {value}
+        </span>
+      )}
     </div>
   );
 }

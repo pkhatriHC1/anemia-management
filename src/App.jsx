@@ -501,14 +501,16 @@ const AISummaryZone=({p})=>{
                     })}
                   </div>
                   {/* Copy button */}
-                  <button onClick={()=>copyMsg(m.text)} title="Copy" style={{position:"absolute",bottom:8,right:8,background:"transparent",border:"none",cursor:"pointer",padding:3,borderRadius:4,opacity:0,transition:"opacity 0.15s",display:"flex",alignItems:"center",justifyContent:"center"}}
-                    onMouseEnter={e=>{e.currentTarget.parentNode.querySelector('div').style.background='#f8f8f8';e.currentTarget.style.opacity=1;e.currentTarget.style.background=C.grey[200];}}
-                    onMouseLeave={e=>{e.currentTarget.parentNode.querySelector('div').style.background='#fff';e.currentTarget.style.opacity=0;e.currentTarget.style.background='transparent';}}>
-                    {copied===m.text
-                      ?<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={C.success[400]} strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-                      :<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={C.grey[500]} strokeWidth="2" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                    }
-                  </button>
+                  <div style={{position:"absolute",bottom:8,right:8,opacity:0,transition:"opacity 0.15s"}}
+                    onMouseEnter={e=>{e.currentTarget.parentNode.querySelector('div').style.background='#f8f8f8';e.currentTarget.style.opacity=1;}}
+                    onMouseLeave={e=>{e.currentTarget.parentNode.querySelector('div').style.background='#fff';e.currentTarget.style.opacity=0;}}>
+                    <Button variant="icon" size="xs" iconOnly onClick={()=>copyMsg(m.text)} aria-label="Copy">
+                      {copied===m.text
+                        ?<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={C.success[400]} strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        :<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={C.grey[500]} strokeWidth="2" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      }
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
@@ -863,14 +865,11 @@ const PatientHeader=({p,onOpenIQ})=>{
       </div>
       <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{p.conditions.map((c,i)=><span key={i} style={{fontSize:12,color:C.grey[600],background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:4,padding:"3px 9px",fontFamily:font}}>{c}</span>)}</div>
     </div>
-    <button onClick={onOpenIQ}
-      style={{display:"flex",alignItems:"center",gap:7,background:`linear-gradient(145deg,${C.primary[500]},${C.primary[600]},${C.secondary[600]})`,border:"1px solid rgba(255,255,255,0.12)",borderRadius:10,padding:"9px 18px",cursor:"pointer",flexShrink:0,boxShadow:"0 4px 14px rgba(23,79,98,0.45),0 1px 3px rgba(0,0,0,0.15),inset 0 1px 0 rgba(255,255,255,0.18)",letterSpacing:"0.02em",transition:"box-shadow 0.18s,transform 0.12s"}}
-      onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 6px 20px rgba(23,79,98,0.55),0 2px 6px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.22)";e.currentTarget.style.transform="translateY(-1px)";}}
-      onMouseLeave={e=>{e.currentTarget.style.boxShadow="0 4px 14px rgba(23,79,98,0.45),0 1px 3px rgba(0,0,0,0.15),inset 0 1px 0 rgba(255,255,255,0.18)";e.currentTarget.style.transform="translateY(0)";}}
-    >
-      <span style={{fontSize:12,color:"rgba(255,255,255,0.75)",lineHeight:1}}>✦</span>
-      <span style={{fontSize:12,fontWeight:700,color:"#fff",fontFamily:font,whiteSpace:"nowrap",letterSpacing:"0.04em"}}>IQ Assistant</span>
-    </button>
+    <Button variant="primary" size="sm" onClick={onOpenIQ}
+      leftIcon={<span style={{fontSize:12,color:"rgba(255,255,255,0.75)",lineHeight:1}}>✦</span>}
+      style={{boxShadow:"0 4px 14px rgba(23,79,98,0.45),0 1px 3px rgba(0,0,0,0.15),inset 0 1px 0 rgba(255,255,255,0.18)"}}>
+      <span style={{whiteSpace:"nowrap",letterSpacing:"0.04em"}}>IQ Assistant</span>
+    </Button>
   </div>
 );};
 

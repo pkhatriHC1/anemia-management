@@ -475,3 +475,18 @@ html, body, #root {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
+
+/* ── HC1 Typography Role Utilities ───────────────────────── */
+/* Each class spreads the full role: size / line-height / weight / letter-spacing */
+/* font-family is inherited from the global --hc-font-sans on body */
+.hc-type-displayXL { font-size: 64px; line-height: 72px; font-weight: 700; letter-spacing: -0.02em; }
+.hc-type-displayL  { font-size: 48px; line-height: 56px; font-weight: 700; letter-spacing: -0.02em; }
+.hc-type-headingXL { font-size: 36px; line-height: 44px; font-weight: 700; letter-spacing: -0.01em; }
+.hc-type-headingL  { font-size: 30px; line-height: 36px; font-weight: 700; letter-spacing: -0.01em; }
+.hc-type-headingM  { font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: 0em; }
+.hc-type-headingS  { font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: 0em; }
+.hc-type-bodyL     { font-size: 18px; line-height: 28px; font-weight: 400; letter-spacing: 0em; }
+.hc-type-body      { font-size: 16px; line-height: 24px; font-weight: 400; letter-spacing: 0em; }
+.hc-type-bodyS     { font-size: 14px; line-height: 20px; font-weight: 400; letter-spacing: 0em; }
+.hc-type-caption   { font-size: 12px; line-height: 16px; font-weight: 400; letter-spacing: 0em; }
+.hc-type-label     { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.02em; }

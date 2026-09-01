@@ -102,7 +102,7 @@ export function Gauge({
             fontSize: diameter * 0.28,
             fontWeight: 700,
             color: arcColor,
-            fontFamily: "'Source Sans Pro', system-ui, sans-serif",
+            fontFamily: "var(--hc-font-sans)",
             lineHeight: 1,
             pointerEvents: "none",
             paddingTop: diameter * 0.05,

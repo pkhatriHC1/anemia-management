@@ -6,6 +6,7 @@ import { Gauge as HC1Gauge } from "./components/hc1/Gauge";
 
 const C={grey:{100:"#FFFFFF",200:"#F7F7F7",300:"#E7E7E7",400:"#CFD1D1",500:"#A8ADAD",600:"#737E7F",700:"#545D5E",800:"#273233"},primary:{100:"#ECF4F5",200:"#CFE4E6",300:"#9EC9CD",400:"#56A0A8",500:"#0D7782",600:"#0B626B"},secondary:{100:"#E1F3F5",200:"#CFEBEE",300:"#AFDCE1",400:"#75CAD3",500:"#3CA6B0",600:"#1D828C"},orange:{100:"#FFEFE0",400:"#F58126"},yellow:{100:"#FFECC1",400:"#FFC432"},error:{100:"#F4DFE4",400:"#B00A2F"},success:{100:"#D7E7D6",400:"#388032"},red:{100:"#EFB0AB",400:"#C6473C"}};
 const font="'Source Sans Pro',system-ui,sans-serif";
+const fmtCaseDate=(s)=>{const d=new Date(s);if(isNaN(d))return s;const mm=String(d.getMonth()+1).padStart(2,"0");const dd=String(d.getDate()).padStart(2,"0");const yyyy=d.getFullYear();return `${mm}/${dd}/${yyyy}`;};
 // 4-tier severity chip — SEVERE / MODERATE / MILD / NORMAL — used for TRS, Anemia Grade
 const SEV4_TIER={severe:"critical",moderate:"high",mild:"medium",normal:"normal"};
 const SEV4_LABEL={severe:"SEVERE",moderate:"MODERATE",mild:"MILD",normal:"NORMAL"};
@@ -988,32 +989,33 @@ const PatientRow=({p,onOpen})=>{
   const ferC=p.labs[1].status==="critical"?C.error[400]:p.labs[1].status==="high"||p.labs[1].status==="borderline"?C.orange[400]:C.grey[600];
   return <>
     <tr style={{borderBottom:`0.5px solid ${C.grey[300]}`,cursor:"pointer"}} onMouseEnter={e=>e.currentTarget.style.background=C.grey[200]} onMouseLeave={e=>e.currentTarget.style.background="transparent"} onClick={()=>onOpen(p,"overview")}>
-      <td style={{padding:"12px 16px",minWidth:180}}><span style={{fontSize:15,fontWeight:600,color:C.grey[800],fontFamily:font,display:"block",marginBottom:2}}>{p.name}</span><span className="tabular-nums-hc1" style={{fontSize:13,color:C.grey[500],fontFamily:font,display:"block",marginBottom:5}}>MRN {p.id} · Age {p.age}</span><span style={{fontSize:11,fontWeight:600,color:C.grey[700],background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:4,padding:"2px 7px",fontFamily:font,letterSpacing:"0.05em",textTransform:"uppercase"}}>{p.caseType}</span></td>
+      <td style={{padding:"12px 16px",minWidth:180}}><span style={{fontSize:14,fontWeight:600,color:C.grey[800],fontFamily:font,display:"block",marginBottom:2}}>{p.name}</span><span className="tabular-nums-hc1" style={{fontSize:12,color:C.grey[500],fontFamily:font,display:"block",marginBottom:5}}>MRN {p.id} · Age {p.age}</span><span style={{fontSize:10,fontWeight:600,color:C.grey[700],background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:4,padding:"2px 7px",fontFamily:font,letterSpacing:"0.05em",textTransform:"uppercase"}}>{p.caseType}</span></td>
+      <td style={{padding:"12px 16px",minWidth:110}}><span className="tabular-nums-hc1" style={{fontSize:12,fontWeight:500,color:C.grey[700],fontFamily:font}}>{fmtCaseDate(p.admitDate)}</span></td>
       <td style={{padding:"12px 16px",minWidth:190}}>
         <div style={{display:"flex",gap:14}}><div>
-          <div style={{fontSize:11,fontWeight:700,color:C.grey[600],textTransform:"uppercase",letterSpacing:"0.07em",fontFamily:font,marginBottom:3}}>HGB</div>
-          <div style={{display:"flex",alignItems:"baseline",gap:2}}><span className="tabular-nums-hc1" style={{fontSize:21,fontWeight:500,color:p.labs[0].status==="critical"?C.error[400]:p.labs[0].status==="high"||p.labs[0].status==="borderline"?C.orange[400]:C.grey[600],fontFamily:font,letterSpacing:"-0.01em"}}>{p.labs[0].value}</span><span style={{fontSize:13,color:C.grey[500],fontFamily:font}}>g/dL</span></div>
+          <div style={{fontSize:10,fontWeight:700,color:C.grey[600],textTransform:"uppercase",letterSpacing:"0.07em",fontFamily:font,marginBottom:3}}>HGB</div>
+          <div style={{display:"flex",alignItems:"baseline",gap:2}}><span className="tabular-nums-hc1" style={{fontSize:20,fontWeight:500,color:p.labs[0].status==="critical"?C.error[400]:p.labs[0].status==="high"||p.labs[0].status==="borderline"?C.orange[400]:C.grey[600],fontFamily:font,letterSpacing:"-0.01em"}}>{p.labs[0].value}</span><span style={{fontSize:12,color:C.grey[500],fontFamily:font}}>g/dL</span></div>
         </div><div style={{width:"0.5px",background:C.grey[300],alignSelf:"stretch"}}/><div>
-          <div style={{fontSize:11,fontWeight:700,color:C.grey[600],textTransform:"uppercase",letterSpacing:"0.07em",fontFamily:font,marginBottom:3}}>Ferritin</div>
-          <div style={{display:"flex",alignItems:"baseline",gap:2}}><span className="tabular-nums-hc1" style={{fontSize:21,fontWeight:500,color:ferC,fontFamily:font,letterSpacing:"-0.01em"}}>{p.labs[1].value}</span><span style={{fontSize:13,color:C.grey[500],fontFamily:font}}>ng/mL</span></div>
+          <div style={{fontSize:10,fontWeight:700,color:C.grey[600],textTransform:"uppercase",letterSpacing:"0.07em",fontFamily:font,marginBottom:3}}>Ferritin</div>
+          <div style={{display:"flex",alignItems:"baseline",gap:2}}><span className="tabular-nums-hc1" style={{fontSize:20,fontWeight:500,color:ferC,fontFamily:font,letterSpacing:"-0.01em"}}>{p.labs[1].value}</span><span style={{fontSize:12,color:C.grey[500],fontFamily:font}}>ng/mL</span></div>
           <div style={{marginTop:3}}><StatusChip status={p.labs[1].status}/></div>
         </div></div>
       </td>
       <td style={{padding:"12px 16px",minWidth:95}} onClick={e=>{e.stopPropagation();setTrsOpen(v=>!v);}}><div style={{cursor:"pointer",display:"inline-block"}}><TRSGauge value={p._trs.score} trsSev={p._trs.trsSev} size={52}/><div style={{marginTop:3}}><SevChip tier={trsTier(p._trs.trsSev)}/></div></div></td>
-      <td style={{padding:"12px 16px",minWidth:180}}><div style={{display:"flex",flexWrap:"wrap",gap:4}}>{p.conditions.map((c,i)=><span key={i} style={{fontSize:13,color:C.grey[700],background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:4,padding:"2px 7px",fontFamily:font}}>{c}</span>)}</div></td>
-      <td style={{padding:"12px 16px",minWidth:180}}><span style={{fontSize:13,color:C.grey[700],fontFamily:font,lineHeight:1.4}}>{p.order}</span></td>
-      <td style={{padding:"12px 16px",minWidth:110}}><div style={{fontSize:13,fontWeight:600,color:C.grey[800],fontFamily:font}}>{p.provider}</div></td>
+      <td style={{padding:"12px 16px",minWidth:180}}><div style={{display:"flex",flexWrap:"wrap",gap:4}}>{p.conditions.map((c,i)=><span key={i} style={{fontSize:12,color:C.grey[700],background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:4,padding:"2px 7px",fontFamily:font}}>{c}</span>)}</div></td>
+      <td style={{padding:"12px 16px",minWidth:180}}><span style={{fontSize:12,color:C.grey[700],fontFamily:font,lineHeight:1.4}}>{p.order}</span></td>
+      <td style={{padding:"12px 16px",minWidth:110}}><div style={{fontSize:12,fontWeight:600,color:C.grey[800],fontFamily:font}}>{p.provider}</div></td>
       <td style={{padding:"12px 16px",minWidth:100}}>
         {(()=>{
           const ag=getAnemiaGrade(p.labs[0].value);
           const dr=getDeltaRisk(p.labs[0].draws);
           return <div>
             <SevChip tier={ag.tier}/>
-            {dr?.isRisk&&<div style={{display:"flex",alignItems:"center",gap:3,marginTop:6}}><span className="tabular-nums-hc1" style={{fontSize:11,fontWeight:700,color:C.error[400],background:C.error[100],borderRadius:2,padding:"1px 4px",fontFamily:font}}>ΔHb {dr.pct}% ⚠</span></div>}
+            {dr?.isRisk&&<div style={{display:"flex",alignItems:"center",gap:3,marginTop:6}}><span className="tabular-nums-hc1" style={{fontSize:10,fontWeight:700,color:C.error[400],background:C.error[100],borderRadius:2,padding:"1px 4px",fontFamily:font}}>ΔHb {dr.pct}% ⚠</span></div>}
           </div>;
         })()}
       </td>
-      <td style={{padding:"12px 16px",minWidth:150}} onClick={e=>e.stopPropagation()}><Button variant="primary" size="md" onClick={()=>onOpen(p,"cp")} rightIcon={<ArrowRight size={14}/>}>Generate Care Plan</Button></td>
+      <td style={{padding:"12px 16px",minWidth:150}} onClick={e=>e.stopPropagation()}><Button variant="primary" size="sm" onClick={()=>onOpen(p,"cp")} rightIcon={<ArrowRight size={11}/>}>Generate Care Plan</Button></td>
     </tr>
     {trsOpen&&<TRSDrawer p={p} onClose={()=>setTrsOpen(false)}/>}
   </>;
@@ -1023,7 +1025,7 @@ export default function App(){
   const [screen,setScreen]=useState("worklist");const [activePatient,setActivePatient]=useState(null);const [defaultZone,setDefaultZone]=useState("overview");
   const [search,setSearch]=useState("");const [ctFilter,setCtFilter]=useState("All Case Types");
   if(screen==="workspace"&&activePatient)return <PatientWorkspace patient={activePatient} allPatients={PATIENTS} onBack={()=>setScreen("worklist")} onSelectPatient={p=>setActivePatient(p)} defaultZone={defaultZone}/>;
-  const COLS=["PATIENT","LAB VALUES","TRS","RISK IDENTIFIERS","ACTIVE ORDER","PROVIDER","ANEMIA SEVERITY","ACTIONS"];
+  const COLS=["PATIENT","CASE DATE","LAB VALUES","TRS","RISK IDENTIFIERS","ACTIVE ORDER","PROVIDER","ANEMIA SEVERITY","ACTIONS"];
   const filtered=PATIENTS.filter(p=>(!search||p.name.toLowerCase().includes(search.toLowerCase())||p.id.toLowerCase().includes(search.toLowerCase())||p.provider.toLowerCase().includes(search.toLowerCase()))&&(ctFilter==="All Case Types"||p.caseType===ctFilter));
   return(
   <div style={{display:"flex",flexDirection:"column",height:"100dvh",fontFamily:font,background:C.grey[200],overflow:"hidden"}}>
@@ -1040,12 +1042,12 @@ export default function App(){
 
       <div style={{background:C.grey[100],borderRadius:12,border:`0.5px solid ${C.grey[300]}`,boxShadow:"0 1px 8px rgba(0,0,0,0.06)",overflow:"hidden",display:"flex",flexDirection:"column",flex:1,minHeight:0}}>
         <div style={{padding:"12px 20px",borderBottom:`0.5px solid ${C.grey[300]}`,display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
-          <div style={{position:"relative",width:260}}><Search size={13} color={C.grey[500]} style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search patients, MRN, provider..." style={{width:"100%",boxSizing:"border-box",padding:"7px 10px 7px 30px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,fontSize:13,color:C.grey[800],background:C.grey[100],outline:"none",fontFamily:font}}/></div>
-          <div style={{flex:1}}/><Filter size={13} color={C.grey[500]}/><span style={{fontSize:13,color:C.grey[500],fontFamily:font}}>Filter by:</span>
-          {[{v:ctFilter,s:setCtFilter,o:CASE_TYPES},{v:"All Severity",s:()=>{},o:["All Severity","Severe","Moderate","Mild","No Anemia"]}].map((dd,i)=><div key={i} style={{position:"relative"}}><select value={dd.v} onChange={e=>dd.s(e.target.value)} style={{appearance:"none",padding:"6px 26px 6px 10px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,fontSize:13,color:C.grey[700],background:C.grey[100],cursor:"pointer",outline:"none",fontFamily:font}}>{dd.o.map(o=><option key={o}>{o}</option>)}</select><ChevronDown size={10} color={C.grey[500]} style={{position:"absolute",right:7,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/></div>)}
+          <div style={{position:"relative",width:260}}><Search size={13} color={C.grey[500]} style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search patients, MRN, provider..." style={{width:"100%",boxSizing:"border-box",padding:"7px 10px 7px 30px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,fontSize:12,color:C.grey[800],background:C.grey[100],outline:"none",fontFamily:font}}/></div>
+          <div style={{flex:1}}/><Filter size={13} color={C.grey[500]}/><span style={{fontSize:12,color:C.grey[500],fontFamily:font}}>Filter by:</span>
+          {[{v:ctFilter,s:setCtFilter,o:CASE_TYPES},{v:"All Severity",s:()=>{},o:["All Severity","Severe","Moderate","Mild","No Anemia"]}].map((dd,i)=><div key={i} style={{position:"relative"}}><select value={dd.v} onChange={e=>dd.s(e.target.value)} style={{appearance:"none",padding:"6px 26px 6px 10px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,fontSize:12,color:C.grey[700],background:C.grey[100],cursor:"pointer",outline:"none",fontFamily:font}}>{dd.o.map(o=><option key={o}>{o}</option>)}</select><ChevronDown size={10} color={C.grey[500]} style={{position:"absolute",right:7,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/></div>)}
         </div>
-        <div style={{flex:1,overflowY:"auto",overflowX:"auto",minHeight:0}}><table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr style={{background:C.grey[200],borderBottom:`1px solid ${C.grey[300]}`}}>{COLS.map(h=><th key={h} style={{fontSize:13,fontWeight:700,letterSpacing:"0.06em",color:C.grey[600],textAlign:"left",padding:"10px 16px",textTransform:"uppercase",whiteSpace:"nowrap",fontFamily:font}}>{h}</th>)}</tr></thead><tbody>{filtered.length===0?<tr><td colSpan={COLS.length} style={{padding:24,textAlign:"center",fontSize:15,color:C.grey[500],fontFamily:font}}>No patients match</td></tr>:filtered.map(p=><PatientRow key={p.id} p={p} onOpen={(p,zone="overview")=>{setActivePatient(p);setDefaultZone(zone);setScreen("workspace");}}/>)}</tbody></table></div>
-        <div style={{padding:"9px 16px",borderTop:`0.5px solid ${C.grey[300]}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:13,color:C.grey[500],fontFamily:font}}>Showing {filtered.length} of {PATIENTS.length} patients</span><div style={{display:"flex",alignItems:"center",gap:6}}><div style={{width:6,height:6,borderRadius:"50%",background:C.success[400]}}/><span style={{fontSize:13,color:C.success[400],fontFamily:font}}>FHIR R4 Live · Synced 2 min ago</span></div></div>
+        <div style={{flex:1,overflowY:"auto",overflowX:"auto",minHeight:0}}><table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr style={{background:C.grey[200],borderBottom:`1px solid ${C.grey[300]}`}}>{COLS.map(h=><th key={h} style={{fontSize:12,fontWeight:700,letterSpacing:"0.06em",color:C.grey[600],textAlign:"left",padding:"10px 16px",textTransform:"uppercase",whiteSpace:"nowrap",fontFamily:font}}>{h}</th>)}</tr></thead><tbody>{filtered.length===0?<tr><td colSpan={COLS.length} style={{padding:24,textAlign:"center",fontSize:14,color:C.grey[500],fontFamily:font}}>No patients match</td></tr>:filtered.map(p=><PatientRow key={p.id} p={p} onOpen={(p,zone="overview")=>{setActivePatient(p);setDefaultZone(zone);setScreen("workspace");}}/>)}</tbody></table></div>
+        <div style={{padding:"9px 16px",borderTop:`0.5px solid ${C.grey[300]}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:12,color:C.grey[500],fontFamily:font}}>Showing {filtered.length} of {PATIENTS.length} patients</span><div style={{display:"flex",alignItems:"center",gap:6}}><div style={{width:6,height:6,borderRadius:"50%",background:C.success[400]}}/><span style={{fontSize:12,color:C.success[400],fontFamily:font}}>FHIR R4 Live · Synced 2 min ago</span></div></div>
       </div>
     </div>
   </div>

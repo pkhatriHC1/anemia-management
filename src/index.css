@@ -150,10 +150,10 @@
   --hc-color-action-accent: var(--hc-color-accent-500);
 
   /* ── Semantic Aliases — CTA ─────────────────────────────── */
-  --hc-color-cta-default: var(--hc-color-accent-500);
-  --hc-color-cta-hover: var(--hc-color-accent-600);
-  --hc-color-cta-active: var(--hc-color-accent-700);
-  --hc-color-cta-border: var(--hc-color-accent-600);
+  --hc-color-cta-default: var(--hc-color-accent-400);
+  --hc-color-cta-hover: var(--hc-color-accent-500);
+  --hc-color-cta-active: var(--hc-color-accent-600);
+  --hc-color-cta-border: var(--hc-color-accent-500);
 
   /* ── Semantic Aliases — Severity ────────────────────────── */
   --hc-color-severity-critical: var(--hc-color-red-500);

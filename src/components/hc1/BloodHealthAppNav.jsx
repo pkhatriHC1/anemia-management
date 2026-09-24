@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { BarChart3, ChevronDown, LogOut, Settings, ShieldCheck } from "lucide-react";
+import { BarChart3, CalendarClock, ChevronDown, LogOut, Settings, ShieldCheck } from "lucide-react";
+import { Badge } from "./Badge";
+import { CAN_CLINICAL_NAVIGATION, getFollowUps } from "./FollowUp/followUpStore";
 
 const SETTINGS_ITEMS = [
   { label: "Lab Types Mapping", adminOnly: true, count: 1 },
@@ -44,11 +46,25 @@ const itemButtonStyle = {
   cursor: "pointer",
 };
 
-export const BloodHealthAppNav = ({ onNavigate }) => {
+export const BloodHealthAppNav = ({ onNavigate, currentScreen }) => {
   const [openMenu, setOpenMenu] = useState(null);
+  const [followUpCount, setFollowUpCount] = useState(0);
   const currentRole = "BloodHealth Admin";
   const isAdmin = currentRole.includes("Admin");
   const visibleSettings = SETTINGS_ITEMS.filter((item) => !item.adminOnly || isAdmin);
+
+  useEffect(() => {
+    const updateCount = () => {
+      setFollowUpCount(getFollowUps().filter((v) => v.status === "Scheduled").length);
+    };
+    updateCount();
+    window.addEventListener("follow-ups-updated", updateCount);
+    window.addEventListener("storage", updateCount);
+    return () => {
+      window.removeEventListener("follow-ups-updated", updateCount);
+      window.removeEventListener("storage", updateCount);
+    };
+  }, []);
 
   useEffect(() => {
     const closeMenu = (event) => {
@@ -64,6 +80,13 @@ export const BloodHealthAppNav = ({ onNavigate }) => {
         <div style={{ width: 24, height: 24, borderRadius: "50%", display: "grid", placeItems: "center", background: "#E4F1F0", color: "#0D7782" }}><ShieldCheck size={14} /></div>
         <div><div style={{ fontWeight: 700, lineHeight: 1.1 }}>Tiffany Hall</div><div style={{ color: "#7A8788", fontSize: 11, lineHeight: 1.1 }}>{currentRole}</div></div>
       </div>
+
+      {CAN_CLINICAL_NAVIGATION && (
+        <button type="button" onClick={() => onNavigate?.("followup")} style={{ ...menuButtonStyle(currentScreen === "followup"), gap: 6 }}>
+          <CalendarClock size={15} strokeWidth={1.7} />Follow Up
+          {followUpCount > 0 && <Badge variant="info" appearance="soft" size="sm" count={followUpCount} />}
+        </button>
+      )}
 
       <div style={{ position: "relative" }}>
         <button type="button" aria-expanded={openMenu === "reports"} aria-haspopup="menu" onClick={() => setOpenMenu(openMenu === "reports" ? null : "reports")} style={menuButtonStyle(openMenu === "reports")}><BarChart3 size={15} strokeWidth={1.7} />Reports</button>

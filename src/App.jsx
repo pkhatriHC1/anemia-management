@@ -7,6 +7,9 @@ import { CareCoordination, getPendingCount } from "./components/hc1/CareCoordina
 import { BloodHealthAppNav } from "./components/hc1/BloodHealthAppNav";
 import { FeatureUsers } from "./components/hc1/FeatureUsers";
 import { FollowUpWorklist } from "./components/hc1/FollowUp/FollowUpWorklist";
+import { ScheduleFollowUpModal } from "./components/hc1/FollowUp/ScheduleFollowUpModal";
+import { CAN_CLINICAL_NAVIGATION, getFollowUpDecision, getFollowUps } from "./components/hc1/FollowUp/followUpStore";
+import { CalendarClock } from "lucide-react";
 
 const C={grey:{100:"#FFFFFF",200:"#F7F7F7",300:"#E7E7E7",400:"#CFD1D1",500:"#A8ADAD",600:"#737E7F",700:"#545D5E",800:"#273233"},primary:{100:"#ECF4F5",200:"#CFE4E6",300:"#9EC9CD",400:"#56A0A8",500:"#0D7782",600:"#0B626B"},secondary:{100:"#E1F3F5",200:"#CFEBEE",300:"#AFDCE1",400:"#75CAD3",500:"#3CA6B0",600:"#1D828C"},orange:{100:"#FFEFE0",400:"#F58126"},yellow:{100:"#FFECC1",400:"#FFC432"},error:{100:"#F4DFE4",400:"#B00A2F"},success:{100:"#D7E7D6",400:"#388032"},red:{100:"#EFB0AB",400:"#C6473C"}};
 const font="var(--hc-font-sans)";
@@ -426,6 +429,9 @@ const StepHeader=({eyebrow,title})=>(
 const CarePlanZone=({p})=>{
   const [step,setStep]=useState(0);
   const [sent,setSent]=useState(false);
+  const [fuModalOpen,setFuModalOpen]=useState(false);
+  const [,setFuTick]=useState(0);
+  useEffect(()=>{const h=()=>setFuTick(t=>t+1);window.addEventListener("follow-ups-updated",h);window.addEventListener("storage",h);return()=>{window.removeEventListener("follow-ups-updated",h);window.removeEventListener("storage",h);};},[]);
   const [attestedDx,setAttestedDx]=useState(p.diagnosis);
   const [clinicalNotes,setClinicalNotes]=useState("");
   const [recipients,setRecipients]=useState({attending:true,surgeon:false,anesthesiologist:false,obgyn:false,infusion:true,patient:true});
@@ -743,6 +749,8 @@ const CarePlanZone=({p})=>{
             <div style={{width:60,height:60,borderRadius:"50%",background:C.success[100],border:`2px solid ${C.success[400]}`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}><CheckCircle size={28} color={C.success[400]}/></div>
             <div style={{fontSize:24,fontWeight:700,color:C.grey[800],fontFamily:font,marginBottom:6}}>Optimization Recommendations Sent Successfully</div>
             <div style={{fontSize:16,color:C.grey[500],fontFamily:font,marginBottom:24}}>All selected recipients have been notified via Epic InBasket & Patient Portal.</div>
+            {CAN_CLINICAL_NAVIGATION&&(()=>{const decision=getFollowUpDecision(p.id);const latestScheduled=getFollowUps().filter(v=>v.patientId===p.id&&v.status==="Scheduled").sort((a,b)=>new Date(b.followUpAt)-new Date(a.followUpAt))[0];const pad=n=>String(n).padStart(2,"0");const fmtDt=iso=>{const d=new Date(iso);if(isNaN(d))return"";return `${pad(d.getMonth()+1)}/${pad(d.getDate())}/${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;};if(decision==="scheduled"&&latestScheduled){return <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}><div style={{display:"flex",alignItems:"center",gap:8,fontSize:15,fontWeight:600,color:C.success[400],fontFamily:font}}><CalendarClock size={16} color={C.success[400]}/>Follow-up scheduled · {fmtDt(latestScheduled.followUpAt)}</div><Button variant="link" size="md" leftIcon={<CalendarClock size={14}/>} onClick={()=>setFuModalOpen(true)}>Schedule another</Button></div>;}if(decision==="not_needed"){return <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}><div style={{fontSize:15,fontWeight:600,color:C.grey[500],fontFamily:font}}>No follow-up needed</div><Button variant="link" size="md" onClick={()=>setFuModalOpen(true)}>Change</Button></div>;}return <div style={{display:"flex",justifyContent:"center"}}><Button variant="link" size="md" leftIcon={<CalendarClock size={14}/>} onClick={()=>setFuModalOpen(true)}>Schedule Follow-Up</Button></div>;})()}
+            {fuModalOpen&&<ScheduleFollowUpModal patient={p} onClose={()=>setFuModalOpen(false)}/>}
             </div>
         : <div>
             <StepHeader eyebrow="Epic InBasket & Patient Portal" title="Communicate Optimization Recommendations"/>

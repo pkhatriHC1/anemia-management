@@ -52,8 +52,8 @@ const formatDate = (iso) => {
 export const FollowUpWorklist = () => {
   const [visits, setVisits] = useState(() => getFollowUps());
   const [search, setSearch] = useState("");
-  const [specialtyFilter, setSpecialtyFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [specialtyFilter, setSpecialtyFilter] = useState("All Specialties");
+  const [statusFilter, setStatusFilter] = useState("All Statuses");
 
   useEffect(() => {
     const handler = () => setVisits(getFollowUps());
@@ -83,31 +83,37 @@ export const FollowUpWorklist = () => {
         v.patientName.toLowerCase().includes(q) ||
         v.patientId.toLowerCase().includes(q);
       const matchesSpecialty =
-        specialtyFilter === "All" || v.specialties.includes(specialtyFilter);
+        specialtyFilter === "All Specialties" || v.specialties.includes(specialtyFilter);
       const matchesStatus =
-        statusFilter === "All" || v.status === statusFilter;
+        statusFilter === "All Statuses" || v.status === statusFilter;
       return matchesSearch && matchesSpecialty && matchesStatus;
     });
-    return [...matched].sort(
-      (a, b) => new Date(a.followUpAt) - new Date(b.followUpAt)
-    );
+    return [...matched].sort((a, b) => {
+      const aScheduled = a.status === "Scheduled";
+      const bScheduled = b.status === "Scheduled";
+      if (aScheduled && !bScheduled) return -1;
+      if (!aScheduled && bScheduled) return 1;
+      const da = new Date(a.followUpAt).getTime();
+      const db = new Date(b.followUpAt).getTime();
+      return aScheduled ? da - db : db - da;
+    });
   }, [visits, search, specialtyFilter, statusFilter]);
 
   const hasActiveFilters =
-    search !== "" || specialtyFilter !== "All" || statusFilter !== "All";
+    search !== "" || specialtyFilter !== "All Specialties" || statusFilter !== "All Statuses";
 
   const clearFilters = () => {
     setSearch("");
-    setSpecialtyFilter("All");
-    setStatusFilter("All");
+    setSpecialtyFilter("All Specialties");
+    setStatusFilter("All Statuses");
   };
 
   const dropdowns = [
-    { v: specialtyFilter, s: setSpecialtyFilter, o: ["All", ...SPECIALTIES] },
+    { v: specialtyFilter, s: setSpecialtyFilter, o: ["All Specialties", ...SPECIALTIES] },
     {
       v: statusFilter,
       s: setStatusFilter,
-      o: ["All", "Scheduled", "Completed", "Cancelled"],
+      o: ["All Statuses", "Scheduled", "Completed", "Cancelled"],
     },
   ];
 

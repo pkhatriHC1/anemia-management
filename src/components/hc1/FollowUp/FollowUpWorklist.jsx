@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Search, Filter, ChevronDown, CalendarPlus } from "lucide-react";
+import { Search, Filter, ChevronDown, CalendarPlus, MoreHorizontal, Calendar } from "lucide-react";
 import { Button } from "../Button";
 import { Badge } from "../Badge";
 import { getFollowUps, SPECIALTIES, CAN_CLINICAL_NAVIGATION } from "./followUpStore";
@@ -15,6 +15,24 @@ const C = {
     600: "#737E7F",
     700: "#545D5E",
     800: "#273233",
+  },
+  primary: {
+    100: "#ECF4F5",
+    500: "#0D7782",
+    600: "#0B626B",
+    700: "#094F57",
+  },
+  secondary: {
+    400: "#75CAD3",
+    600: "#1D828C",
+  },
+  error: {
+    100: "#F4DFE4",
+    400: "#B00A2F",
+  },
+  success: {
+    100: "#D7E7D6",
+    400: "#388032",
   },
 };
 const font = "var(--hc-font-sans)";
@@ -42,13 +60,15 @@ const formatDateTime = (iso) => {
   return `${mm}/${dd}/${yyyy}, ${hh}:${mi}:${ss}`;
 };
 
-const formatDate = (iso) => {
-  const d = new Date(iso);
-  if (isNaN(d)) return iso;
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  const yyyy = d.getFullYear();
-  return `${mm}/${dd}/${yyyy}`;
+const isOverdue = (v) => {
+  if (v.status !== "Scheduled") return false;
+  return new Date(v.followUpAt).getTime() < Date.now();
+};
+
+const isDueIn7 = (v) => {
+  if (v.status !== "Scheduled") return false;
+  const diff = new Date(v.followUpAt).getTime() - Date.now();
+  return diff >= 0 && diff <= 7 * 24 * 60 * 60 * 1000;
 };
 
 export const FollowUpWorklist = ({ patients = [] }) => {
@@ -68,14 +88,24 @@ export const FollowUpWorklist = ({ patients = [] }) => {
     };
   }, []);
 
+  const counts = useMemo(() => {
+    const all = visits;
+    return {
+      scheduled: all.filter((v) => v.status === "Scheduled").length,
+      dueIn7: all.filter(isDueIn7).length,
+      overdue: all.filter(isOverdue).length,
+      completed: all.filter((v) => v.status === "Completed").length,
+      cancelled: all.filter((v) => v.status === "Cancelled").length,
+    };
+  }, [visits]);
+
   const COLS = [
     "PATIENT",
-    "DOB",
     "SPECIALTY",
-    "FOLLOW-UP DATE/TIME",
+    "FOLLOW-UP DATE",
+    "REFERRING PROVIDER",
     "STATUS",
-    "SCHEDULED BY",
-    "SCHEDULED ON",
+    "ACTIONS",
   ];
 
   const filtered = useMemo(() => {
@@ -98,7 +128,14 @@ export const FollowUpWorklist = ({ patients = [] }) => {
       if (!aScheduled && bScheduled) return 1;
       const da = new Date(a.followUpAt).getTime();
       const db = new Date(b.followUpAt).getTime();
-      return aScheduled ? da - db : db - da;
+      if (aScheduled && bScheduled) {
+        const aOver = isOverdue(a);
+        const bOver = isOverdue(b);
+        if (aOver && !bOver) return -1;
+        if (!aOver && bOver) return 1;
+        return da - db;
+      }
+      return db - da;
     });
   }, [visits, search, specialtyFilter, statusFilter]);
 
@@ -118,6 +155,14 @@ export const FollowUpWorklist = ({ patients = [] }) => {
       s: setStatusFilter,
       o: ["All Statuses", "Scheduled", "Completed", "Cancelled"],
     },
+  ];
+
+  const statBlocks = [
+    { label: "Scheduled", value: counts.scheduled, color: C.primary[500] },
+    { label: "Due in 7 days", value: counts.dueIn7, color: C.secondary[600] },
+    { label: "Overdue", value: counts.overdue, color: counts.overdue > 0 ? C.error[400] : C.grey[600] },
+    { label: "Completed", value: counts.completed, color: C.success[400] },
+    { label: "Cancelled", value: counts.cancelled, color: C.grey[600] },
   ];
 
   return (
@@ -144,6 +189,51 @@ export const FollowUpWorklist = ({ patients = [] }) => {
           minHeight: 0,
         }}
       >
+        {/* Summary banner — teal gradient band */}
+        <div
+          style={{
+            background: `linear-gradient(135deg, ${C.primary[600]}, ${C.primary[500]}, ${C.secondary[600]})`,
+            borderBottom: "1px solid rgba(255,255,255,0.08)",
+            padding: "14px 20px",
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            flexShrink: 0,
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              opacity: 0.05,
+              backgroundImage: "radial-gradient(rgba(255,255,255,0.9) 1px, transparent 1px)",
+              backgroundSize: "18px 18px",
+              pointerEvents: "none",
+            }}
+          />
+          <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+            <Calendar size={18} color="rgba(255,255,255,0.85)" />
+            <span style={{ fontSize: 17, fontWeight: 700, color: "rgba(255,255,255,0.95)", fontFamily: font, whiteSpace: "nowrap" }}>
+              Follow-Up Visits
+            </span>
+          </div>
+          <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", marginLeft: "auto" }}>
+            {statBlocks.map((s) => (
+              <div key={s.label} style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", minWidth: 0 }}>
+                <span className="tabular-nums-hc1" style={{ fontSize: 20, fontWeight: 700, color: "rgba(255,255,255,0.95)", fontFamily: font, lineHeight: 1.1 }}>
+                  {s.value}
+                </span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.7)", fontFamily: font, textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap", marginTop: 2 }}>
+                  {s.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Toolbar */}
         <div
           style={{
             padding: "12px 20px",
@@ -154,16 +244,6 @@ export const FollowUpWorklist = ({ patients = [] }) => {
             flexShrink: 0,
           }}
         >
-          <span
-            style={{
-              fontSize: 18,
-              fontWeight: 700,
-              color: C.grey[800],
-              fontFamily: font,
-            }}
-          >
-            Follow-Up Visits
-          </span>
           <div style={{ position: "relative", width: 260 }}>
             <Search
               size={13}
@@ -179,7 +259,7 @@ export const FollowUpWorklist = ({ patients = [] }) => {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search patient name or MRN..."
+              placeholder="Search patient name or ID…"
               style={{
                 width: "100%",
                 boxSizing: "border-box",
@@ -241,6 +321,7 @@ export const FollowUpWorklist = ({ patients = [] }) => {
           )}
         </div>
 
+        {/* Table */}
         <div
           style={{
             flex: 1,
@@ -255,6 +336,9 @@ export const FollowUpWorklist = ({ patients = [] }) => {
                 style={{
                   background: C.grey[200],
                   borderBottom: `1px solid ${C.grey[300]}`,
+                  position: "sticky",
+                  top: 0,
+                  zIndex: 1,
                 }}
               >
                 {COLS.map((h) => (
@@ -290,7 +374,7 @@ export const FollowUpWorklist = ({ patients = [] }) => {
                       fontFamily: font,
                     }}
                   >
-                    No follow-up visits scheduled.
+                    No follow-up visits are currently scheduled.
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
@@ -325,136 +409,119 @@ export const FollowUpWorklist = ({ patients = [] }) => {
                   </td>
                 </tr>
               ) : (
-                filtered.map((v) => (
-                  <tr
-                    key={v.id}
-                    style={{
-                      borderBottom: `0.5px solid ${C.grey[300]}`,
-                      transition: "background 150ms cubic-bezier(0.2, 0, 0, 1)",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = C.grey[200];
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "transparent";
-                    }}
-                  >
-                    <td
-                      style={{ padding: "12px 16px", minWidth: 140 }}
+                filtered.map((v) => {
+                  const overdue = isOverdue(v);
+                  return (
+                    <tr
+                      key={v.id}
+                      style={{
+                        borderBottom: `0.5px solid ${C.grey[300]}`,
+                        cursor: "pointer",
+                        transition: "background 150ms cubic-bezier(0.2, 0, 0, 1)",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = C.grey[200];
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "transparent";
+                      }}
+                      onClick={() => {}}
                     >
-                      <div
+                      {/* PATIENT */}
+                      <td style={{ padding: "12px 16px", minWidth: 140 }}>
+                        <div
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 600,
+                            color: C.grey[800],
+                            fontFamily: font,
+                          }}
+                        >
+                          {v.patientName}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            color: C.grey[500],
+                            fontFamily: font,
+                            marginTop: 2,
+                          }}
+                        >
+                          MRN {v.patientId}
+                        </div>
+                      </td>
+                      {/* SPECIALTY */}
+                      <td style={{ padding: "12px 16px", minWidth: 200 }}>
+                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                          {v.specialties.map((s) => (
+                            <Badge
+                              key={s}
+                              variant={SPECIALTY_VARIANT[s] || "neutral"}
+                              appearance="soft"
+                              size="sm"
+                            >
+                              {s}
+                            </Badge>
+                          ))}
+                        </div>
+                      </td>
+                      {/* FOLLOW-UP DATE */}
+                      <td style={{ padding: "12px 16px", minWidth: 180 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                          <span className="tabular-nums-hc1" style={{ fontSize: 14, color: C.grey[800], fontFamily: font }}>
+                            {formatDateTime(v.followUpAt)}
+                          </span>
+                          {overdue && (
+                            <Badge variant="danger" appearance="soft" size="sm">
+                              Overdue
+                            </Badge>
+                          )}
+                        </div>
+                      </td>
+                      {/* REFERRING PROVIDER */}
+                      <td
                         style={{
+                          padding: "12px 16px",
+                          minWidth: 120,
                           fontSize: 14,
                           fontWeight: 600,
                           color: C.grey[800],
                           fontFamily: font,
                         }}
                       >
-                        {v.patientName}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: C.grey[500],
-                          fontFamily: font,
-                          marginTop: 2,
-                        }}
-                      >
-                        MRN {v.patientId}
-                      </div>
-                    </td>
-                    <td
-                      style={{
-                        padding: "12px 16px",
-                        minWidth: 110,
-                        fontSize: 14,
-                        color: C.grey[700],
-                        fontFamily: font,
-                      }}
-                    >
-                      {v.dob}
-                    </td>
-                    <td
-                      style={{
-                        padding: "12px 16px",
-                        minWidth: 200,
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: 4,
-                          flexWrap: "wrap",
-                        }}
-                      >
-                        {v.specialties.map((s) => (
-                          <Badge
-                            key={s}
-                            variant={SPECIALTY_VARIANT[s] || "neutral"}
-                            appearance="soft"
-                            size="sm"
-                          >
-                            {s}
-                          </Badge>
-                        ))}
-                      </div>
-                    </td>
-                    <td
-                      style={{
-                        padding: "12px 16px",
-                        minWidth: 180,
-                        fontSize: 14,
-                        color: C.grey[800],
-                        fontFamily: font,
-                      }}
-                    >
-                      <span className="tabular-nums-hc1">
-                        {formatDateTime(v.followUpAt)}
-                      </span>
-                    </td>
-                    <td
-                      style={{ padding: "12px 16px", minWidth: 120 }}
-                    >
-                      <Badge
-                        variant={STATUS_VARIANT[v.status] || "neutral"}
-                        appearance="soft"
-                        size="sm"
-                      >
-                        {v.status}
-                      </Badge>
-                    </td>
-                    <td
-                      style={{
-                        padding: "12px 16px",
-                        minWidth: 120,
-                        fontSize: 14,
-                        fontWeight: 600,
-                        color: C.grey[800],
-                        fontFamily: font,
-                      }}
-                    >
-                      {v.createdBy}
-                    </td>
-                    <td
-                      style={{
-                        padding: "12px 16px",
-                        minWidth: 110,
-                        fontSize: 14,
-                        color: C.grey[700],
-                        fontFamily: font,
-                      }}
-                    >
-                      <span className="tabular-nums-hc1">
-                        {formatDate(v.createdAt)}
-                      </span>
-                    </td>
-                  </tr>
-                ))
+                        {v.referringProvider || "—"}
+                      </td>
+                      {/* STATUS */}
+                      <td style={{ padding: "12px 16px", minWidth: 120 }}>
+                        <Badge
+                          variant={STATUS_VARIANT[v.status] || "neutral"}
+                          appearance="soft"
+                          size="sm"
+                        >
+                          {v.status}
+                        </Badge>
+                      </td>
+                      {/* ACTIONS */}
+                      <td style={{ padding: "12px 16px", minWidth: 60 }}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          iconOnly
+                          aria-label="Row actions"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreHorizontal size={16} />
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
 
+        {/* Footer */}
         <div
           style={{
             padding: "9px 16px",
@@ -462,13 +529,18 @@ export const FollowUpWorklist = ({ patients = [] }) => {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            flexShrink: 0,
           }}
         >
-          <span
-            style={{ fontSize: 14, color: C.grey[500], fontFamily: font }}
-          >
+          <span style={{ fontSize: 14, color: C.grey[500], fontFamily: font }}>
             Showing {filtered.length} of {visits.length} follow-ups
           </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.success[400] }} />
+            <span style={{ fontSize: 14, color: C.success[400], fontFamily: font }}>
+              FHIR R4 Live · Synced 2 min ago
+            </span>
+          </div>
         </div>
       </div>
       {modalOpen && (

@@ -137,6 +137,7 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose }) => {
       specialties,
       followUpAt,
       status: "Scheduled",
+      referringProvider: effectivePatient.provider || "",
       createdBy: "Tiffany Hall",
       createdAt: new Date().toISOString(),
       source: isGlobal ? "Follow-Up Worklist" : "Patient Optimization Notification",

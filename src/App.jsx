@@ -9,7 +9,7 @@ import { FeatureUsers } from "./components/hc1/FeatureUsers";
 import { FollowUpWorklist } from "./components/hc1/FollowUp/FollowUpWorklist";
 import { ScheduleFollowUpModal } from "./components/hc1/FollowUp/ScheduleFollowUpModal";
 import { CAN_CLINICAL_NAVIGATION, getFollowUpDecision, getFollowUps } from "./components/hc1/FollowUp/followUpStore";
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, Calendar } from "lucide-react";
 
 const C={grey:{100:"#FFFFFF",200:"#F7F7F7",300:"#E7E7E7",400:"#CFD1D1",500:"#A8ADAD",600:"#737E7F",700:"#545D5E",800:"#273233"},primary:{100:"#ECF4F5",200:"#CFE4E6",300:"#9EC9CD",400:"#56A0A8",500:"#0D7782",600:"#0B626B"},secondary:{100:"#E1F3F5",200:"#CFEBEE",300:"#AFDCE1",400:"#75CAD3",500:"#3CA6B0",600:"#1D828C"},orange:{100:"#FFEFE0",400:"#F58126"},yellow:{100:"#FFECC1",400:"#FFC432"},error:{100:"#F4DFE4",400:"#B00A2F"},success:{100:"#D7E7D6",400:"#388032"},red:{100:"#EFB0AB",400:"#C6473C"}};
 const font="var(--hc-font-sans)";
@@ -916,7 +916,7 @@ const PatientWorkspace=({patient,allPatients,onBack,onSelectPatient,defaultZone=
       <span style={{fontSize:16,fontWeight:700,fontFamily:font,flexShrink:0,marginRight:16}}><span style={{color:C.grey[800]}}>hc</span><span style={{color:C.orange[400]}}>1</span><span style={{color:C.grey[800]}}> ClinicalIQ</span></span>
       <div style={{width:"0.5px",height:20,background:C.grey[300],marginRight:16}}/>
       <div style={{display:"flex",alignItems:"center",gap:4,background:C.grey[200],borderRadius:8,padding:4}}>
-        {[{label:"Anemia Management",icon:"blood"},{label:"HerCare Co-Pilot",icon:"preg"}].map(({label,icon})=><div key={label} style={{display:"flex",alignItems:"center",gap:5,padding:"5px 12px",borderRadius:6,background:icon==="blood"?C.grey[100]:"transparent",border:icon==="blood"?`0.5px solid ${C.grey[300]}`:"0.5px solid transparent"}}>{icon==="blood"?<BloodDrop size={13} color={C.secondary[500]}/>:<Pregnant size={13} color={C.grey[500]}/>}<span style={{fontSize:14,fontWeight:icon==="blood"?600:400,color:icon==="blood"?C.grey[800]:C.grey[500],fontFamily:font}}>{label}</span></div>)}
+        {[{label:"Anemia Management",icon:"blood",screen:"worklist"},{label:"HerCare Co-Pilot",icon:"preg",screen:null},{label:"Follow Up",icon:"calendar",screen:"followup"}].filter(t=>t.icon!=="calendar"||CAN_CLINICAL_NAVIGATION).map(({label,icon,screen:tabScreen})=><button key={label} type="button" onClick={()=>tabScreen&&setScreen(tabScreen)} style={{display:"flex",alignItems:"center",gap:5,padding:"5px 12px",borderRadius:6,background:icon==="blood"&&screen!=="followup"?C.grey[100]:icon==="calendar"&&screen==="followup"?C.grey[100]:"transparent",boxShadow:icon==="blood"&&screen!=="followup"?"0 1px 4px rgba(0,0,0,0.08)":"none",border:(icon==="blood"&&screen!=="followup")||(icon==="calendar"&&screen==="followup")?`0.5px solid ${C.grey[300]}`:"0.5px solid transparent",cursor:tabScreen?"pointer":"default",opacity:icon==="preg"?0.5:1}}>{icon==="blood"?<BloodDrop size={13} color={screen!=="followup"?C.secondary[500]:C.grey[500]}/>:icon==="preg"?<Pregnant size={13} color={C.grey[500]}/>:<Calendar size={13} color={screen==="followup"?C.secondary[500]:C.grey[500]}/>}<span style={{fontSize:14,fontWeight:(icon==="blood"&&screen!=="followup")||(icon==="calendar"&&screen==="followup")?600:400,color:(icon==="blood"&&screen!=="followup")||(icon==="calendar"&&screen==="followup")?C.grey[800]:C.grey[500],fontFamily:font}}>{label}</span></button>)}
       </div>
       <div style={{marginLeft:"auto"}}><BloodHealthAppNav onNavigate={(target)=>{if(target==="users")setScreen("users");if(target==="followup")setScreen("followup");}} currentScreen="workspace"/></div>
     </div>
@@ -991,6 +991,7 @@ export default function App(){
             <BloodDrop size={13} color={C.grey[500]}/><span style={{fontSize:14,fontWeight:400,color:C.grey[500],fontFamily:font}}>Anemia Management</span>
           </button>
           <div style={{display:"flex",alignItems:"center",gap:5,padding:"5px 12px",borderRadius:6,opacity:0.5,cursor:"default"}}><Pregnant size={13} color={C.grey[500]}/><span style={{fontSize:14,fontWeight:400,color:C.grey[500],fontFamily:font}}>HerCare Co-Pilot</span></div>
+          {CAN_CLINICAL_NAVIGATION&&<div style={{display:"flex",alignItems:"center",gap:5,padding:"5px 12px",borderRadius:6,background:C.grey[100],boxShadow:"0 1px 4px rgba(0,0,0,0.08)",border:`0.5px solid ${C.grey[300]}`}}><Calendar size={13} color={C.secondary[500]}/><span style={{fontSize:14,fontWeight:600,color:C.grey[800],fontFamily:font}}>Follow Up</span></div>}
         </div>
         <div style={{marginLeft:"auto"}}><BloodHealthAppNav onNavigate={(target)=>{if(target==="users")setScreen("users");if(target==="followup")setScreen("followup");}} currentScreen={screen}/></div>
       </div>
@@ -1010,6 +1011,7 @@ export default function App(){
       <div style={{display:"flex",alignItems:"center",gap:4,background:C.grey[200],borderRadius:8,padding:4}}>
         <div style={{display:"flex",alignItems:"center",gap:5,padding:"5px 12px",borderRadius:6,background:C.grey[100],boxShadow:"0 1px 4px rgba(0,0,0,0.08)",border:`0.5px solid ${C.grey[300]}`}}><BloodDrop size={13} color={C.secondary[500]}/><span style={{fontSize:14,fontWeight:600,color:C.grey[800],fontFamily:font}}>Anemia Management</span></div>
         <div style={{display:"flex",alignItems:"center",gap:5,padding:"5px 12px",borderRadius:6,opacity:0.5,cursor:"default"}}><Pregnant size={13} color={C.grey[500]}/><span style={{fontSize:14,fontWeight:400,color:C.grey[500],fontFamily:font}}>HerCare Co-Pilot</span></div>
+        {CAN_CLINICAL_NAVIGATION&&<button type="button" onClick={()=>setScreen("followup")} style={{display:"flex",alignItems:"center",gap:5,padding:"5px 12px",borderRadius:6,background:"transparent",border:"0.5px solid transparent",cursor:"pointer"}}><Calendar size={13} color={C.grey[500]}/><span style={{fontSize:14,fontWeight:400,color:C.grey[500],fontFamily:font}}>Follow Up</span></button>}
       </div>
       <div style={{marginLeft:"auto"}}><BloodHealthAppNav onNavigate={(target)=>{if(target==="users")setScreen("users");if(target==="followup")setScreen("followup");}} currentScreen={screen}/></div>
     </div>

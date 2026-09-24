@@ -994,7 +994,7 @@ export default function App(){
         </div>
         <div style={{marginLeft:"auto"}}><BloodHealthAppNav onNavigate={(target)=>{if(target==="users")setScreen("users");if(target==="followup")setScreen("followup");}} currentScreen={screen}/></div>
       </div>
-      <FollowUpWorklist/>
+      <FollowUpWorklist patients={PATIENTS}/>
     </div>
   );
   if(screen==="workspace"&&activePatient)return <PatientWorkspace patient={activePatient} allPatients={PATIENTS} onBack={()=>setScreen("worklist")} onSelectPatient={p=>setActivePatient(p)} defaultZone={defaultZone}/>;

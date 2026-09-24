@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
-import { Search, Filter, ChevronDown } from "lucide-react";
+import { Search, Filter, ChevronDown, CalendarPlus } from "lucide-react";
+import { Button } from "../Button";
 import { Badge } from "../Badge";
-import { getFollowUps, SPECIALTIES } from "./followUpStore";
+import { getFollowUps, SPECIALTIES, CAN_CLINICAL_NAVIGATION } from "./followUpStore";
+import { ScheduleFollowUpModal } from "./ScheduleFollowUpModal";
 
 const C = {
   grey: {
@@ -49,11 +51,12 @@ const formatDate = (iso) => {
   return `${mm}/${dd}/${yyyy}`;
 };
 
-export const FollowUpWorklist = () => {
+export const FollowUpWorklist = ({ patients = [] }) => {
   const [visits, setVisits] = useState(() => getFollowUps());
   const [search, setSearch] = useState("");
   const [specialtyFilter, setSpecialtyFilter] = useState("All Specialties");
   const [statusFilter, setStatusFilter] = useState("All Statuses");
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     const handler = () => setVisits(getFollowUps());
@@ -231,6 +234,11 @@ export const FollowUpWorklist = () => {
               />
             </div>
           ))}
+          {CAN_CLINICAL_NAVIGATION && (
+            <Button variant="primary" size="sm" leftIcon={<CalendarPlus size={14} />} onClick={() => setModalOpen(true)}>
+              Schedule Follow-Up
+            </Button>
+          )}
         </div>
 
         <div
@@ -463,6 +471,9 @@ export const FollowUpWorklist = () => {
           </span>
         </div>
       </div>
+      {modalOpen && (
+        <ScheduleFollowUpModal patients={patients} onClose={() => setModalOpen(false)} />
+      )}
     </div>
   );
 };

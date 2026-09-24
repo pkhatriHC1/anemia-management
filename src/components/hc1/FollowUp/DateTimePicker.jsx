@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
 
 const C = {
@@ -33,7 +33,6 @@ export const DateTimePicker = ({ value, onChange, onClose }) => {
   const [viewMonth, setViewMonth] = useState(initial.getMonth());
   const [hour, setHour] = useState(value ? new Date(value).getHours() : 9);
   const [minute, setMinute] = useState(value ? new Date(value).getMinutes() : 0);
-  const ref = useRef(null);
   const t = today();
 
   const commit = useCallback(
@@ -46,16 +45,11 @@ export const DateTimePicker = ({ value, onChange, onClose }) => {
   );
 
   useEffect(() => {
-    const handleDown = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) onClose?.();
-    };
     const handleEsc = (e) => {
       if (e.key === "Escape") onClose?.();
     };
-    document.addEventListener("mousedown", handleDown);
     document.addEventListener("keydown", handleEsc);
     return () => {
-      document.removeEventListener("mousedown", handleDown);
       document.removeEventListener("keydown", handleEsc);
     };
   }, [onClose]);
@@ -91,7 +85,6 @@ export const DateTimePicker = ({ value, onChange, onClose }) => {
 
   return (
     <div
-      ref={ref}
       style={{
         background: C.grey[100],
         border: `0.5px solid ${C.grey[300]}`,
@@ -99,7 +92,6 @@ export const DateTimePicker = ({ value, onChange, onClose }) => {
         boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
         padding: 14,
         width: 280,
-        zIndex: 400,
       }}
     >
       {/* Month header */}

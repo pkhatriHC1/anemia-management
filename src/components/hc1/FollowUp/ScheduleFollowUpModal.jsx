@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import { CalendarClock, X } from "lucide-react";
 import { Button } from "../Button";
 import { DateTimePicker } from "./DateTimePicker";
@@ -28,6 +29,11 @@ export const ScheduleFollowUpModal = ({ patient, onClose }) => {
   const [followUpAt, setFollowUpAt] = useState(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const panelRef = useRef(null);
+  const inputRef = useRef(null);
+  const pickerPortalRef = useRef(null);
+  const bodyRef = useRef(null);
+  const pickerOpenRef = useRef(false);
+  const [pickerPos, setPickerPos] = useState({ left: 0, top: 0 });
   const previouslyFocused = useRef(null);
 
   const closeModal = useCallback(() => {
@@ -39,6 +45,22 @@ export const ScheduleFollowUpModal = ({ patient, onClose }) => {
     onClose?.();
   }, [onClose]);
 
+  useEffect(() => { pickerOpenRef.current = pickerOpen; }, [pickerOpen]);
+
+  const computePickerPos = useCallback(() => {
+    const input = inputRef.current;
+    if (!input) return;
+    const rect = input.getBoundingClientRect();
+    const portal = pickerPortalRef.current;
+    const pickerH = portal ? portal.offsetHeight : 320;
+    const spaceBelow = window.innerHeight - rect.bottom - 4;
+    const openBelow = spaceBelow >= pickerH;
+    setPickerPos({
+      left: rect.left,
+      top: openBelow ? rect.bottom + 4 : Math.max(8, rect.top - 4 - pickerH),
+    });
+  }, []);
+
   useEffect(() => {
     previouslyFocused.current = document.activeElement;
     const focusable = panelRef.current?.querySelector("button, input, [tabindex]");
@@ -46,7 +68,7 @@ export const ScheduleFollowUpModal = ({ patient, onClose }) => {
 
     const handleKey = (e) => {
       if (e.key === "Escape") {
-        if (pickerOpen) { setPickerOpen(false); return; }
+        if (pickerOpenRef.current) { setPickerOpen(false); return; }
         closeModal();
         return;
       }
@@ -71,6 +93,30 @@ export const ScheduleFollowUpModal = ({ patient, onClose }) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!pickerOpen) return;
+    computePickerPos();
+    const onReposition = () => computePickerPos();
+    window.addEventListener("resize", onReposition);
+    const body = bodyRef.current;
+    if (body) body.addEventListener("scroll", onReposition);
+    const onDown = (e) => {
+      if (pickerPortalRef.current && pickerPortalRef.current.contains(e.target)) return;
+      if (inputRef.current && inputRef.current.contains(e.target)) return;
+      setPickerOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => {
+      window.removeEventListener("resize", onReposition);
+      if (body) body.removeEventListener("scroll", onReposition);
+      document.removeEventListener("mousedown", onDown);
+    };
+  }, [pickerOpen, computePickerPos]);
+
+  useLayoutEffect(() => {
+    if (pickerOpen && pickerPortalRef.current) computePickerPos();
+  }, [pickerOpen, computePickerPos]);
 
   const toggleSpecialty = (sp) => {
     setSpecialties((prev) => (prev.includes(sp) ? prev.filter((s) => s !== sp) : [...prev, sp]));
@@ -150,7 +196,7 @@ export const ScheduleFollowUpModal = ({ patient, onClose }) => {
         </div>
 
         {/* Body */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "20px", minHeight: 0 }}>
+        <div ref={bodyRef} style={{ flex: 1, overflowY: "auto", padding: "20px", minHeight: 0 }}>
           {step === 1 && (
             <div>
               <label style={{ fontSize: 16, fontWeight: 700, color: C.grey[800], fontFamily: font, display: "block", marginBottom: 12 }}>
@@ -239,14 +285,14 @@ export const ScheduleFollowUpModal = ({ patient, onClose }) => {
                       >
                         {checked && <span style={{ fontSize: 12, color: "#fff", fontWeight: 700 }}>✓</span>}
                       </div>
-                      <span style={{ fontSize: 16, fontWeight: 600, color: C.grey[800], fontFamily: font, flex: 1 }}>{sp}</span>
+                      <span style={{ fontSize: 16, fontWeight: 600, color: C.grey[800], fontFamily: font }}>{sp}</span>
                     </label>
                   );
                 })}
               </fieldset>
 
               {/* Date/time field */}
-              <div style={{ position: "relative" }}>
+              <div>
                 <label
                   htmlFor="followup-datetime"
                   style={{ fontSize: 14, fontWeight: 700, color: C.grey[800], fontFamily: font, marginBottom: 8, display: "block" }}
@@ -260,15 +306,26 @@ export const ScheduleFollowUpModal = ({ patient, onClose }) => {
                     style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}
                   />
                   <input
+                    ref={inputRef}
                     id="followup-datetime"
                     type="text"
                     readOnly
                     placeholder="MM/DD/YYYY, HH:MM:SS"
                     value={formatField(followUpAt)}
-                    onClick={() => setPickerOpen((o) => !o)}
+                    onClick={() => {
+                      if (!pickerOpen && inputRef.current) {
+                        const rect = inputRef.current.getBoundingClientRect();
+                        setPickerPos({ left: rect.left, top: rect.bottom + 4 });
+                      }
+                      setPickerOpen((o) => !o);
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
+                        if (!pickerOpen && inputRef.current) {
+                          const rect = inputRef.current.getBoundingClientRect();
+                          setPickerPos({ left: rect.left, top: rect.bottom + 4 });
+                        }
                         setPickerOpen((o) => !o);
                       }
                     }}
@@ -276,25 +333,27 @@ export const ScheduleFollowUpModal = ({ patient, onClose }) => {
                       width: "100%",
                       boxSizing: "border-box",
                       padding: "8px 10px 8px 32px",
-                      border: `0.5px solid ${C.grey[300]}`,
+                      border: `0.5px solid ${pickerOpen ? C.primary[500] : C.grey[300]}`,
                       borderRadius: 8,
                       fontSize: 14,
                       color: C.grey[800],
-                      background: C.grey[200],
+                      background: C.grey[100],
                       outline: "none",
+                      boxShadow: pickerOpen ? `0 0 0 2px ${C.primary[100]}` : "none",
                       fontFamily: font,
                       cursor: "pointer",
                     }}
                   />
                 </div>
-                {pickerOpen && (
-                  <div style={{ position: "absolute", left: 0, top: "calc(100% + 4px)", zIndex: 400 }}>
+                {pickerOpen && createPortal(
+                  <div ref={pickerPortalRef} style={{ position: "fixed", left: pickerPos.left, top: pickerPos.top, zIndex: 310 }}>
                     <DateTimePicker
                       value={followUpAt}
                       onChange={(iso) => setFollowUpAt(iso)}
                       onClose={() => setPickerOpen(false)}
                     />
-                  </div>
+                  </div>,
+                  document.body
                 )}
               </div>
             </div>

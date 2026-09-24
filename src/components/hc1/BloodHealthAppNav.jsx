@@ -44,7 +44,7 @@ const itemButtonStyle = {
   cursor: "pointer",
 };
 
-export const BloodHealthAppNav = () => {
+export const BloodHealthAppNav = ({ onNavigate }) => {
   const [openMenu, setOpenMenu] = useState(null);
   const currentRole = "BloodHealth Admin";
   const isAdmin = currentRole.includes("Admin");
@@ -72,7 +72,7 @@ export const BloodHealthAppNav = () => {
 
       <div style={{ position: "relative" }}>
         <button type="button" aria-expanded={openMenu === "settings"} aria-haspopup="menu" onClick={() => setOpenMenu(openMenu === "settings" ? null : "settings")} style={menuButtonStyle(openMenu === "settings")}><Settings size={15} strokeWidth={1.7} />Settings<span style={{ minWidth: 16, height: 16, borderRadius: 999, display: "inline-grid", placeItems: "center", background: "#F4DFE4", color: "#B00A2F", fontSize: 10, fontWeight: 700 }}>2</span><ChevronDown size={12} /></button>
-        {openMenu === "settings" && <div role="menu" style={{ position: "absolute", right: 0, top: "calc(100% + 8px)", width: 194, background: "#fff", border: "1px solid #DCE4E4", borderRadius: 8, boxShadow: "0 8px 22px rgba(31,55,57,0.14)", padding: "5px 0", zIndex: 100 }}><div style={{ color: "#8A9697", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", padding: "6px 12px 5px" }}>Feature Sets</div>{visibleSettings.map((item) => <button key={item.label} type="button" role="menuitem" style={itemButtonStyle} onClick={() => setOpenMenu(null)} onMouseEnter={(event) => { event.currentTarget.style.background = "#F5F8F8"; }} onMouseLeave={(event) => { event.currentTarget.style.background = "transparent"; }}><span>{item.label}</span>{item.count && <span style={{ minWidth: 16, height: 16, borderRadius: 999, display: "inline-grid", placeItems: "center", background: "#F9E3E7", color: "#B00A2F", fontSize: 10, fontWeight: 700 }}>{item.count}</span>}</button>)}</div>}
+        {openMenu === "settings" && <div role="menu" style={{ position: "absolute", right: 0, top: "calc(100% + 8px)", width: 194, background: "#fff", border: "1px solid #DCE4E4", borderRadius: 8, boxShadow: "0 8px 22px rgba(31,55,57,0.14)", padding: "5px 0", zIndex: 100 }}><div style={{ color: "#8A9697", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", padding: "6px 12px 5px" }}>Feature Sets</div>{visibleSettings.map((item) => <button key={item.label} type="button" role="menuitem" style={itemButtonStyle} onClick={() => { setOpenMenu(null); if (item.label === "Users" && onNavigate) onNavigate("users"); }} onMouseEnter={(event) => { event.currentTarget.style.background = "#F5F8F8"; }} onMouseLeave={(event) => { event.currentTarget.style.background = "transparent"; }}><span>{item.label}</span>{item.count && <span style={{ minWidth: 16, height: 16, borderRadius: 999, display: "inline-grid", placeItems: "center", background: "#F9E3E7", color: "#B00A2F", fontSize: 10, fontWeight: 700 }}>{item.count}</span>}</button>)}</div>}
       </div>
 
       <button type="button" aria-label="Sign out" onClick={() => setOpenMenu(null)} style={{ border: 0, borderLeft: "1px solid #E2E8E8", padding: "6px 0 6px 10px", background: "transparent", color: "#7A8788", cursor: "pointer" }}><LogOut size={16} strokeWidth={1.7} /></button>

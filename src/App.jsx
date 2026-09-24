@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Filter, ChevronDown, ArrowRight, ChevronLeft, MessageSquare, ClipboardList, User, Hash, Stethoscope, CircleAlert as AlertCircle, TriangleAlert as AlertTriangle, Info, ShieldCheck, Activity, ArrowLeft } from "lucide-react";
+import { Search, Filter, ChevronDown, ArrowRight, ChevronLeft, MessageSquare, ClipboardList, User, Hash, Stethoscope, CircleAlert as AlertCircle, TriangleAlert as AlertTriangle, Info, ShieldCheck, Activity, ArrowLeft, Calculator, RotateCcw } from "lucide-react";
 import { Button } from "./components/hc1/Button";
 import { Badge } from "./components/hc1/Badge";
 import { Gauge as HC1Gauge } from "./components/hc1/Gauge";
 import { CareCoordination, getPendingCount } from "./components/hc1/CareCoordination/CareCoordination";
 import { BloodHealthAppNav } from "./components/hc1/BloodHealthAppNav";
+import { FeatureUsers } from "./components/hc1/FeatureUsers";
 
 const C={grey:{100:"#FFFFFF",200:"#F7F7F7",300:"#E7E7E7",400:"#CFD1D1",500:"#A8ADAD",600:"#737E7F",700:"#545D5E",800:"#273233"},primary:{100:"#ECF4F5",200:"#CFE4E6",300:"#9EC9CD",400:"#56A0A8",500:"#0D7782",600:"#0B626B"},secondary:{100:"#E1F3F5",200:"#CFEBEE",300:"#AFDCE1",400:"#75CAD3",500:"#3CA6B0",600:"#1D828C"},orange:{100:"#FFEFE0",400:"#F58126"},yellow:{100:"#FFECC1",400:"#FFC432"},error:{100:"#F4DFE4",400:"#B00A2F"},success:{100:"#D7E7D6",400:"#388032"},red:{100:"#EFB0AB",400:"#C6473C"}};
 const font="var(--hc-font-sans)";
@@ -107,6 +108,11 @@ const PATIENTS=[
    procedure:"Lumbar Laminectomy",
    labs:[{label:"HGB",value:"13.8",unit:"g/dL",status:"low",draws:[{date:"Apr 7",value:13.8}]},{label:"Ferritin",value:"68",unit:"ng/mL",status:"low"},{label:"TIBC",value:"280",unit:"mcg/dL",status:"low"},{label:"Transferrin Sat",value:"31",unit:"%",status:"low"},{label:"Reticulocytes",value:"1.6",unit:"%",status:"low"},{label:"WBC",value:"6.9",unit:"K/uL",status:"low"},{label:"Platelets",value:"262",unit:"K/uL",status:"low"},{label:"Creatinine",value:"0.9",unit:"mg/dL",status:"low"}],
    conditions:["Pre-surgical surveillance","Lumbar stenosis"],order:"Baseline CBC — procedure in 10 days",provider:"Dr. Adams",providerRole:"Attending",unit:"Spine Outpatient",admitDate:"Apr 7, 2026",severity:"No Anemia",carePlanStatus:"generated",aiNote:"No anemia. Baseline surveillance prior to elective spinal procedure.",aiConfidence:96,diagnosis:"No Anemia — Pre-operative Baseline",icdCodes:["Z01.89","M48.06"],transfusionHistory:[{date:"None"}],allergies:["NKDA"],medications:["Aspirin 81mg daily"]},
+  // MODERATE — missing weight and ferritin to demonstrate disclaimer logic
+  {id:"LF-3301",name:"Linda Foster",age:63,dob:"06/18/1963",sex:"Female",bmi:"—",npi:"5544332216",domain:"Anemia",caseType:"GASTRO INTESTINAL",procedureWithin2Weeks:true,redoOrNonIsolated:false,significantComorbidities:true,anticoagulants:false,
+   procedure:"Small Bowel Resection",
+   labs:[{label:"HGB",value:"9.2",unit:"g/dL",status:"high",draws:[{date:"Apr 5",value:10.6},{date:"Apr 9",value:9.2}]},{label:"Ferritin",value:"—",unit:"ng/mL",status:"low",missing:true},{label:"TIBC",value:"410",unit:"mcg/dL",status:"high"},{label:"Transferrin Sat",value:"14",unit:"%",status:"high"},{label:"Reticulocytes",value:"1.3",unit:"%",status:"low"},{label:"WBC",value:"7.1",unit:"K/uL",status:"low"},{label:"Platelets",value:"198",unit:"K/uL",status:"low"},{label:"Creatinine",value:"1.1",unit:"mg/dL",status:"low"}],
+   conditions:["Crohn's Disease","Anemia of Chronic Disease"],order:"IV Iron optimization – surgery in 12 days",provider:"Dr. Okafor",providerRole:"Attending",unit:"GI Surgery Outpatient",admitDate:"Apr 9, 2026",severity:"Moderate",carePlanStatus:"pending",aiNote:"Pre-surgical anemia with incomplete iron studies. Weight and ferritin pending — risk score may be underestimated.",aiConfidence:71,diagnosis:"Moderate Anemia — Iron Deficiency with Crohn's Disease",icdCodes:["D50.8","K50.90"],transfusionHistory:[{date:"None recorded"}],allergies:["NKDA"],medications:["Prednisone 20mg daily","Azathioprine 100mg daily","Calcium 600mg daily"]},
 ];
 PATIENTS.forEach(p=>{p._trs=calcTRS(p);});
 
@@ -204,18 +210,54 @@ const TRSDrawer=({p,onClose})=>{
 );};
 
 const OverviewZone=({p,onNavigate})=>{
+  const [medsExpanded,setMedsExpanded]=useState(false);
   const hgbLab=p.labs[0];
   const draws=hgbLab.draws||[];const hasDelta=draws.length>=2;
   const delta=hasDelta?Math.abs(draws[draws.length-1].value-draws[0].value).toFixed(1):null;
   const isDown=hasDelta&&draws[draws.length-1].value<draws[0].value;
   const trs=p._trs;const tc=TRC[trs.trsSev];
   const hgbColor=getAnemiaGrade(hgbLab.value).color;
-  const ferColor=p.labs[1].status==="critical"?C.error[400]:p.labs[1].status==="high"||p.labs[1].status==="borderline"?C.orange[400]:"#92600A";
+  const ferLab=p.labs.find(l=>l.label==="Ferritin");
+  const ferMissing=!ferLab||ferLab.missing;
+  const ferColor=ferMissing?C.grey[400]:ferLab.status==="critical"?C.error[400]:ferLab.status==="high"||ferLab.status=="borderline"?C.orange[400]:"#92600A";
+  const tsatLab=p.labs.find(l=>l.label==="Transferrin Sat");
+  const tsatMissing=!tsatLab||tsatLab.missing;
+  const tsatColor=tsatMissing?C.grey[400]:tsatLab.status==="critical"?C.error[400]:tsatLab.status==="high"||tsatLab.status=="borderline"?C.orange[400]:"#92600A";
+  const wtMissing=!p.weight;
+  const wtVal=wtMissing?null:parseFloat(p.weight);
+  const wtColor=wtMissing?C.grey[400]:wtVal<75?C.orange[400]:C.grey[700];
   const alertBorder=p.severity==="Critical"?C.error[400]:p.severity==="High"?C.orange[400]:"#92600A";
   const alertBg=p.severity==="Critical"?C.error[100]:p.severity==="High"?C.orange[100]:C.yellow[100];
   const protocol=p.severity==="Critical"?"Urgent: IV Iron + Transfusion Evaluation":p.severity==="High"?"IV Iron Therapy Protocol":"Monitoring + Oral Iron Supplementation";
   const drug=p.severity==="Critical"?"Ferric Carboxymaltose 1000mg IV — post stabilization":p.severity==="High"?"Ferric Carboxymaltose 750mg IV — weeks 1 & 3":"Ferrous sulfate 325mg TID — reassess in 4 weeks";
   const recs=p.severity==="Critical"?["Approve IV Iron per AABB guidelines","Restrictive transfusion strategy (Hgb <7 g/dL)","Monitor CBC at 2–4 weeks post-treatment"]:p.severity==="High"?["Initiate IV Iron within 14 days","Recheck Hgb & Ferritin in 7–10 days","Coordinate with surgical team"]:["Continue watchful waiting — CBC q48h","Iron supplementation — oral or IV","Hematology follow-up in 2 weeks"];
+  const missingData=[];
+  if(!p.weight) missingData.push("Weight (kg)");
+  if(!p.labs.find(l=>l.label==="HGB")) missingData.push("Hgb");
+  if(!ferLab||ferLab.missing) missingData.push("Ferritin");
+  if(!p.labs.find(l=>l.label==="Transferrin Sat")) missingData.push("TSAT");
+  const hasMissingData=missingData.length>0;
+  const medicationOrders=p.severity==="Critical"
+    ? [
+        {name:"Ferric Carboxymaltose",dose:"750 mg",frequency:"×1 dose after stabilization"},
+        {name:"Ondansetron",dose:"4 mg",frequency:"×1 dose IV pre-infusion"},
+        {name:"Folic Acid",dose:"1 mg",frequency:"Daily"},
+        {name:"Epoetin Alfa",dose:"40,000 units",frequency:"Weekly SC"},
+      ]
+    : p.severity==="High"
+    ? [
+        {name:"Ferric Carboxymaltose",dose:"750 mg",frequency:"×1 dose"},
+        {name:"Ondansetron",dose:"4 mg",frequency:"×1 dose IV pre-infusion"},
+        {name:"Ferrous sulfate",dose:"325 mg",frequency:"TID"},
+        {name:"Vitamin B12",dose:"1,000 mcg",frequency:"IM monthly"},
+      ]
+    : [
+        {name:"Ferrous sulfate",dose:"325 mg",frequency:"TID"},
+        {name:"Folic Acid",dose:"1 mg",frequency:"Daily"},
+        {name:"Vitamin C",dose:"500 mg",frequency:"Daily with iron"},
+        {name:"Epoetin Alfa",dose:"40,000 units",frequency:"Weekly SC"},
+      ];
+  const visibleMeds=medsExpanded?medicationOrders:medicationOrders.slice(0,2);
   return(
   <div style={{flex:1,overflowY:"auto",padding:"16px 20px",display:"flex",flexDirection:"column",gap:14,minHeight:0}}>
 
@@ -225,7 +267,7 @@ const OverviewZone=({p,onNavigate})=>{
         <span style={{fontSize:16}}>⚠️</span>
         <span style={{fontSize:16,fontWeight:700,color:C.grey[800],fontFamily:font}}>Risk Assessment</span>
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"130px 150px 140px 1fr"}}>
+      <div style={{display:"grid",gridTemplateColumns:"130px 150px 130px 130px 140px 1fr"}}>
 
         {/* HGB */}
         <div style={{padding:"16px 20px",borderRight:`1px solid ${C.grey[200]}`}}>
@@ -245,10 +287,30 @@ const OverviewZone=({p,onNavigate})=>{
         <div style={{padding:"16px 20px",borderRight:`1px solid ${C.grey[200]}`}}>
           <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:C.grey[600],fontFamily:font,marginBottom:8}}>Ferritin</div>
           <div style={{display:"flex",alignItems:"baseline",gap:4,marginBottom:6}}>
-            <span className="tabular-nums-hc1" style={{fontSize:32,fontWeight:500,color:ferColor,fontFamily:font,lineHeight:1,letterSpacing:"-0.02em"}}>{p.labs[1].value}</span>
+            <span className="tabular-nums-hc1" style={{fontSize:32,fontWeight:500,color:ferColor,fontFamily:font,lineHeight:1,letterSpacing:"-0.02em"}}>{ferMissing?"—":ferLab.value}</span>
             <span style={{fontSize:14,color:C.grey[600],fontFamily:font,fontWeight:500}}>ng/mL</span>
           </div>
-          <StatusChip status={p.labs[1].status}/>
+          {ferMissing? <span style={{fontSize:12,fontWeight:700,color:C.orange[400],fontFamily:font}}>Missing</span> : <StatusChip status={ferLab.status}/>}
+        </div>
+
+        {/* TSAT */}
+        <div style={{padding:"16px 20px",borderRight:`1px solid ${C.grey[200]}`}}>
+          <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:C.grey[600],fontFamily:font,marginBottom:8}}>TSAT</div>
+          <div style={{display:"flex",alignItems:"baseline",gap:4,marginBottom:6}}>
+            <span className="tabular-nums-hc1" style={{fontSize:32,fontWeight:500,color:tsatColor,fontFamily:font,lineHeight:1,letterSpacing:"-0.02em"}}>{tsatMissing?"—":tsatLab.value}</span>
+            <span style={{fontSize:14,color:C.grey[600],fontFamily:font,fontWeight:500}}>%</span>
+          </div>
+          {tsatMissing? <span style={{fontSize:12,fontWeight:700,color:C.orange[400],fontFamily:font}}>Missing</span> : <StatusChip status={tsatLab.status}/>}
+        </div>
+
+        {/* Weight */}
+        <div style={{padding:"16px 20px",borderRight:`1px solid ${C.grey[200]}`}}>
+          <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:C.grey[600],fontFamily:font,marginBottom:8}}>Weight</div>
+          <div style={{display:"flex",alignItems:"baseline",gap:4,marginBottom:6}}>
+            <span className="tabular-nums-hc1" style={{fontSize:32,fontWeight:500,color:wtColor,fontFamily:font,lineHeight:1,letterSpacing:"-0.02em"}}>{wtMissing?"—":wtVal}</span>
+            <span style={{fontSize:14,color:C.grey[600],fontFamily:font,fontWeight:500}}>kg</span>
+          </div>
+          {wtMissing? <span style={{fontSize:12,fontWeight:700,color:C.orange[400],fontFamily:font}}>Missing</span> : null}
         </div>
 
         {/* TRS — gauge only, no numeric */}
@@ -258,13 +320,32 @@ const OverviewZone=({p,onNavigate})=>{
           <div style={{marginTop:6}}><SevChip tier={trsTier(trs.trsSev)}/></div>
         </div>
 
-        {/* Active Order */}
+        {/* Active Medication Orders */}
         <div style={{padding:"16px 20px"}}>
-          <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:C.grey[600],fontFamily:font,marginBottom:8}}>General Advisory</div>
-          <div style={{fontSize:16,fontWeight:600,color:C.grey[800],fontFamily:font,lineHeight:1.5}}>{p.order}</div>
+          <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
+            <span style={{fontSize:13,color:C.primary[500]}}>▣</span>
+            <span style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:C.primary[600],fontFamily:font}}>Active Medication Orders</span>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            {visibleMeds.map((m,i)=>(
+              <div key={i} style={{fontSize:13,color:C.grey[700],fontFamily:font,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                <span style={{fontWeight:600,color:C.grey[800]}}>{m.name}</span> {m.dose} · {m.frequency}
+              </div>
+            ))}
+          </div>
+          {medicationOrders.length>2&&(
+            <button onClick={()=>setMedsExpanded(!medsExpanded)} style={{display:"inline-flex",alignItems:"center",gap:4,marginTop:8,background:"none",border:"none",cursor:"pointer",fontSize:12,fontWeight:600,color:C.primary[500],fontFamily:font,padding:0}}>
+              {medsExpanded?"Show less":"+"+(medicationOrders.length-2)+" more"}
+            </button>
+          )}
         </div>
       </div>
     </div>
+
+    {/* Disclaimer — only when required clinical data is missing */}
+    {hasMissingData && <div style={{display:"flex",alignItems:"center",gap:8,background:C.orange[100],border:`0.5px solid ${C.orange[400]}40`,borderRadius:8,padding:"10px 14px"}}>
+      <span style={{fontSize:14,color:C.orange[400],fontFamily:font,lineHeight:1.5,fontWeight:600}}>⚠️ Missing Clinical Data — this risk score and recommendations may be incomplete without Weight, Hgb, Ferritin, and TSAT.</span>
+    </div>}
 
     {/* Card 2: AI Alert Protocol — no border, shadow only */}
     <div style={{borderRadius:12,overflow:"hidden",background:"#fff",boxShadow:"0 2px 12px rgba(0,0,0,0.08)"}}>
@@ -347,7 +428,10 @@ const CarePlanZone=({p})=>{
   const [attestedDx,setAttestedDx]=useState(p.diagnosis);
   const [clinicalNotes,setClinicalNotes]=useState("");
   const [recipients,setRecipients]=useState({attending:true,surgeon:false,anesthesiologist:false,obgyn:false,infusion:true,patient:true});
-  const steps=["Diagnose","Optimization Recommendations","Prior Auth","General Advisory","Notify"];
+  const [manualMode,setManualMode]=useState(false);
+  const [manualTargetHgb,setManualTargetHgb]=useState("13");
+  const [manualInput,setManualInput]=useState("13");
+  const steps=["Diagnose","Optimization Recommendations","Prior Auth","Notify"];
   const s=p.severity;
   // ── Prior Auth: 5-criteria evaluation per AC3 ──
   const hgbVal=parseFloat(p.labs[0].value);
@@ -386,6 +470,30 @@ const CarePlanZone=({p})=>{
   if(authSuggestions.length===0) authSuggestions.push({title:"Documentation complete",desc:"All prior authorization criteria are met. The case is ready for submission.",actions:["Review the attested diagnosis for accuracy","Confirm ICD-10 codes match the clinical documentation","Submit the prior authorization request"]});
   const SC=({i})=>{const d=i<step,a=i===step;return <div onClick={()=>setStep(i)} style={{width:24,height:24,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700,flexShrink:0,fontFamily:font,border:`2px solid ${d?C.success[400]:a?C.primary[500]:C.grey[300]}`,background:d?C.success[400]:a?C.primary[500]:"#fff",color:d||a?"#fff":C.grey[500],cursor:"pointer"}}>{d?"✓":i+1}</div>;};
   const hgbDrop=p.labs[0].draws&&p.labs[0].draws.length>=2?Math.abs(p.labs[0].draws[p.labs[0].draws.length-1].value-p.labs[0].draws[0].value).toFixed(1):null;
+
+  // ── Ganzoni IV Iron Dose Calculation (AC1–AC6, AC9) ──
+  const DEFAULT_TARGET_HGB=13;
+
+  const wtRaw=p.weight;
+  const wtNum=wtRaw?parseFloat(wtRaw):null;
+  const wtMissing=!wtRaw||wtNum==null||isNaN(wtNum);
+  const actualHgb=parseFloat(p.labs[0].value);
+  const activeTargetHgb=manualMode?parseFloat(manualTargetHgb):DEFAULT_TARGET_HGB;
+  const doseLabel=manualMode?"Calculated Dose (Manual)":"Calculated Dose (Ganzoni)";
+  let ganzoniDose=null, ironStores=null, doseFormula="";
+  if(!wtMissing&&!isNaN(actualHgb)){
+    const deficit=Math.max(0,activeTargetHgb-actualHgb);
+    ironStores=wtNum<35?Math.round(wtNum*15):500;
+    const rawDose=wtNum*deficit*2.4+ironStores;
+    // AC6: Round to nearest 50mg
+    ganzoniDose=Math.round(rawDose/50)*50;
+    // AC5: Safety cap
+
+    doseFormula=manualMode
+      ? `${wtNum} kg × (${activeTargetHgb} − ${actualHgb}) × 2.4 + ${ironStores} mg`
+      : `${wtNum} kg × (${DEFAULT_TARGET_HGB} − ${actualHgb}) × 2.4 + ${ironStores} mg`;
+  }
+
   const msgPreview=`Subject: New Anemia Optimization Recommendations: ${p.name}\n\nA new evidence-based optimization recommendation has been initiated for ${p.name} (MRN: ${p.id}).\n\nDiagnosis: ${attestedDx}\nTreatment: ${s==="Critical"?"Supportive care + Iron supplement after stabilization":"IV Iron Ferric Carboxymaltose"}\nDosage: ${s==="Critical"?"Ferric Carboxymaltose 750–1000mg IV":"750mg IV × 2 doses"}\n\nPlease review in Epic and coordinate care as needed.\n\n— Anemia Management CDS`;
 
   return(
@@ -393,7 +501,7 @@ const CarePlanZone=({p})=>{
     {/* Stepper — fixed, never scrolls */}
     <div style={{padding:"12px 16px",flexShrink:0}}>
       <div style={{display:"flex",alignItems:"center",background:"#fff",border:`0.5px solid ${C.grey[300]}`,borderRadius:10,padding:"10px 16px"}}>
-      {steps.map((lbl,i)=><div key={lbl} style={{display:"flex",alignItems:"center",flex:i<4?1:0,gap:6}}><div style={{display:"flex",alignItems:"center",gap:6,cursor:"pointer"}} onClick={()=>setStep(i)}><SC i={i}/><span style={{fontSize:14,fontWeight:600,fontFamily:font,whiteSpace:"nowrap",color:i<step?C.success[400]:i===step?C.primary[500]:C.grey[500]}}>{lbl}</span></div>{i<4&&<div style={{flex:1,height:2,background:i<step?C.success[400]:C.grey[300],margin:"0 6px"}}/>}</div>)}
+      {steps.map((lbl,i)=><div key={lbl} style={{display:"flex",alignItems:"center",flex:i<3?1:0,gap:6}}><div style={{display:"flex",alignItems:"center",gap:6,cursor:"pointer"}} onClick={()=>setStep(i)}><SC i={i}/><span style={{fontSize:14,fontWeight:600,fontFamily:font,whiteSpace:"nowrap",color:i<step?C.success[400]:i===step?C.primary[500]:C.grey[500]}}>{lbl}</span></div>{i<3&&<div style={{flex:1,height:2,background:i<step?C.success[400]:C.grey[300],margin:"0 6px"}}/>}</div>)}
       </div>
     </div>
 
@@ -455,8 +563,74 @@ const CarePlanZone=({p})=>{
 
         {/* Interventions — no color coding, uniform style */}
         <div style={{fontSize:14,fontWeight:700,color:C.grey[800],fontFamily:font,marginBottom:10}}>Interventions</div>
+
+        {/* Intervention 1: Medication Recommendation — Ganzoni calculated dose (AC3–AC12) */}
+        <div style={{background:"#fff",border:`0.5px solid ${C.grey[300]}`,borderLeft:`3px solid ${C.primary[500]}`,borderRadius:"0 8px 8px 0",padding:"10px 14px",marginBottom:8}}>
+          <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:C.grey[500],fontFamily:font,marginBottom:3}}>1. Medication Recommendation</div>
+          <div style={{fontSize:16,fontWeight:600,color:C.grey[800],fontFamily:font,marginBottom:8}}>{s==="Critical"?"Supportive care + Iron supplement after stabilization":"IV Iron infusion"}</div>
+
+          {/* AC8: Manual Target HGB input */}
+          {manualMode&&!wtMissing&&<div style={{marginBottom:10,padding:"10px 12px",background:C.primary[100],border:`1px solid ${C.primary[400]}40`,borderRadius:8}}>
+            <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:C.primary[600],fontFamily:font,marginBottom:6}}>Manual Target HGB Entry</div>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <label style={{fontSize:14,fontWeight:600,color:C.grey[700],fontFamily:font,whiteSpace:"nowrap"}}>Target HGB:</label>
+              <input
+                type="number" step="0.1" min="0" max="20"
+                value={manualInput}
+                onChange={e=>setManualInput(e.target.value)}
+                onKeyDown={e=>{if(e.key==="Enter"){const v=parseFloat(manualInput);if(!isNaN(v)&&v>0){setManualTargetHgb(String(v));}}}}
+                style={{width:80,border:`1px solid ${C.grey[300]}`,borderRadius:6,padding:"6px 10px",fontSize:16,fontFamily:font,color:C.grey[800],outline:"none",background:"#fff"}}
+              />
+              <span style={{fontSize:14,color:C.grey[500],fontFamily:font}}>g/dL</span>
+              <Button variant="primary" size="sm" onClick={()=>{const v=parseFloat(manualInput);if(!isNaN(v)&&v>0){setManualTargetHgb(String(v));}}}>Recalculate</Button>
+            </div>
+            <div style={{fontSize:12,color:C.grey[500],fontFamily:font,marginTop:6,lineHeight:1.4}}>Default target is {DEFAULT_TARGET_HGB} g/dL. Enter a custom value and recalculate to update the dose.</div>
+          </div>}
+
+          {/* AC3/AC4: Calculated dose display or missing weight fallback */}
+          {wtMissing
+            ? <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",background:C.yellow[100],border:`0.5px solid rgba(255,196,50,0.4)`,borderRadius:6,marginBottom:8}}>
+                <AlertTriangle size={14} color="#92600A" strokeWidth={2}/>
+                <span style={{fontSize:13,fontWeight:600,color:"#92600A",fontFamily:font}}>Weight is required for a calculated dose. Showing severity-tier IV iron dose only.</span>
+              </div>
+            : <div style={{padding:"10px 12px",background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:8,marginBottom:8}}>
+                {/* AC3: Calculated Dose label */}
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                  <span style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:C.grey[600],fontFamily:font}}>{doseLabel}</span>
+                  {/* AC7: Manual-input icon toggle */}
+                  {!wtMissing&&<div
+                    onClick={()=>{if(manualMode){setManualMode(false);setManualTargetHgb("13");setManualInput("13");}else{setManualMode(true);setManualInput(manualTargetHgb);}}}
+                    title={manualMode?"Return to auto-calculated mode":"Switch to manual entry mode"}
+                    style={{display:"inline-flex",alignItems:"center",gap:4,cursor:"pointer",padding:"3px 8px",borderRadius:6,background:manualMode?C.primary[100]:C.grey[200],border:`1px solid ${manualMode?C.primary[400]:C.grey[300]}`,transition:"all 0.15s"}}
+                    onMouseEnter={e=>e.currentTarget.style.background=manualMode?C.primary[200]:C.grey[300]}
+                    onMouseLeave={e=>e.currentTarget.style.background=manualMode?C.primary[100]:C.grey[200]}>
+                    {manualMode?<RotateCcw size={13} color={C.primary[600]} strokeWidth={2}/>:<Calculator size={13} color={C.grey[600]} strokeWidth={2}/>}
+                    <span style={{fontSize:12,fontWeight:600,color:manualMode?C.primary[600]:C.grey[600],fontFamily:font}}>{manualMode?"Reset":"Manual"}</span>
+                  </div>}
+                </div>
+                <div style={{display:"flex",alignItems:"baseline",gap:6,marginBottom:6}}>
+                  <span className="tabular-nums-hc1" style={{fontSize:28,fontWeight:700,color:C.primary[600],fontFamily:font,lineHeight:1}}>{ganzoniDose}</span>
+                  <span style={{fontSize:14,fontWeight:600,color:C.grey[600],fontFamily:font}}>mg IV iron (total)</span>
+                </div>
+                {/* Formula breakdown */}
+                <div style={{fontSize:12,color:C.grey[500],fontFamily:font,lineHeight:1.5,marginBottom:4}}>
+                  Formula: {doseFormula} = {ganzoniDose} mg
+                  {wtNum<35&&<span> · Iron Stores = {wtNum} kg × 15 mg/kg = {ironStores} mg (low body weight)</span>}
+                </div>
+                {/* AC10: Manual mode visual indicator */}
+                {manualMode&&<div style={{display:"inline-flex",alignItems:"center",gap:4,background:C.primary[100],border:`0.5px solid ${C.primary[400]}40`,borderRadius:4,padding:"2px 8px",marginBottom:6}}>
+                  <span style={{fontSize:11,fontWeight:700,color:C.primary[600],fontFamily:font}}>Manual Target HGB: {activeTargetHgb} g/dL</span>
+                </div>}
+                {/* AC12: Recommendation disclaimer */}
+                <div style={{display:"flex",alignItems:"flex-start",gap:6,paddingTop:6,borderTop:`0.5px solid ${C.grey[300]}`}}>
+                  <Info size={12} color={C.grey[500]} strokeWidth={1.5} style={{flexShrink:0,marginTop:1}}/>
+                  <span style={{fontSize:12,color:C.grey[500],fontFamily:font,lineHeight:1.5}}>This is the recommended total dose of intravenous iron for the target HGB of {activeTargetHgb} g/dL. The actual order must be placed in EPIC based on institution-specific formulary availability.</span>
+                </div>
+              </div>}
+        </div>
+
+        {/* Interventions 2 & 3 — static */}
         {[
-          {num:"1.",group:"Medication Order",title:s==="Critical"?"Supportive care + Iron supplement after stabilization":"IV Iron infusion",detail:s==="Critical"?"Address underlying cause first, then Ferric Carboxymaltose 750–1000mg IV":"Ferric Carboxymaltose 750mg IV — week 1 & 3"},
           {num:"2.",group:"Monitoring",title:"Lab Monitoring",detail:s==="Critical"?"CBC q6–12h until stable, then daily × 3":"Recheck Hgb + Ferritin in 7–10 days"},
           {num:"3.",group:"Therapeutics",title:"Iron Therapy",detail:s==="Critical"?"Ferric Carboxymaltose 1000mg IV post-stabilization":"Ferrous sulfate 325mg TID if oral tolerated"},
         ].map(({num,group,title,detail})=>(
@@ -559,49 +733,11 @@ const CarePlanZone=({p})=>{
         <EvidenceBox refs={["Treatment of Iron Deficiency Anemia","Intravenous Iron Therapy"]}/>
 
         {/* AC8: Step Navigation — ghost back, orange CTA forward */}
-        <StepActions onBack={()=>setStep(1)} backGhost={true} onNext={()=>setStep(3)} nextLabel="Proceed to General Advisory →" nextOrange={true}/>
+        <StepActions onBack={()=>setStep(1)} backGhost={true} onNext={()=>setStep(3)} nextLabel="Proceed to Notify →" nextOrange={true}/>
       </div>}
 
-      {/* ── STEP 4: ORDER DEPLOYMENT ── */}
-      {step===3&&<div>
-        <StepHeader eyebrow="General Advisory · Formulary Approved" title="Review Medication Advisory"/>
-
-        {/* Medication summary — improved visual hierarchy */}
-        <div style={{background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:8,padding:14,marginBottom:14}}>
-          {/* Drug name + formulary badge */}
-          <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10,marginBottom:10}}>
-            <div style={{fontSize:16,fontWeight:700,color:C.grey[800],fontFamily:font}}>Ferric Carboxymaltose (Injectafer)</div>
-            <span style={{fontSize:12,fontWeight:700,color:C.success[400],background:C.success[100],border:`1px solid rgba(56,128,50,0.3)`,borderRadius:4,padding:"3px 8px",fontFamily:font,flexShrink:0,whiteSpace:"nowrap"}}>Tier 1 Formulary</span>
-          </div>
-          {/* Dosing details row */}
-          <div style={{fontSize:16,color:C.grey[700],fontFamily:font,marginBottom:10}}>
-            {s==="Critical"?"Address underlying cause first, then Ferric Carboxymaltose 750–1000mg IV":"Ferric Carboxymaltose 750mg IV — week 1 & 3"}
-          </div>
-          {/* Meta row */}
-          <div style={{display:"flex",gap:16,paddingTop:10,borderTop:`0.5px solid ${C.grey[300]}`}}>
-            <div><div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:C.grey[500],fontFamily:font,marginBottom:2}}>RxNorm</div><div style={{fontSize:14,fontWeight:600,color:C.grey[800],fontFamily:font}}>2180278</div></div>
-            <div><div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:C.grey[500],fontFamily:font,marginBottom:2}}>Route</div><div style={{fontSize:14,fontWeight:600,color:C.grey[800],fontFamily:font}}>Intravenous</div></div>
-            <div><div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:C.grey[500],fontFamily:font,marginBottom:2}}>Clinical Indication</div><div style={{fontSize:14,fontWeight:600,color:C.grey[800],fontFamily:font}}>{attestedDx.split("—")[0].trim()}</div></div>
-          </div>
-        </div>
-
-        {/* Safety Checks */}
-        <div style={{fontSize:14,fontWeight:700,color:C.grey[800],fontFamily:font,marginBottom:10}}>Safety Checks</div>
-        {["Contraindications reviewed","Drug interactions checked","Allergy screening completed","Formulary approved medication","Patient consent documented"].map(label=>(
-          <div key={label} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",background:"#fff",border:`0.5px solid ${C.grey[300]}`,borderRadius:6,marginBottom:5}}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={C.success[400]} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><polyline points="20 6 9 17 4 12"/></svg>
-            <span style={{fontSize:14,color:C.grey[800],fontFamily:font,flex:1}}>{label}</span>
-          </div>
-        ))}
-
-        {/* Standing order protocol — consistent green box */}
-        <EvidenceBox refs={["SOC-ANEMIA-003 approved by Pharmacy & Therapeutics Committee","Order sent directly to pharmacy upon activation"]}/>
-
-        <StepActions onBack={()=>setStep(2)} onNext={()=>setStep(4)} nextLabel="Activate General Advisory & Send Communication →" nextOrange={true}/>
-      </div>}
-
-      {/* ── STEP 5: NOTIFY & SYNC ── */}
-      {step===4&&(sent
+      {/* ── STEP 4: NOTIFY & SYNC ── */}
+      {step===3&&(sent
         ? <div style={{textAlign:"center",padding:"32px 0"}}>
             <div style={{width:60,height:60,borderRadius:"50%",background:C.success[100],border:`2px solid ${C.success[400]}`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}><CheckCircle size={28} color={C.success[400]}/></div>
             <div style={{fontSize:24,fontWeight:700,color:C.grey[800],fontFamily:font,marginBottom:6}}>Optimization Recommendations Sent Successfully</div>
@@ -640,7 +776,7 @@ const CarePlanZone=({p})=>{
             {/* FHIR note — consistent green box */}
             <EvidenceBox refs={["Delivered via Epic FHIR R4 InBasket API","Patient Portal notification — real-time within Epic"]}/>
 
-            <StepActions onBack={()=>setStep(3)} onNext={()=>setSent(true)} nextLabel="Send to All Selected Recipients →" nextOrange={true}/>
+            <StepActions onBack={()=>setStep(2)} onNext={()=>setSent(true)} nextLabel="Send to All Selected Recipients →" nextOrange={true}/>
           </div>
       )}
       </div>
@@ -672,7 +808,7 @@ const PatientHeader=({p,onOpenIQ,onOpenCC,onBack})=>{
       <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{p.conditions.map((c,i)=><span key={i} style={{fontSize:14,color:C.grey[600],background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:4,padding:"3px 9px",fontFamily:font}}>{c}</span>)}</div>
     </div>
     <div style={{display:"flex",alignItems:"center",gap:8}}>
-      {getPendingCount(p.id)>0&&<div title={`${getPendingCount(p.id)} pending care coordination messages`} onClick={onOpenCC} style={{display:"inline-flex",alignItems:"center",gap:4,background:C.orange[100],color:C.orange[400],border:`1px solid ${C.orange[400]}40`,borderRadius:999,padding:"4px 10px",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:font}}><MessageSquare size={12} strokeWidth={2}/>{getPendingCount(p.id)} Pending</div>}
+      
       <Button variant="primary" size="md" onClick={onOpenIQ}
         leftIcon={<span style={{fontSize:14,lineHeight:1}}>✦</span>}>
         IQ Assistant
@@ -681,7 +817,7 @@ const PatientHeader=({p,onOpenIQ,onOpenCC,onBack})=>{
   </div>
 );};
 
-const ZoneTabs=({active,onChange,pendingCount})=><div style={{background:C.grey[100],borderBottom:`0.5px solid ${C.grey[300]}`,display:"flex",padding:"0 20px",flexShrink:0}}>{[{id:"overview",label:"Clinical Decision Support",Icon:User},{id:"cp",label:"Optimization Recommendations",Icon:ClipboardList},{id:"cc",label:"Care Coordination",Icon:MessageSquare}].map(({id,label,Icon})=>{const a=active===id;return <div key={id} onClick={()=>onChange(id)} style={{display:"flex",alignItems:"center",gap:6,padding:"10px 16px 9px",borderBottom:a?`2px solid ${C.primary[500]}`:"2px solid transparent",cursor:"pointer",fontSize:16,fontWeight:a?600:400,color:a?C.grey[800]:C.grey[500],fontFamily:font,marginBottom:-1,transition:"all 0.12s",whiteSpace:"nowrap"}}><Icon size={14} strokeWidth={1.5} color={a?C.primary[500]:C.grey[500]}/>{label}{id==="cc"&&pendingCount>0&&<span title={`${pendingCount} pending care coordination messages`} onClick={(e)=>{e.stopPropagation();onChange("cc");}} style={{display:"inline-flex",alignItems:"center",gap:3,background:C.orange[400],color:"#fff",fontSize:11,fontWeight:700,borderRadius:999,padding:"1px 7px",cursor:"pointer",marginLeft:2}}>{pendingCount} Pending</span>}</div>;})}</div>;
+const ZoneTabs=({active,onChange,pendingCount})=><div style={{background:C.grey[100],borderBottom:`0.5px solid ${C.grey[300]}`,display:"flex",padding:"0 20px",flexShrink:0}}>{[{id:"overview",label:"Clinical Decision Support",Icon:User},{id:"cp",label:"Optimization Recommendations",Icon:ClipboardList},{id:"cc",label:"Care Coordination",Icon:MessageSquare}].map(({id,label,Icon})=>{const a=active===id;return <div key={id} onClick={()=>onChange(id)} style={{display:"flex",alignItems:"center",gap:6,padding:"10px 16px 9px",borderBottom:a?`2px solid ${C.primary[500]}`:"2px solid transparent",cursor:"pointer",fontSize:16,fontWeight:a?600:400,color:a?C.grey[800]:C.grey[500],fontFamily:font,marginBottom:-1,transition:"all 0.12s",whiteSpace:"nowrap"}}><Icon size={14} strokeWidth={1.5} color={a?C.primary[500]:C.grey[500]}/>{label}{id==="cc"&&pendingCount>0&&<span title={`${pendingCount} pending care coordination messages`} aria-label={`${pendingCount} pending care coordination messages`} onClick={(e)=>{e.stopPropagation();onChange("cc");}} style={{display:"inline-flex",alignItems:"center",background:C.orange[100],color:C.orange[400],border:`1px solid ${C.orange[400]}80`,fontSize:11,fontWeight:700,borderRadius:999,padding:"2px 8px",cursor:"pointer",marginLeft:2,fontFamily:font,whiteSpace:"nowrap"}}>{pendingCount} Pending</span>}</div>;})}</div>;
 
 const MiniWorklist=({patients,activeId,onSelect,onBack})=>(
   <div style={{width:240,flexShrink:0,background:"#fff",borderRight:`1px solid ${C.grey[300]}`,display:"flex",flexDirection:"column",overflow:"hidden",height:"100%"}}>
@@ -794,36 +930,34 @@ const PatientWorkspace=({patient,allPatients,onBack,onSelectPatient,defaultZone=
 
 const PatientRow=({p,onOpen})=>{
   const [trsOpen,setTrsOpen]=useState(false);
-  const ferC=p.labs[1].status==="critical"?C.error[400]:p.labs[1].status==="high"||p.labs[1].status==="borderline"?C.orange[400]:C.grey[600];
+  const ferLabRow=p.labs.find(l=>l.label==="Ferritin");
+  const ferRowMissing=!ferLabRow||ferLabRow.missing;
+  const ferC=ferRowMissing?C.grey[400]:ferLabRow.status==="critical"?C.error[400]:ferLabRow.status==="high"||ferLabRow.status==="borderline"?C.orange[400]:C.grey[600];
+  const tsatLabRow=p.labs.find(l=>l.label==="Transferrin Sat");
+  const tsatRowMissing=!tsatLabRow||tsatLabRow.missing;
+  const tsatC=tsatRowMissing?C.grey[400]:tsatLabRow.status==="critical"?C.error[400]:tsatLabRow.status==="high"||tsatLabRow.status=="borderline"?C.orange[400]:C.grey[600];
+  const ag=getAnemiaGrade(p.labs[0].value);
+  const dr=getDeltaRisk(p.labs[0].draws);
   return <>
     <tr style={{borderBottom:`0.5px solid ${C.grey[300]}`,cursor:"pointer"}} onMouseEnter={e=>e.currentTarget.style.background=C.grey[200]} onMouseLeave={e=>e.currentTarget.style.background="transparent"} onClick={()=>onOpen(p,"overview")}>
-      <td style={{padding:"12px 16px",minWidth:180}}><span style={{fontSize:16,fontWeight:600,color:C.grey[800],fontFamily:font,display:"block",marginBottom:2}}>{p.name}</span><span className="tabular-nums-hc1" style={{fontSize:14,color:C.grey[500],fontFamily:font,display:"block",marginBottom:5}}>MRN {p.id} · Age {p.age}</span><div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}><span style={{fontSize:12,fontWeight:600,color:C.grey[700],background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:4,padding:"2px 7px",fontFamily:font,letterSpacing:"0.05em",textTransform:"uppercase"}}>{p.caseType}</span>{getPendingCount(p.id)>0&&<span title={`${getPendingCount(p.id)} pending care coordination message${getPendingCount(p.id)===1?"":"s"} for ${p.name}`} onClick={(e)=>{e.stopPropagation();onOpen(p,"cc");}} style={{display:"inline-flex",alignItems:"center",gap:3,background:C.orange[100],color:C.orange[400],border:`1px solid ${C.orange[400]}40`,borderRadius:999,padding:"2px 8px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:font,whiteSpace:"nowrap"}}><MessageSquare size={10} strokeWidth={2}/>{getPendingCount(p.id)} Pending</span>}</div></td>
-      <td style={{padding:"12px 16px",minWidth:110}}><span className="tabular-nums-hc1" style={{fontSize:14,fontWeight:500,color:C.grey[700],fontFamily:font}}>{fmtCaseDate(p.admitDate)}</span></td>
+      <td style={{padding:"12px 16px",minWidth:180}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:2}}><span style={{fontSize:16,fontWeight:600,color:C.grey[800],fontFamily:font}}>{p.name}</span><SevChip tier={ag.tier}/>{dr?.isRisk&&<span className="tabular-nums-hc1" style={{fontSize:12,fontWeight:700,color:C.error[400],background:C.error[100],borderRadius:2,padding:"1px 4px",fontFamily:font}}>ΔHb {dr.pct}% ⚠</span>}</div><span className="tabular-nums-hc1" style={{fontSize:14,color:C.grey[500],fontFamily:font,display:"block",marginBottom:2}}>MRN {p.id} · Age {p.age}</span><span className="tabular-nums-hc1" style={{fontSize:14,color:C.grey[500],fontFamily:font,display:"block",marginBottom:5}}>Surgery Date: {fmtCaseDate(p.admitDate)}</span><div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}><span style={{fontSize:12,fontWeight:600,color:C.grey[700],background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:4,padding:"2px 7px",fontFamily:font,letterSpacing:"0.05em",textTransform:"uppercase"}}>{p.caseType}</span>{getPendingCount(p.id)>0&&<span title={`${getPendingCount(p.id)} pending care coordination messages`} aria-label={`${getPendingCount(p.id)} pending care coordination messages`} onClick={(e)=>{e.stopPropagation();onOpen(p,"cc");}} style={{display:"inline-flex",alignItems:"center",background:C.orange[100],color:C.orange[400],border:`1px solid ${C.orange[400]}80`,borderRadius:999,padding:"2px 8px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:font,whiteSpace:"nowrap"}}>{getPendingCount(p.id)} Pending</span>}</div></td>
       <td style={{padding:"12px 16px",minWidth:190}}>
         <div style={{display:"flex",gap:14}}><div>
           <div style={{fontSize:12,fontWeight:700,color:C.grey[600],textTransform:"uppercase",letterSpacing:"0.07em",fontFamily:font,marginBottom:3}}>HGB</div>
           <div style={{display:"flex",alignItems:"baseline",gap:2}}><span className="tabular-nums-hc1" style={{fontSize:24,fontWeight:500,color:p.labs[0].status==="critical"?C.error[400]:p.labs[0].status==="high"||p.labs[0].status==="borderline"?C.orange[400]:C.grey[600],fontFamily:font,letterSpacing:"-0.01em"}}>{p.labs[0].value}</span><span style={{fontSize:14,color:C.grey[500],fontFamily:font}}>g/dL</span></div>
         </div><div style={{width:"0.5px",background:C.grey[300],alignSelf:"stretch"}}/><div>
           <div style={{fontSize:12,fontWeight:700,color:C.grey[600],textTransform:"uppercase",letterSpacing:"0.07em",fontFamily:font,marginBottom:3}}>Ferritin</div>
-          <div style={{display:"flex",alignItems:"baseline",gap:2}}><span className="tabular-nums-hc1" style={{fontSize:24,fontWeight:500,color:ferC,fontFamily:font,letterSpacing:"-0.01em"}}>{p.labs[1].value}</span><span style={{fontSize:14,color:C.grey[500],fontFamily:font}}>ng/mL</span></div>
-          <div style={{marginTop:3}}><StatusChip status={p.labs[1].status}/></div>
+          <div style={{display:"flex",alignItems:"baseline",gap:2}}><span className="tabular-nums-hc1" style={{fontSize:24,fontWeight:500,color:ferC,fontFamily:font,letterSpacing:"-0.01em"}}>{ferRowMissing?"—":ferLabRow.value}</span><span style={{fontSize:14,color:C.grey[500],fontFamily:font}}>ng/mL</span></div>
+          <div style={{marginTop:3}}>{ferRowMissing? <span style={{fontSize:12,fontWeight:700,color:C.orange[400],fontFamily:font}}>Missing</span> : <StatusChip status={ferLabRow.status}/>}</div>
+        </div><div style={{width:"0.5px",background:C.grey[300],alignSelf:"stretch"}}/><div>
+          <div style={{fontSize:12,fontWeight:700,color:C.grey[600],textTransform:"uppercase",letterSpacing:"0.07em",fontFamily:font,marginBottom:3}}>TSAT</div>
+          <div style={{display:"flex",alignItems:"baseline",gap:2}}><span className="tabular-nums-hc1" style={{fontSize:24,fontWeight:500,color:tsatC,fontFamily:font,letterSpacing:"-0.01em"}}>{tsatRowMissing?"—":tsatLabRow.value}</span><span style={{fontSize:14,color:C.grey[500],fontFamily:font}}>%</span></div>
+          <div style={{marginTop:3}}>{tsatRowMissing? <span style={{fontSize:12,fontWeight:700,color:C.orange[400],fontFamily:font}}>Missing</span> : <StatusChip status={tsatLabRow.status}/>}</div>
         </div></div>
       </td>
       <td style={{padding:"12px 16px",minWidth:95}} onClick={e=>{e.stopPropagation();setTrsOpen(v=>!v);}}><div style={{cursor:"pointer",display:"inline-block"}}><TRSGauge value={p._trs.score} trsSev={p._trs.trsSev} size={52}/><div style={{marginTop:3}}><SevChip tier={trsTier(p._trs.trsSev)}/></div></div></td>
       <td style={{padding:"12px 16px",minWidth:180}}><div style={{display:"flex",flexWrap:"wrap",gap:4}}>{p.conditions.map((c,i)=><span key={i} style={{fontSize:14,color:C.grey[700],background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:4,padding:"2px 7px",fontFamily:font}}>{c}</span>)}</div></td>
-      <td style={{padding:"12px 16px",minWidth:180}}><span style={{fontSize:14,color:C.grey[700],fontFamily:font,lineHeight:1.4}}>{p.order}</span></td>
       <td style={{padding:"12px 16px",minWidth:110}}><div style={{fontSize:14,fontWeight:600,color:C.grey[800],fontFamily:font}}>{p.provider}</div></td>
-      <td style={{padding:"12px 16px",minWidth:100}}>
-        {(()=>{
-          const ag=getAnemiaGrade(p.labs[0].value);
-          const dr=getDeltaRisk(p.labs[0].draws);
-          return <div>
-            <SevChip tier={ag.tier}/>
-            {dr?.isRisk&&<div style={{display:"flex",alignItems:"center",gap:3,marginTop:6}}><span className="tabular-nums-hc1" style={{fontSize:12,fontWeight:700,color:C.error[400],background:C.error[100],borderRadius:2,padding:"1px 4px",fontFamily:font}}>ΔHb {dr.pct}% ⚠</span></div>}
-          </div>;
-        })()}
-      </td>
-      <td style={{padding:"12px 16px",minWidth:150}} onClick={e=>e.stopPropagation()}><div style={{display:"flex",alignItems:"center",gap:6}}><Button variant="cta" size="md" onClick={()=>onOpen(p,"cp")} rightIcon={<ArrowRight size={11}/>}>Review Optimization Recommendations</Button>{getPendingCount(p.id)>0&&<div title={`${getPendingCount(p.id)} pending care coordination messages`} onClick={()=>onOpen(p,"cc")} style={{display:"inline-flex",alignItems:"center",gap:4,background:C.orange[100],color:C.orange[400],border:`1px solid ${C.orange[400]}40`,borderRadius:999,padding:"4px 9px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:font,whiteSpace:"nowrap"}}><MessageSquare size={11} strokeWidth={2}/>{getPendingCount(p.id)} Pending</div>}</div></td>
     </tr>
     {trsOpen&&<TRSDrawer p={p} onClose={()=>setTrsOpen(false)}/>}
   </>;
@@ -831,15 +965,18 @@ const PatientRow=({p,onOpen})=>{
 
 export default function App(){
   const [screen,setScreen]=useState("worklist");const [activePatient,setActivePatient]=useState(null);const [defaultZone,setDefaultZone]=useState("overview");
-  const [search,setSearch]=useState("");const [ctFilter,setCtFilter]=useState("All Case Types");
+  const [search,setSearch]=useState("");const [ctFilter,setCtFilter]=useState("All Case Types");const [sevFilter,setSevFilter]=useState("All Severity");
   const [,setTick]=useState(0);
   const scrollRef=useRef(null);
   const savedScroll=useRef(0);
   useEffect(()=>{const handler=()=>setTick(t=>t+1);window.addEventListener("storage",handler);window.addEventListener("care-coordination-updated",handler);return ()=>{window.removeEventListener("storage",handler);window.removeEventListener("care-coordination-updated",handler);};},[]);
   useEffect(()=>{if(screen==="worklist"&&scrollRef.current&&savedScroll.current){scrollRef.current.scrollTop=savedScroll.current;}},[screen]);
+  if(screen==="users")return <FeatureUsers onBack={()=>setScreen("worklist")}/>;
   if(screen==="workspace"&&activePatient)return <PatientWorkspace patient={activePatient} allPatients={PATIENTS} onBack={()=>setScreen("worklist")} onSelectPatient={p=>setActivePatient(p)} defaultZone={defaultZone}/>;
-  const COLS=["PATIENT","CASE DATE","LAB VALUES","TRS","RISK IDENTIFIERS","ACTIVE ORDER","PROVIDER","ANEMIA SEVERITY","ACTIONS"];
+  const COLS=["PATIENT","LAB VALUES","TRS","RISK IDENTIFIERS","PROVIDER"];
+  const SEV_RANK={"Severe":0,"Moderate":1,"Mild":2,"No Anemia":3};
   const filtered=PATIENTS.filter(p=>(!search||p.name.toLowerCase().includes(search.toLowerCase())||p.id.toLowerCase().includes(search.toLowerCase())||p.provider.toLowerCase().includes(search.toLowerCase()))&&(ctFilter==="All Case Types"||p.caseType===ctFilter));
+  const sorted=sevFilter==="All Severity"?filtered:[...filtered].sort((a,b)=>{const ra=SEV_RANK[getAnemiaGrade(a.labs[0].value).label]??99;const rb=SEV_RANK[getAnemiaGrade(b.labs[0].value).label]??99;if(ra===rb)return 0;return sevFilter===getAnemiaGrade(a.labs[0].value).label?-1:sevFilter===getAnemiaGrade(b.labs[0].value).label?1:ra-rb;});
   return(
   <div style={{display:"flex",flexDirection:"column",height:"100dvh",fontFamily:font,background:C.grey[200],overflow:"hidden"}}>
     <div style={{height:56,flexShrink:0,background:C.grey[100],borderBottom:`0.5px solid ${C.grey[300]}`,display:"flex",alignItems:"center",padding:"0 24px"}}>
@@ -849,7 +986,7 @@ export default function App(){
         <div style={{display:"flex",alignItems:"center",gap:5,padding:"5px 12px",borderRadius:6,background:C.grey[100],boxShadow:"0 1px 4px rgba(0,0,0,0.08)",border:`0.5px solid ${C.grey[300]}`}}><BloodDrop size={13} color={C.secondary[500]}/><span style={{fontSize:14,fontWeight:600,color:C.grey[800],fontFamily:font}}>Anemia Management</span></div>
         <div style={{display:"flex",alignItems:"center",gap:5,padding:"5px 12px",borderRadius:6,opacity:0.5,cursor:"default"}}><Pregnant size={13} color={C.grey[500]}/><span style={{fontSize:14,fontWeight:400,color:C.grey[500],fontFamily:font}}>HerCare Co-Pilot</span></div>
       </div>
-      <div style={{marginLeft:"auto"}}><BloodHealthAppNav/></div>
+      <div style={{marginLeft:"auto"}}><BloodHealthAppNav onNavigate={(target)=>{if(target==="users")setScreen("users");}}/></div>
     </div>
     <div style={{flex:1,overflow:"hidden",padding:"12px 16px",display:"flex",flexDirection:"column",minHeight:0}}>
 
@@ -857,10 +994,10 @@ export default function App(){
         <div style={{padding:"12px 20px",borderBottom:`0.5px solid ${C.grey[300]}`,display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
           <div style={{position:"relative",width:260}}><Search size={13} color={C.grey[500]} style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search patients, MRN, provider..." style={{width:"100%",boxSizing:"border-box",padding:"7px 10px 7px 30px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,fontSize:14,color:C.grey[800],background:C.grey[100],outline:"none",fontFamily:font}}/></div>
           <div style={{flex:1}}/><Filter size={13} color={C.grey[500]}/><span style={{fontSize:14,color:C.grey[500],fontFamily:font}}>Filter by:</span>
-          {[{v:ctFilter,s:setCtFilter,o:CASE_TYPES},{v:"All Severity",s:()=>{},o:["All Severity","Severe","Moderate","Mild","No Anemia"]}].map((dd,i)=><div key={i} style={{position:"relative"}}><select value={dd.v} onChange={e=>dd.s(e.target.value)} style={{appearance:"none",padding:"6px 26px 6px 10px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,fontSize:14,color:C.grey[700],background:C.grey[100],cursor:"pointer",outline:"none",fontFamily:font}}>{dd.o.map(o=><option key={o}>{o}</option>)}</select><ChevronDown size={10} color={C.grey[500]} style={{position:"absolute",right:7,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/></div>)}
+          {[{v:ctFilter,s:setCtFilter,o:CASE_TYPES},{v:sevFilter,s:setSevFilter,o:["All Severity","Severe","Moderate","Mild","No Anemia"]}].map((dd,i)=><div key={i} style={{position:"relative"}}><select value={dd.v} onChange={e=>dd.s(e.target.value)} style={{appearance:"none",padding:"6px 26px 6px 10px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,fontSize:14,color:C.grey[700],background:C.grey[100],cursor:"pointer",outline:"none",fontFamily:font}}>{dd.o.map(o=><option key={o}>{o}</option>)}</select><ChevronDown size={10} color={C.grey[500]} style={{position:"absolute",right:7,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/></div>)}
         </div>
-        <div ref={scrollRef} style={{flex:1,overflowY:"auto",overflowX:"auto",minHeight:0}}><table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr style={{background:C.grey[200],borderBottom:`1px solid ${C.grey[300]}`}}>{COLS.map(h=><th key={h} style={{fontSize:14,fontWeight:700,letterSpacing:"0.06em",color:C.grey[600],textAlign:"left",padding:"10px 16px",textTransform:"uppercase",whiteSpace:"nowrap",fontFamily:font}}>{h}</th>)}</tr></thead><tbody>{filtered.length===0?<tr><td colSpan={COLS.length} style={{padding:24,textAlign:"center",fontSize:16,color:C.grey[500],fontFamily:font}}>No patients match</td></tr>:filtered.map(p=><PatientRow key={p.id} p={p} onOpen={(p,zone="overview")=>{if(scrollRef.current)savedScroll.current=scrollRef.current.scrollTop;setActivePatient(p);setDefaultZone(zone);setScreen("workspace");}}/>)}</tbody></table></div>
-        <div style={{padding:"9px 16px",borderTop:`0.5px solid ${C.grey[300]}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:14,color:C.grey[500],fontFamily:font}}>Showing {filtered.length} of {PATIENTS.length} patients</span><div style={{display:"flex",alignItems:"center",gap:6}}><div style={{width:6,height:6,borderRadius:"50%",background:C.success[400]}}/><span style={{fontSize:14,color:C.success[400],fontFamily:font}}>FHIR R4 Live · Synced 2 min ago</span></div></div>
+        <div ref={scrollRef} style={{flex:1,overflowY:"auto",overflowX:"auto",minHeight:0}}><table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr style={{background:C.grey[200],borderBottom:`1px solid ${C.grey[300]}`}}>{COLS.map(h=><th key={h} style={{fontSize:14,fontWeight:700,letterSpacing:"0.06em",color:C.grey[600],textAlign:"left",padding:"10px 16px",textTransform:"uppercase",whiteSpace:"nowrap",fontFamily:font}}>{h}</th>)}</tr></thead><tbody>{sorted.length===0?<tr><td colSpan={COLS.length} style={{padding:24,textAlign:"center",fontSize:14,color:C.grey[500],fontFamily:font}}>No patients match</td></tr>:sorted.map(p=><PatientRow key={p.id} p={p} onOpen={(p,zone="overview")=>{if(scrollRef.current)savedScroll.current=scrollRef.current.scrollTop;setActivePatient(p);setDefaultZone(zone);setScreen("workspace");}}/>)}</tbody></table></div>
+        <div style={{padding:"9px 16px",borderTop:`0.5px solid ${C.grey[300]}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:14,color:C.grey[500],fontFamily:font}}>Showing {sorted.length} of {PATIENTS.length} patients</span><div style={{display:"flex",alignItems:"center",gap:6}}><div style={{width:6,height:6,borderRadius:"50%",background:C.success[400]}}/><span style={{fontSize:14,color:C.success[400],fontFamily:font}}>FHIR R4 Live · Synced 2 min ago</span></div></div>
       </div>
     </div>
   </div>

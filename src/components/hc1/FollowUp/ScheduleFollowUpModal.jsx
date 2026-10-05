@@ -23,9 +23,9 @@ const formatField = (iso) => {
   return `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
 
-export const ScheduleFollowUpModal = ({ patient, patients, onClose }) => {
-  const isGlobal = !patient;
-  const [step, setStep] = useState(1);
+export const ScheduleFollowUpModal = ({ patient, patients, onClose, directMode = false, directPatient = null }) => {
+  const isGlobal = !patient && !directMode;
+  const [step, setStep] = useState(directMode ? 2 : 1);
   const [needed, setNeeded] = useState("yes");
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [specialties, setSpecialties] = useState([]);
@@ -40,14 +40,14 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose }) => {
   const previouslyFocused = useRef(null);
 
   const closeModal = useCallback(() => {
-    setStep(1);
+    setStep(directMode ? 2 : 1);
     setNeeded("yes");
     setSelectedPatient(null);
     setSpecialties([]);
     setFollowUpAt(null);
     setPickerOpen(false);
     onClose?.();
-  }, [onClose]);
+  }, [onClose, directMode]);
 
   useEffect(() => { pickerOpenRef.current = pickerOpen; }, [pickerOpen]);
 
@@ -126,7 +126,7 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose }) => {
     setSpecialties((prev) => (prev.includes(sp) ? prev.filter((s) => s !== sp) : [...prev, sp]));
   };
 
-  const effectivePatient = isGlobal ? selectedPatient : patient;
+  const effectivePatient = directMode ? directPatient : isGlobal ? selectedPatient : patient;
 
   const handleConfirm = () => {
     if (!effectivePatient) return;
@@ -140,7 +140,7 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose }) => {
       referringProvider: effectivePatient.provider || "",
       createdBy: "Tiffany Hall",
       createdAt: new Date().toISOString(),
-      source: isGlobal ? "Follow-Up Worklist" : "Patient Optimization Notification",
+      source: directMode ? "Follow-Up Worklist" : isGlobal ? "Follow-Up Worklist" : "Patient Optimization Notification",
     });
     setFollowUpDecision(effectivePatient.id, "scheduled");
     closeModal();
@@ -156,7 +156,9 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose }) => {
   const canConfirm = specialties.length >= 1 && followUpAt !== null;
   const canContinueGlobal = selectedPatient !== null;
 
-  const subtitle = isGlobal
+  const subtitle = directMode
+    ? `${directPatient?.name} · MRN ${directPatient?.id}`
+    : isGlobal
     ? (step === 1 ? "Select a patient" : `${effectivePatient?.name} · MRN ${effectivePatient?.id}`)
     : `${patient.name} · MRN ${patient.id}`;
 
@@ -202,9 +204,11 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose }) => {
               {subtitle}
             </div>
           </div>
-          <span style={{ fontSize: 13, fontWeight: 600, color: C.grey[500], fontFamily: font, whiteSpace: "nowrap" }}>
-            Step {step} of 2
-          </span>
+          {!directMode && (
+            <span style={{ fontSize: 13, fontWeight: 600, color: C.grey[500], fontFamily: font, whiteSpace: "nowrap" }}>
+              Step {step} of 2
+            </span>
+          )}
           <Button variant="icon" onClick={closeModal} aria-label="Close">
             <X size={16} />
           </Button>
@@ -212,7 +216,7 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose }) => {
 
         {/* Body */}
         <div ref={bodyRef} style={{ flex: 1, overflowY: "auto", padding: "20px", minHeight: 0 }}>
-          {step === 1 && isGlobal && (
+          {step === 1 && isGlobal && !directMode && (
             <PatientPickerStep
               patients={patients || []}
               selectedId={selectedPatient?.id}
@@ -220,7 +224,7 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose }) => {
             />
           )}
 
-          {step === 1 && !isGlobal && (
+          {step === 1 && !isGlobal && !directMode && (
             <div>
               <label style={{ fontSize: 16, fontWeight: 700, color: C.grey[800], fontFamily: font, display: "block", marginBottom: 12 }}>
                 Non-Surgical Follow Up Appointment Needed?
@@ -261,7 +265,7 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose }) => {
             </div>
           )}
 
-          {step === 2 && (
+          {(step === 2 || directMode) && (
             <div>
               {/* Specialty checkboxes */}
               <fieldset style={{ border: 0, padding: 0, margin: 0, marginBottom: 18 }}>
@@ -384,7 +388,7 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose }) => {
 
           {/* Footer */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 16, borderTop: `0.5px solid ${C.grey[300]}`, marginTop: 20, gap: 8 }}>
-            {step === 1 ? (
+            {step === 1 && !directMode ? (
               isGlobal ? (
                 <>
                   <Button variant="secondary" size="md" onClick={closeModal}>Cancel</Button>
@@ -402,7 +406,9 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose }) => {
               )
             ) : (
               <>
-                <Button variant="secondary" size="md" onClick={() => setStep(1)}>Back</Button>
+                {directMode
+                  ? <Button variant="secondary" size="md" onClick={closeModal}>Cancel</Button>
+                  : <Button variant="secondary" size="md" onClick={() => setStep(1)}>Back</Button>}
                 <Button variant="primary" size="md" onClick={handleConfirm} disabled={!canConfirm}>
                   Confirm
                 </Button>

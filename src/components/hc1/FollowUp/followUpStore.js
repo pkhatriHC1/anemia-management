@@ -1,4 +1,4 @@
-const STORAGE_KEY = "clinicaliq-follow-ups-v2";
+const STORAGE_KEY = "clinicaliq-follow-ups-v3";
 const DECISIONS_KEY = "clinicaliq-follow-up-decisions";
 
 export const CAN_CLINICAL_NAVIGATION = true;
@@ -14,6 +14,18 @@ const PROVIDER_BY_PATIENT = {
   "CM-8834": "Dr. Nguyen",
 };
 
+const uid = () => (typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : "h-" + Math.random().toString(36).slice(2) + Date.now().toString(36));
+
+const nowISO = () => new Date().toISOString();
+
+const historyEntry = (action, by, details = null) => ({
+  id: uid(),
+  at: nowISO(),
+  by,
+  action,
+  details,
+});
+
 const SEED_VISITS = [
   {
     id: "fu-seed-1",
@@ -27,6 +39,10 @@ const SEED_VISITS = [
     createdBy: "Tiffany Hall",
     createdAt: "2026-09-24T14:12:00",
     source: "Patient Optimization Notification",
+    cancelReason: null,
+    history: [
+      { id: "h-seed-1a", at: "2026-09-24T14:12:00", by: "Tiffany Hall", action: "created", details: null },
+    ],
   },
   {
     id: "fu-seed-2",
@@ -40,6 +56,11 @@ const SEED_VISITS = [
     createdBy: "Tiffany Hall",
     createdAt: "2026-09-24T14:15:00",
     source: "Patient Optimization Notification",
+    cancelReason: null,
+    history: [
+      { id: "h-seed-2a", at: "2026-09-24T14:15:00", by: "Tiffany Hall", action: "created", details: null },
+      { id: "h-seed-2b", at: "2026-09-28T10:00:00", by: "Tiffany Hall", action: "rescheduled", details: { from: "2026-10-05T11:00:00", to: "2026-10-08T11:00:00" } },
+    ],
   },
   {
     id: "fu-seed-3",
@@ -53,6 +74,10 @@ const SEED_VISITS = [
     createdBy: "Tiffany Hall",
     createdAt: "2026-09-24T14:18:00",
     source: "Patient Optimization Notification",
+    cancelReason: null,
+    history: [
+      { id: "h-seed-3a", at: "2026-09-24T14:18:00", by: "Tiffany Hall", action: "created", details: null },
+    ],
   },
   {
     id: "fu-seed-4",
@@ -66,6 +91,11 @@ const SEED_VISITS = [
     createdBy: "Tiffany Hall",
     createdAt: "2026-09-14T10:00:00",
     source: "Patient Optimization Notification",
+    cancelReason: null,
+    history: [
+      { id: "h-seed-4a", at: "2026-09-14T10:00:00", by: "Tiffany Hall", action: "created", details: null },
+      { id: "h-seed-4b", at: "2026-09-15T09:30:00", by: "Tiffany Hall", action: "completed", details: null },
+    ],
   },
   {
     id: "fu-seed-5",
@@ -79,6 +109,11 @@ const SEED_VISITS = [
     createdBy: "Tiffany Hall",
     createdAt: "2026-09-19T09:00:00",
     source: "Patient Optimization Notification",
+    cancelReason: "Patient declined",
+    history: [
+      { id: "h-seed-5a", at: "2026-09-19T09:00:00", by: "Tiffany Hall", action: "created", details: null },
+      { id: "h-seed-5b", at: "2026-09-19T15:00:00", by: "Tiffany Hall", action: "cancelled", details: { reason: "Patient declined" } },
+    ],
   },
   {
     id: "fu-seed-6",
@@ -92,6 +127,10 @@ const SEED_VISITS = [
     createdBy: "Tiffany Hall",
     createdAt: "2026-09-20T08:00:00",
     source: "Patient Optimization Notification",
+    cancelReason: null,
+    history: [
+      { id: "h-seed-6a", at: "2026-09-20T08:00:00", by: "Tiffany Hall", action: "created", details: null },
+    ],
   },
 ];
 
@@ -135,31 +174,37 @@ export const getFollowUps = () => readVisits();
 
 export const addFollowUp = (visit) => {
   const visits = readVisits();
-  const next = [
-    {
-      id: visit.id || crypto.randomUUID(),
-      patientId: visit.patientId,
-      patientName: visit.patientName,
-      dob: visit.dob,
-      specialties: visit.specialties || [],
-      followUpAt: visit.followUpAt,
-      status: visit.status || "Scheduled",
-      referringProvider: visit.referringProvider || "",
-      createdBy: visit.createdBy || "Tiffany Hall",
-      createdAt: visit.createdAt || new Date().toISOString(),
-      source: visit.source || "Patient Optimization Notification",
-    },
-    ...visits,
-  ];
+  const entry = {
+    id: visit.id || uid(),
+    patientId: visit.patientId,
+    patientName: visit.patientName,
+    dob: visit.dob,
+    specialties: visit.specialties || [],
+    followUpAt: visit.followUpAt,
+    status: visit.status || "Scheduled",
+    referringProvider: visit.referringProvider || "",
+    createdBy: visit.createdBy || "Tiffany Hall",
+    createdAt: visit.createdAt || nowISO(),
+    source: visit.source || "Patient Optimization Notification",
+    cancelReason: null,
+    history: [historyEntry("created", visit.createdBy || "Tiffany Hall")],
+  };
+  const next = [entry, ...visits];
   writeVisits(next);
   return next;
 };
 
-export const updateFollowUp = (id, patch) => {
+export const updateFollowUp = (id, patch, entries = []) => {
   const visits = readVisits();
   const next = visits.map((v) =>
     v.id === id
-      ? { ...v, ...patch, updatedAt: new Date().toISOString(), updatedBy: "Tiffany Hall" }
+      ? {
+          ...v,
+          ...patch,
+          updatedAt: nowISO(),
+          updatedBy: "Tiffany Hall",
+          history: [...(v.history || []), ...entries],
+        }
       : v
   );
   writeVisits(next);
@@ -179,4 +224,4 @@ export const setFollowUpDecision = (patientId, decision) => {
 
 export const getProviderByPatientId = (patientId) => PROVIDER_BY_PATIENT[patientId] || "";
 
-export { SPECIALTIES };
+export { SPECIALTIES, historyEntry };

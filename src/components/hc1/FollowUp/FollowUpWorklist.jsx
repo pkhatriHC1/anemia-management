@@ -1,9 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
-import { Search, Filter, ChevronDown, CalendarPlus, MoreHorizontal, Calendar } from "lucide-react";
+import { useState, useEffect, useMemo, useRef, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
+import { Search, Filter, ChevronDown, CalendarPlus, MoreHorizontal, Calendar, Eye, Pencil, CalendarClock, Check, X, CalendarPlus as NewFollowUp } from "lucide-react";
 import { Button } from "../Button";
 import { Badge } from "../Badge";
 import { getFollowUps, SPECIALTIES, CAN_CLINICAL_NAVIGATION } from "./followUpStore";
 import { ScheduleFollowUpModal } from "./ScheduleFollowUpModal";
+import { FollowUpDetailModal } from "./FollowUpDetailModal";
 
 const C = {
   grey: {
@@ -71,12 +73,118 @@ const isDueIn7 = (v) => {
   return diff >= 0 && diff <= 7 * 24 * 60 * 60 * 1000;
 };
 
+const menuItemStyle = {
+  display: "flex",
+  alignItems: "center",
+  gap: 8,
+  width: "100%",
+  border: 0,
+  background: "transparent",
+  color: C.grey[800],
+  padding: "8px 12px",
+  textAlign: "left",
+  fontFamily: "inherit",
+  fontSize: 14,
+  cursor: "pointer",
+  whiteSpace: "nowrap",
+};
+
+const RowMenu = ({ visit, onAction, onClose }) => {
+  const menuRef = useRef(null);
+  const [pos, setPos] = useState({ left: 0, top: 0 });
+  const [mounted, setMounted] = useState(false);
+
+  useLayoutEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!menuRef.current) return;
+    const rect = menuRef.current.getBoundingClientRect();
+    const menuW = 220;
+    const menuH = visit.status === "Scheduled" ? 240 : 100;
+    let left = rect.right - menuW;
+    let top = rect.bottom + 4;
+    if (left < 8) left = 8;
+    if (top + menuH > window.innerHeight - 8) top = Math.max(8, rect.top - menuH - 4);
+    setPos({ left, top });
+  }, [mounted, visit.status]);
+
+  useEffect(() => {
+    const onDown = (e) => {
+      if (menuRef.current && menuRef.current.contains(e.target)) return;
+      onClose();
+    };
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+
+  const items = visit.status === "Scheduled"
+    ? [
+        { label: "View details", icon: Eye, action: "view" },
+        { label: "Edit", icon: Pencil, action: "edit" },
+        { label: "Reschedule", icon: CalendarClock, action: "reschedule" },
+        { label: "Mark Completed", icon: Check, action: "complete" },
+        { label: "Cancel visit", icon: X, action: "cancel", danger: true },
+      ]
+    : [
+        { label: "View details", icon: Eye, action: "view" },
+        { label: "Schedule new follow-up", icon: NewFollowUp, action: "schedule-new" },
+      ];
+
+  return createPortal(
+    <div
+      ref={menuRef}
+      role="menu"
+      style={{
+        position: "fixed",
+        left: pos.left,
+        top: pos.top,
+        width: 220,
+        background: C.grey[100],
+        border: `0.5px solid ${C.grey[300]}`,
+        borderRadius: 8,
+        boxShadow: "0 8px 22px rgba(31,55,57,0.14)",
+        padding: "5px 0",
+        zIndex: 400,
+      }}
+    >
+      {items.map((item, i) => {
+        const Icon = item.icon;
+        return (
+          <button
+            key={i}
+            type="button"
+            role="menuitem"
+            style={{ ...menuItemStyle, color: item.danger ? C.error[400] : C.grey[800] }}
+            onClick={() => { onAction(item.action); }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = C.grey[200]; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+          >
+            <Icon size={15} color={item.danger ? C.error[400] : C.grey[600]} />
+            {item.label}
+          </button>
+        );
+      })}
+    </div>,
+    document.body
+  );
+};
+
 export const FollowUpWorklist = ({ patients = [] }) => {
   const [visits, setVisits] = useState(() => getFollowUps());
   const [search, setSearch] = useState("");
   const [specialtyFilter, setSpecialtyFilter] = useState("All Specialties");
   const [statusFilter, setStatusFilter] = useState("All Statuses");
   const [modalOpen, setModalOpen] = useState(false);
+  const [detailVisit, setDetailVisit] = useState(null);
+  const [detailMode, setDetailMode] = useState("view");
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   useEffect(() => {
     const handler = () => setVisits(getFollowUps());
@@ -164,6 +272,23 @@ export const FollowUpWorklist = ({ patients = [] }) => {
     { label: "Completed", value: counts.completed, color: C.success[400] },
     { label: "Cancelled", value: counts.cancelled, color: C.grey[600] },
   ];
+
+  const handleMenuAction = (visit, action) => {
+    setOpenMenuId(null);
+    if (action === "schedule-new") {
+      setDetailVisit(visit);
+      setDetailMode("view");
+      // Open detail modal which has the Schedule New button in its footer
+      return;
+    }
+    setDetailVisit(visit);
+    setDetailMode(action);
+  };
+
+  const handleRowClick = (visit) => {
+    setDetailVisit(visit);
+    setDetailMode("view");
+  };
 
   return (
     <div
@@ -425,7 +550,7 @@ export const FollowUpWorklist = ({ patients = [] }) => {
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = "transparent";
                       }}
-                      onClick={() => {}}
+                      onClick={() => handleRowClick(v)}
                     >
                       {/* PATIENT */}
                       <td style={{ padding: "12px 16px", minWidth: 140 }}>
@@ -502,16 +627,26 @@ export const FollowUpWorklist = ({ patients = [] }) => {
                         </Badge>
                       </td>
                       {/* ACTIONS */}
-                      <td style={{ padding: "12px 16px", minWidth: 60 }}>
+                      <td style={{ padding: "12px 16px", minWidth: 60 }} onClick={(e) => e.stopPropagation()}>
                         <Button
                           variant="ghost"
                           size="sm"
                           iconOnly
                           aria-label="Row actions"
-                          onClick={(e) => e.stopPropagation()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId(openMenuId === v.id ? null : v.id);
+                          }}
                         >
                           <MoreHorizontal size={16} />
                         </Button>
+                        {openMenuId === v.id && (
+                          <RowMenu
+                            visit={v}
+                            onAction={(action) => handleMenuAction(v, action)}
+                            onClose={() => setOpenMenuId(null)}
+                          />
+                        )}
                       </td>
                     </tr>
                   );
@@ -545,6 +680,14 @@ export const FollowUpWorklist = ({ patients = [] }) => {
       </div>
       {modalOpen && (
         <ScheduleFollowUpModal patients={patients} onClose={() => setModalOpen(false)} />
+      )}
+      {detailVisit && (
+        <FollowUpDetailModal
+          key={detailVisit.id + "-" + detailMode}
+          visit={detailVisit}
+          initialMode={detailMode}
+          onClose={() => { setDetailVisit(null); setDetailMode("view"); }}
+        />
       )}
     </div>
   );

@@ -89,30 +89,36 @@ const menuItemStyle = {
   whiteSpace: "nowrap",
 };
 
-const RowMenu = ({ visit, onAction, onClose }) => {
+const RowMenu = ({ visit, anchorEl, onAction, onClose }) => {
   const menuRef = useRef(null);
   const [pos, setPos] = useState({ left: 0, top: 0 });
-  const [mounted, setMounted] = useState(false);
+
+  const positionMenu = () => {
+    if (!anchorEl) return;
+    const rect = anchorEl.getBoundingClientRect();
+    const menuW = 220;
+    const left = Math.max(8, Math.min(rect.right - menuW, window.innerWidth - menuW - 8));
+    setPos({ left, top: rect.bottom + 4 });
+  };
 
   useLayoutEffect(() => {
-    setMounted(true);
-  }, []);
+    positionMenu();
+  }, [anchorEl, visit.status]);
 
   useEffect(() => {
-    if (!menuRef.current) return;
-    const rect = menuRef.current.getBoundingClientRect();
-    const menuW = 220;
-    const menuH = visit.status === "Scheduled" ? 240 : 100;
-    let left = rect.right - menuW;
-    let top = rect.bottom + 4;
-    if (left < 8) left = 8;
-    if (top + menuH > window.innerHeight - 8) top = Math.max(8, rect.top - menuH - 4);
-    setPos({ left, top });
-  }, [mounted, visit.status]);
+    const onReposition = () => positionMenu();
+    window.addEventListener("resize", onReposition);
+    window.addEventListener("scroll", onReposition, true);
+    return () => {
+      window.removeEventListener("resize", onReposition);
+      window.removeEventListener("scroll", onReposition, true);
+    };
+  }, [anchorEl]);
 
   useEffect(() => {
     const onDown = (e) => {
       if (menuRef.current && menuRef.current.contains(e.target)) return;
+      if (anchorEl && anchorEl.contains(e.target)) return;
       onClose();
     };
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
@@ -122,7 +128,7 @@ const RowMenu = ({ visit, onAction, onClose }) => {
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onKey);
     };
-  }, [onClose]);
+  }, [anchorEl, onClose]);
 
   const items = visit.status === "Scheduled"
     ? [
@@ -146,6 +152,8 @@ const RowMenu = ({ visit, onAction, onClose }) => {
         left: pos.left,
         top: pos.top,
         width: 220,
+        maxHeight: `calc(100vh - ${pos.top + 8}px)`,
+        overflowY: "auto",
         background: C.grey[100],
         border: `0.5px solid ${C.grey[300]}`,
         borderRadius: 8,
@@ -185,6 +193,7 @@ export const FollowUpWorklist = ({ patients = [] }) => {
   const [detailVisit, setDetailVisit] = useState(null);
   const [detailMode, setDetailMode] = useState("view");
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [menuAnchor, setMenuAnchor] = useState(null);
 
   useEffect(() => {
     const handler = () => setVisits(getFollowUps());
@@ -275,6 +284,7 @@ export const FollowUpWorklist = ({ patients = [] }) => {
 
   const handleMenuAction = (visit, action) => {
     setOpenMenuId(null);
+    setMenuAnchor(null);
     if (action === "schedule-new") {
       setDetailVisit(visit);
       setDetailMode("view");
@@ -635,7 +645,13 @@ export const FollowUpWorklist = ({ patients = [] }) => {
                           aria-label="Row actions"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setOpenMenuId(openMenuId === v.id ? null : v.id);
+                            if (openMenuId === v.id) {
+                              setOpenMenuId(null);
+                              setMenuAnchor(null);
+                            } else {
+                              setOpenMenuId(v.id);
+                              setMenuAnchor(e.currentTarget);
+                            }
                           }}
                         >
                           <MoreHorizontal size={16} />
@@ -643,8 +659,9 @@ export const FollowUpWorklist = ({ patients = [] }) => {
                         {openMenuId === v.id && (
                           <RowMenu
                             visit={v}
+                            anchorEl={menuAnchor}
                             onAction={(action) => handleMenuAction(v, action)}
-                            onClose={() => setOpenMenuId(null)}
+                            onClose={() => { setOpenMenuId(null); setMenuAnchor(null); }}
                           />
                         )}
                       </td>

@@ -216,6 +216,7 @@ const TRSDrawer=({p,onClose})=>{
 const OverviewZone=({p,onNavigate})=>{
   const [medsExpanded,setMedsExpanded]=useState(false);
   const hgbLab=p.labs[0];
+  const hgbDrop=p.labs[0].draws&&p.labs[0].draws.length>=2?Math.abs(p.labs[0].draws[p.labs[0].draws.length-1].value-p.labs[0].draws[0].value).toFixed(1):null;
   const draws=hgbLab.draws||[];const hasDelta=draws.length>=2;
   const delta=hasDelta?Math.abs(draws[draws.length-1].value-draws[0].value).toFixed(1):null;
   const isDown=hasDelta&&draws[draws.length-1].value<draws[0].value;
@@ -426,6 +427,24 @@ const StepHeader=({eyebrow,title})=>(
   </div>
 );
 
+const ClinicalContextStrip=({p})=>{
+  const hgb=p.labs[0];
+  const ferritin=p.labs.find(l=>l.label==="Ferritin");
+  const tsat=p.labs.find(l=>l.label==="Transferrin Sat");
+  const items=[
+    {label:"HGB",value:`${hgb.value} ${hgb.unit}`,color:hgb.status==="critical"?C.error[400]:C.orange[400]},
+    {label:"Ferritin",value:ferritin?.missing?"Missing":`${ferritin?.value||"—"} ng/mL`,color:ferritin?.missing?C.orange[400]:C.grey[800]},
+    {label:"TSAT",value:tsat?.missing?"Missing":`${tsat?.value||"—"}%`,color:tsat?.missing?C.orange[400]:C.grey[800]},
+    {label:"TRS",value:`${p._trs.score}/10`,color:TRC[p._trs.trsSev]},
+    {label:"Procedure",value:p.procedure,color:C.grey[800]},
+    {label:"Surgery Date",value:p.admitDate||"—",color:C.grey[800]},
+  ];
+  return <div style={{margin:"0 16px 12px",background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:8,padding:"8px 12px",display:"flex",alignItems:"center",gap:0,flexWrap:"wrap"}}>
+    <div style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.grey[500],fontFamily:font,marginRight:14,whiteSpace:"nowrap"}}>Patient context</div>
+    {items.map((item,i)=><div key={item.label} style={{display:"flex",alignItems:"baseline",gap:5,padding:"0 14px",borderLeft:i===0?"none":`1px solid ${C.grey[300]}`,fontFamily:font}}><span style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:C.grey[500]}}>{item.label}</span><span className="tabular-nums-hc1" style={{fontSize:13,fontWeight:600,color:item.color,whiteSpace:"nowrap"}}>{item.value}</span></div>)}
+  </div>;
+};
+
 const CarePlanZone=({p})=>{
   const [step,setStep]=useState(0);
   const [sent,setSent]=useState(false);
@@ -512,6 +531,8 @@ const CarePlanZone=({p})=>{
       </div>
     </div>
 
+    <ClinicalContextStrip p={p}/>
+
     <div style={{flex:1,overflowY:"auto",padding:"0 16px 16px",minHeight:0}}>
       <div style={{background:"#fff",border:`0.5px solid ${C.grey[300]}`,borderRadius:10,padding:18}}>
 
@@ -526,22 +547,11 @@ const CarePlanZone=({p})=>{
             <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:"rgba(255,255,255,0.5)",fontFamily:font,marginBottom:6}}>AI Diagnosis & Recommendation · {p.aiConfidence}% Confidence</div>
             <div style={{fontSize:18,fontWeight:700,color:"#fff",fontFamily:font,marginBottom:6}}>{p.diagnosis}</div>
             <div style={{fontSize:14,color:"rgba(255,255,255,0.65)",fontFamily:font,lineHeight:1.6,marginBottom:12}}>
-              Patient meets criteria: Hgb {p.labs[0].value} g/dL{hgbDrop?` (drop ${hgbDrop} g/dL)`:""}.  Evidence-based protocol per AABB 2020 Transfusion Guidelines.
+              Patient meets criteria: Hgb {p.labs[0].value} g/dL{hgbDrop?` (drop ${hgbDrop} g/dL)`:''}.  Evidence-based protocol per AABB 2020 Transfusion Guidelines.
             </div>
             <div style={{display:"flex",gap:4}}>{p.icdCodes.map(c=><span key={c} style={{fontSize:14,fontWeight:600,color:"rgba(255,255,255,0.85)",background:"rgba(255,255,255,0.12)",border:"0.5px solid rgba(255,255,255,0.2)",borderRadius:4,padding:"2px 7px",fontFamily:font}}>{c}</span>)}</div>
           </div>
         </div>
-
-        {/* Clinical Criteria Met */}
-        <div style={{marginBottom:14}}>
-          <div style={{fontSize:14,fontWeight:700,color:C.grey[800],fontFamily:font,marginBottom:8}}>Clinical Criteria Met</div>
-          <div style={{background:C.grey[200],borderRadius:6,padding:"9px 12px",fontSize:14,color:C.grey[700],fontFamily:font}}>
-            Hgb {p.labs[0].value} g/dL{hgbDrop?`, drop ${hgbDrop} g/dL`:""} — currently in 7–9 g/dL range.
-          </div>
-        </div>
-
-        {/* Evidence Base — consistent green box */}
-        <EvidenceBox refs={["AABB 2020 Transfusion Guidelines","Carson (NEJM 2021)"]}/>
 
         {/* Attested Diagnosis — EDITABLE */}
         <div style={{marginBottom:14}}>
@@ -648,9 +658,6 @@ const CarePlanZone=({p})=>{
           </div>
         ))}
 
-        {/* Evidence Base — consistent green box */}
-        <EvidenceBox refs={["AABB 2020 Transfusion Guidelines","Carson (NEJM 2021)"]}/>
-
         {/* Clinical Review Warning */}
         <div style={{background:C.yellow[100],border:`0.5px solid rgba(255,196,50,0.4)`,borderRadius:8,padding:"10px 14px",marginBottom:16}}>
           <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:"#92600A",fontFamily:font,marginBottom:4}}>Clinical Review Required</div>
@@ -694,19 +701,6 @@ const CarePlanZone=({p})=>{
             <span style={{fontSize:14,color:met?C.grey[800]:C.grey[500],fontFamily:font,flex:1,lineHeight:1.4}}>{label}</span>
           </div>
         ))}
-
-        {/* AC4: Clinical Evidence Summary */}
-        <div style={{marginTop:14,marginBottom:4}}>
-          <div style={{fontSize:14,fontWeight:700,color:C.grey[800],fontFamily:font,marginBottom:8}}>Clinical Evidence</div>
-          <div style={{background:C.grey[200],borderRadius:8,padding:"10px 14px",marginBottom:14}}>
-            <div style={{fontSize:14,color:C.grey[700],fontFamily:font,marginBottom:4}}><strong style={{color:C.grey[800]}}>Hemoglobin:</strong> {p.labs[0].value} g/dL{hgbDrop?` (drop ${hgbDrop} g/dL)`:""}</div>
-            <div style={{fontSize:14,color:C.grey[700],fontFamily:font,marginBottom:4}}><strong style={{color:C.grey[800]}}>Ferritin:</strong> {ferLab?`${ferLab.value} ng/mL`:"Not documented"}</div>
-            <div style={{fontSize:14,color:C.grey[700],fontFamily:font,marginBottom:4}}><strong style={{color:C.grey[800]}}>TSAT:</strong> {tsatLab?`${tsatLab.value} %`:"Not documented"}</div>
-            <div style={{fontSize:14,color:C.grey[700],fontFamily:font,marginBottom:4}}><strong style={{color:C.grey[800]}}>Indication:</strong> {attestedDx}</div>
-            <div style={{fontSize:14,color:C.grey[700],fontFamily:font,marginBottom:4}}><strong style={{color:C.grey[800]}}>TRS Score:</strong> {p._trs.score}/10 — {p._trs.category}</div>
-            <div style={{fontSize:14,color:C.grey[700],fontFamily:font}}><strong style={{color:C.grey[800]}}>Comorbidities:</strong> {p.conditions.join(", ")}</div>
-          </div>
-        </div>
 
         {/* AC5: Diagnosis Codes (ICD-10) */}
         <div style={{marginBottom:14}}>

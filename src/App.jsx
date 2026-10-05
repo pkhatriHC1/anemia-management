@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Search, Filter, ChevronDown, ArrowRight, ChevronLeft, MessageSquare, ClipboardList, User, Hash, Stethoscope, CircleAlert as AlertCircle, TriangleAlert as AlertTriangle, Info, ShieldCheck, Activity, ArrowLeft, Calculator, RotateCcw } from "lucide-react";
 import { Button } from "./components/hc1/Button";
 import { Badge } from "./components/hc1/Badge";
@@ -7,6 +8,7 @@ import { CareCoordination, getPendingCount } from "./components/hc1/CareCoordina
 import { BloodHealthAppNav } from "./components/hc1/BloodHealthAppNav";
 import { FeatureUsers } from "./components/hc1/FeatureUsers";
 import { FollowUpWorklist } from "./components/hc1/FollowUp/FollowUpWorklist";
+import { FollowUpDetailModal } from "./components/hc1/FollowUp/FollowUpDetailModal";
 import { ScheduleFollowUpModal } from "./components/hc1/FollowUp/ScheduleFollowUpModal";
 import { CAN_CLINICAL_NAVIGATION, getFollowUpDecision, getFollowUps } from "./components/hc1/FollowUp/followUpStore";
 import { CalendarClock, Calendar } from "lucide-react";
@@ -789,7 +791,40 @@ const CarePlanZone=({p})=>{
 
 const PatientHeader=({p,onOpenIQ,onOpenCC,onBack})=>{
   const ag=getAnemiaGrade(p.labs[0].value);
+  const [scheduledVisits,setScheduledVisits]=useState(()=>getFollowUps().filter(v=>v.patientId===p.id&&v.status==="Scheduled").sort((a,b)=>new Date(a.followUpAt)-new Date(b.followUpAt)));
+  const [popoverOpen,setPopoverOpen]=useState(false);
+  const [popoverPos,setPopoverPos]=useState({left:0,top:0});
+  const [detailVisit,setDetailVisit]=useState(null);
+  const chipRef=useRef(null);
+  const popoverRef=useRef(null);
+  const refreshVisits=()=>setScheduledVisits(getFollowUps().filter(v=>v.patientId===p.id&&v.status==="Scheduled").sort((a,b)=>new Date(a.followUpAt)-new Date(b.followUpAt)));
+  useEffect(()=>{
+    const handler=()=>refreshVisits();
+    window.addEventListener("follow-ups-updated",handler);
+    window.addEventListener("storage",handler);
+    return()=>{window.removeEventListener("follow-ups-updated",handler);window.removeEventListener("storage",handler);};
+  },[p.id]);
+  useEffect(()=>{
+    if(!popoverOpen)return;
+    const close=e=>{if(popoverRef.current&&!popoverRef.current.contains(e.target)&&chipRef.current&&!chipRef.current.contains(e.target))setPopoverOpen(false);};
+    const reposition=()=>{if(chipRef.current){const r=chipRef.current.getBoundingClientRect();setPopoverPos({left:r.left,top:r.bottom+6});}};
+    reposition();
+    document.addEventListener("mousedown",close);
+    window.addEventListener("resize",reposition);
+    window.addEventListener("scroll",reposition,true);
+    return()=>{document.removeEventListener("mousedown",close);window.removeEventListener("resize",reposition);window.removeEventListener("scroll",reposition,true);};
+  },[popoverOpen]);
+  const pad=n=>String(n).padStart(2,"0");
+  const formatFollowUp=iso=>{const d=new Date(iso);if(isNaN(d))return iso;return `${pad(d.getMonth()+1)}/${pad(d.getDate())}/${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;};
+  const openChip=()=>{
+    if(scheduledVisits.length===1){setDetailVisit(scheduledVisits[0]);return;}
+    if(chipRef.current){const r=chipRef.current.getBoundingClientRect();setPopoverPos({left:r.left,top:r.bottom+6});}
+    setPopoverOpen(o=>!o);
+  };
+  const soonest=scheduledVisits[0];
+  const soonestOverdue=soonest&&new Date(soonest.followUpAt).getTime()<Date.now();
   return(
+  <>
   <div style={{background:"#fff",borderBottom:`1px solid ${C.grey[300]}`,flexShrink:0,padding:"12px 20px",display:"flex",alignItems:"center",gap:16}}>
     <div style={{flex:1,minWidth:0}}>
       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:5}}>
@@ -808,16 +843,18 @@ const PatientHeader=({p,onOpenIQ,onOpenCC,onBack})=>{
         <span style={{fontSize:14,color:C.grey[400],margin:"0 2px"}}>·</span>
         <Activity size={11} color={C.grey[500]}/><span style={{fontSize:14,color:C.grey[700],fontFamily:font,marginLeft:3}}>{p.procedure}</span>
       </div>
-      <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{p.conditions.map((c,i)=><span key={i} style={{fontSize:14,color:C.grey[600],background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:4,padding:"3px 9px",fontFamily:font}}>{c}</span>)}</div>
+      <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+        {p.conditions.map((c,i)=><span key={i} style={{fontSize:14,color:C.grey[600],background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:4,padding:"3px 9px",fontFamily:font}}>{c}</span>)}
+        {CAN_CLINICAL_NAVIGATION&&soonest&&<button ref={chipRef} type="button" onClick={openChip} style={{display:"inline-flex",alignItems:"center",gap:5,fontSize:14,color:soonestOverdue?C.error[400]:C.grey[700],background:soonestOverdue?C.error[100]:C.primary[100],border:`0.5px solid ${soonestOverdue?C.error[400]:C.primary[300]}`,borderRadius:4,padding:"3px 9px",fontFamily:font,cursor:"pointer"}}><CalendarClock size={13} color={soonestOverdue?C.error[400]:C.primary[500]}/><span>Follow-up · {formatFollowUp(soonest.followUpAt)}{soonestOverdue&&" · Overdue"}{scheduledVisits.length>1&&` +${scheduledVisits.length-1}`}</span></button>}
+      </div>
     </div>
     <div style={{display:"flex",alignItems:"center",gap:8}}>
-      
-      <Button variant="primary" size="md" onClick={onOpenIQ}
-        leftIcon={<span style={{fontSize:14,lineHeight:1}}>✦</span>}>
-        IQ Assistant
-      </Button>
+      <Button variant="primary" size="md" onClick={onOpenIQ} leftIcon={<span style={{fontSize:14,lineHeight:1}}>✦</span>}>IQ Assistant</Button>
     </div>
   </div>
+  {popoverOpen&&scheduledVisits.length>1&&createPortal(<div ref={popoverRef} style={{position:"fixed",left:popoverPos.left,top:popoverPos.top,width:300,background:C.grey[100],border:`1px solid ${C.grey[300]}`,borderRadius:8,boxShadow:"0 8px 22px rgba(31,55,57,0.14)",padding:"6px 0",zIndex:400}}><div style={{padding:"7px 12px 6px",fontSize:11,fontWeight:700,color:C.grey[500],textTransform:"uppercase",letterSpacing:"0.08em",fontFamily:font}}>Scheduled Follow-Ups</div>{scheduledVisits.map(v=><button key={v.id} type="button" onClick={()=>{setPopoverOpen(false);setDetailVisit(v);}} style={{display:"flex",flexDirection:"column",alignItems:"flex-start",gap:3,width:"100%",border:0,background:"transparent",padding:"9px 12px",cursor:"pointer",textAlign:"left",fontFamily:font}} onMouseEnter={e=>e.currentTarget.style.background=C.grey[200]} onMouseLeave={e=>e.currentTarget.style.background="transparent"}><span style={{fontSize:14,fontWeight:600,color:C.grey[800]}}>{formatFollowUp(v.followUpAt)}{new Date(v.followUpAt).getTime()<Date.now()&&<span style={{color:C.error[400],marginLeft:6}}>Overdue</span>}</span><span style={{fontSize:12,color:C.grey[600]}}>{(v.specialties||[]).join(", ")}</span></button>)}</div>,document.body)}
+  {detailVisit&&<FollowUpDetailModal visit={detailVisit} onClose={()=>setDetailVisit(null)}/>} 
+  </>
 );};
 
 const ZoneTabs=({active,onChange,pendingCount})=><div style={{background:C.grey[100],borderBottom:`0.5px solid ${C.grey[300]}`,display:"flex",padding:"0 20px",flexShrink:0}}>{[{id:"overview",label:"Clinical Decision Support",Icon:User},{id:"cp",label:"Optimization Recommendations",Icon:ClipboardList},{id:"cc",label:"Care Coordination",Icon:MessageSquare}].map(({id,label,Icon})=>{const a=active===id;return <div key={id} onClick={()=>onChange(id)} style={{display:"flex",alignItems:"center",gap:6,padding:"10px 16px 9px",borderBottom:a?`2px solid ${C.primary[500]}`:"2px solid transparent",cursor:"pointer",fontSize:16,fontWeight:a?600:400,color:a?C.grey[800]:C.grey[500],fontFamily:font,marginBottom:-1,transition:"all 0.12s",whiteSpace:"nowrap"}}><Icon size={14} strokeWidth={1.5} color={a?C.primary[500]:C.grey[500]}/>{label}{id==="cc"&&pendingCount>0&&<span title={`${pendingCount} pending care coordination messages`} aria-label={`${pendingCount} pending care coordination messages`} onClick={(e)=>{e.stopPropagation();onChange("cc");}} style={{display:"inline-flex",alignItems:"center",background:C.orange[100],color:C.orange[400],border:`1px solid ${C.orange[400]}80`,fontSize:11,fontWeight:700,borderRadius:999,padding:"2px 8px",cursor:"pointer",marginLeft:2,fontFamily:font,whiteSpace:"nowrap"}}>{pendingCount} Pending</span>}</div>;})}</div>;

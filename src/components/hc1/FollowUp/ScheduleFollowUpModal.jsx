@@ -1,15 +1,16 @@
 import { useState, useEffect, useRef, useCallback, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
-import { CalendarClock, X } from "lucide-react";
+import { CalendarClock, X, TriangleAlert } from "lucide-react";
 import { Button } from "../Button";
 import { DateTimePicker } from "./DateTimePicker";
 import { PatientPickerStep } from "./PatientPickerStep";
-import { SPECIALTIES, addFollowUp, setFollowUpDecision } from "./followUpStore";
+import { SPECIALTIES, addFollowUp, setFollowUpDecision, getFollowUps } from "./followUpStore";
 
 const C = {
   grey: { 100: "#FFFFFF", 200: "#F7F7F7", 300: "#E7E7E7", 400: "#CFD1D1", 500: "#A8ADAD", 600: "#737E7F", 700: "#545D5E", 800: "#273233" },
   primary: { 100: "#ECF4F5", 200: "#CFE4E6", 300: "#9EC9CD", 400: "#56A0A8", 500: "#0D7782", 600: "#0B626B" },
   error: { 100: "#F4DFE4", 400: "#B00A2F" },
+  warning: { 100: "#FFEFE0", 400: "#F58126" },
   success: { 100: "#D7E7D6", 400: "#388032" },
 };
 const font = "var(--hc-font-sans)";
@@ -127,6 +128,14 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose, directMode =
   };
 
   const effectivePatient = directMode ? directPatient : isGlobal ? selectedPatient : patient;
+  const duplicateVisits = effectivePatient
+    ? getFollowUps().filter((v) => v.patientId === effectivePatient.id && v.status === "Scheduled").sort((a, b) => new Date(a.followUpAt) - new Date(b.followUpAt))
+    : [];
+  const formatWarningDate = (iso) => {
+    const d = new Date(iso);
+    if (isNaN(d)) return iso;
+    return `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
 
   const handleConfirm = () => {
     if (!effectivePatient) return;
@@ -216,6 +225,15 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose, directMode =
 
         {/* Body */}
         <div ref={bodyRef} style={{ flex: 1, overflowY: "auto", padding: "20px", minHeight: 0 }}>
+          {(step === 2 || directMode) && effectivePatient && duplicateVisits.length > 0 && (
+            <div role="status" style={{ display: "flex", alignItems: "flex-start", gap: 9, padding: "11px 12px", marginBottom: 16, background: C.warning[100], border: `0.5px solid ${C.warning[400]}66`, borderRadius: 8 }}>
+              <TriangleAlert size={17} color={C.warning[400]} style={{ flexShrink: 0, marginTop: 1 }} />
+              <div style={{ fontSize: 14, lineHeight: 1.5, color: C.grey[800], fontFamily: font }}>
+                <strong>{effectivePatient.name} already has {duplicateVisits.length} scheduled follow-up{duplicateVisits.length === 1 ? "" : "s"}:</strong>{" "}
+                {duplicateVisits.map((v, i) => <span key={v.id}>{i > 0 && "; "}{formatWarningDate(v.followUpAt)} — {(v.specialties || []).join(", ")}</span>)}. You can still schedule another.
+              </div>
+            </div>
+          )}
           {step === 1 && isGlobal && !directMode && (
             <PatientPickerStep
               patients={patients || []}

@@ -150,6 +150,7 @@ export const BloodHealthAppNav = ({ onNavigate, currentScreen }) => {
       if (menu === "settings") {
         const item = visibleSettings[focusedIndex];
         if (item?.label === "Users" && onNavigate) onNavigate("users");
+      if (item?.label === "Config" && onNavigate) onNavigate("config");
       }
       setOpenMenu(null);
     }
@@ -160,6 +161,7 @@ export const BloodHealthAppNav = ({ onNavigate, currentScreen }) => {
     if (menu === "settings") {
       const item = visibleSettings[index];
       if (item?.label === "Users" && onNavigate) onNavigate("users");
+      if (item?.label === "Config" && onNavigate) onNavigate("config");
     }
   };
 

@@ -11,7 +11,9 @@ import { FollowUpWorklist } from "./components/hc1/FollowUp/FollowUpWorklist";
 import { FollowUpDetailModal } from "./components/hc1/FollowUp/FollowUpDetailModal";
 import { ScheduleFollowUpModal } from "./components/hc1/FollowUp/ScheduleFollowUpModal";
 import { CAN_CLINICAL_NAVIGATION, getFollowUpDecision, getFollowUps } from "./components/hc1/FollowUp/followUpStore";
-import { CalendarClock, Calendar } from "lucide-react";
+import { CalendarClock, Calendar, Search as SearchIcon, X, Inbox, CheckCircle as CheckCircleIcon } from "lucide-react";
+import { EpicPoolConfig } from "./components/hc1/Notify/EpicPoolConfig";
+import { searchProviders, getActiveEpicPools, completeCase, getCompletedPatients, addAuditEntry } from "./components/hc1/Notify/notifyStores";
 
 const C={grey:{100:"#FFFFFF",200:"#F7F7F7",300:"#E7E7E7",400:"#CFD1D1",500:"#A8ADAD",600:"#737E7F",700:"#545D5E",800:"#273233"},primary:{100:"#ECF4F5",200:"#CFE4E6",300:"#9EC9CD",400:"#56A0A8",500:"#0D7782",600:"#0B626B"},secondary:{100:"#E1F3F5",200:"#CFEBEE",300:"#AFDCE1",400:"#75CAD3",500:"#3CA6B0",600:"#1D828C"},orange:{100:"#FFEFE0",400:"#F58126"},yellow:{100:"#FFECC1",400:"#FFC432"},error:{100:"#F4DFE4",400:"#B00A2F"},success:{100:"#D7E7D6",400:"#388032"},red:{100:"#EFB0AB",400:"#C6473C"}};
 const font="var(--hc-font-sans)";
@@ -415,13 +417,6 @@ const OverviewZone=({p,onNavigate})=>{
   </div>
 );};
 
-const EvidenceBox=({refs})=>(
-  <div style={{background:C.success[100],border:`0.5px solid rgba(56,128,50,0.25)`,borderRadius:8,padding:"10px 14px",marginBottom:14}}>
-    <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.07em",color:C.success[400],fontFamily:font,marginBottom:6}}>Evidence Base</div>
-    {refs.map(r=><div key={r} style={{fontSize:14,color:C.success[400],fontFamily:font,marginBottom:2}}>✓ {r}</div>)}
-  </div>
-);
-
 const StepHeader=({eyebrow,title})=>(
   <div style={{marginBottom:16}}>
     <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:C.secondary[500],fontFamily:font,marginBottom:4}}>{eyebrow}</div>
@@ -453,9 +448,18 @@ const CarePlanZone=({p})=>{
   const [fuModalOpen,setFuModalOpen]=useState(false);
   const [,setFuTick]=useState(0);
   useEffect(()=>{const h=()=>setFuTick(t=>t+1);window.addEventListener("follow-ups-updated",h);window.addEventListener("storage",h);return()=>{window.removeEventListener("follow-ups-updated",h);window.removeEventListener("storage",h);};},[]);
+  useEffect(()=>{const h=()=>setCompletedPatientsList(getCompletedPatients());window.addEventListener("case-completions-updated",h);window.addEventListener("storage",h);return()=>{window.removeEventListener("case-completions-updated",h);window.removeEventListener("storage",h);};},[]);
   const [attestedDx,setAttestedDx]=useState(p.diagnosis);
   const [clinicalNotes,setClinicalNotes]=useState("");
   const [recipients,setRecipients]=useState({attending:true,surgeon:false,anesthesiologist:false,obgyn:false,infusion:true,patient:true});
+  const [addedProviders,setAddedProviders]=useState([]);
+  const [selectedPoolIds,setSelectedPoolIds]=useState([]);
+  const [providerQuery,setProviderQuery]=useState("");
+  const [providerResults,setProviderResults]=useState([]);
+  const [poolDropdownOpen,setPoolDropdownOpen]=useState(false);
+  const [completedPatients,setCompletedPatientsList]=useState(()=>getCompletedPatients());
+  const [sendError,setSendError]=useState("");
+  const [completionData,setCompletionData]=useState(null);
   const [manualMode,setManualMode]=useState(false);
   const [manualTargetHgb,setManualTargetHgb]=useState("13");
   const [manualInput,setManualInput]=useState("13");
@@ -522,7 +526,60 @@ const CarePlanZone=({p})=>{
       : `${wtNum} kg × (${DEFAULT_TARGET_HGB} − ${actualHgb}) × 2.4 + ${ironStores} mg`;
   }
 
-  const msgPreview=`Subject: New Anemia Optimization Recommendations: ${p.name}\n\nA new evidence-based optimization recommendation has been initiated for ${p.name} (MRN: ${p.id}).\n\nDiagnosis: ${attestedDx}\nTreatment: ${s==="Critical"?"Supportive care + Iron supplement after stabilization":"IV Iron Ferric Carboxymaltose"}\nDosage: ${s==="Critical"?"Ferric Carboxymaltose 750–1000mg IV":"750mg IV × 2 doses"}\n\nPlease review in Epic and coordinate care as needed.\n\n— Anemia Management CDS`;
+  const treatmentMed=s==="Critical"?"Supportive care + Iron supplement after stabilization":"IV Iron Ferric Carboxymaltose";
+  const treatmentDose=s==="Critical"?"Ferric Carboxymaltose 750–1000mg IV":"750mg IV";
+  const treatmentDoses=s==="Critical"?1:2;
+
+  const msgPreview=`Subject: New Anemia Optimization Recommendations: ${p.name}\n\nA new evidence-based optimization recommendation has been initiated for ${p.name} (MRN: ${p.id}).\n\nDiagnosis: ${attestedDx}\nTreatment: ${treatmentMed}\nDosage: ${treatmentDose} × ${treatmentDoses} dose${treatmentDoses>1?"s":""}\n\nPlease review in Epic and coordinate care as needed.\n\n— Anemia Management CDS`;
+
+  // ── Recipient list helpers (AC1-AC3) ──
+  const standardRecipients=[
+    {k:"attending",l:"Attending Physician",req:false},
+    {k:"surgeon",l:"Surgeon",req:false},
+  ];
+  const activePools=getActiveEpicPools();
+  const allRecipients=[
+    ...standardRecipients.filter(r=>recipients[r.k]).map(r=>({id:r.k,type:"standard",label:r.l})),
+    ...addedProviders.map(pr=>({id:pr.id,type:"provider",label:pr.name,sub:`NPI ${pr.npi} · ${pr.specialty}`})),
+    ...selectedPoolIds.map(pid=>{const pool=activePools.find(p=>p.id===pid);return pool?{id:pool.id,type:"pool",label:pool.name,sub:`Epic Pool · ${pool.poolId}`}:null;}).filter(Boolean),
+  ];
+  const hasSelectedRecipients=allRecipients.length>0;
+
+  const handleProviderSearch=(q)=>{
+    setProviderQuery(q);
+    setProviderResults(searchProviders(q));
+  };
+  const addProvider=(pr)=>{
+    if(addedProviders.some(a=>a.id===pr.id||a.npi===pr.npi))return;
+    setAddedProviders(prev=>[...prev,pr]);
+  };
+  const removeProvider=(id)=>setAddedProviders(prev=>prev.filter(pr=>pr.id!==id));
+  const togglePool=(poolId)=>{
+    setSelectedPoolIds(prev=>prev.includes(poolId)?prev.filter(id=>id!==poolId):[...prev,poolId]);
+  };
+
+  // ── Send + complete case (AC5-AC7, AC9) ──
+  const handleSend=()=>{
+    if(!hasSelectedRecipients){
+      setSendError("Select at least one recipient before sending.");
+      return;
+    }
+    setSendError("");
+    const recipientLog=allRecipients.map(r=>({label:r.label,type:r.type,sub:r.sub||""}));
+    const data={
+      completedBy:"Tiffany Hall",
+      medication:treatmentMed,
+      dose:treatmentDose,
+      numberOfDoses:treatmentDoses,
+      recipients:recipientLog,
+      messageContent:msgPreview,
+      followUpScheduled:getFollowUpDecision(p.id)==="scheduled"||getFollowUps().some(v=>v.patientId===p.id&&v.status==="Scheduled"),
+    };
+    completeCase(p.id,data);
+    addAuditEntry({patientId:p.id,patientName:p.name,action:"Notify — Sent to recipients",recipients:recipientLog,messageContent:msgPreview,medication:treatmentMed,dose:treatmentDose,numberOfDoses:treatmentDoses});
+    setCompletionData({...data,recipients:recipientLog});
+    setSent(true);
+  };
 
   return(
   <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
@@ -732,9 +789,6 @@ const CarePlanZone=({p})=>{
           </div>
         </div>
 
-        {/* AC7: Evidence Base */}
-        <EvidenceBox refs={["Treatment of Iron Deficiency Anemia","Intravenous Iron Therapy"]}/>
-
         {/* AC8: Step Navigation — ghost back, orange CTA forward */}
         <StepActions onBack={()=>setStep(1)} backGhost={true} onNext={()=>setStep(3)} nextLabel="Proceed to Notify →" nextOrange={true}/>
       </div>}
@@ -744,31 +798,100 @@ const CarePlanZone=({p})=>{
         ? <div style={{textAlign:"center",padding:"32px 0"}}>
             <div style={{width:60,height:60,borderRadius:"50%",background:C.success[100],border:`2px solid ${C.success[400]}`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}><CheckCircle size={28} color={C.success[400]}/></div>
             <div style={{fontSize:24,fontWeight:700,color:C.grey[800],fontFamily:font,marginBottom:6}}>Optimization Recommendations Sent Successfully</div>
-            <div style={{fontSize:16,color:C.grey[500],fontFamily:font,marginBottom:24}}>All selected recipients have been notified via Epic InBasket & Patient Portal.</div>
+            <div style={{fontSize:16,color:C.grey[500],fontFamily:font,marginBottom:20}}>The case has been completed and the patient removed from the active worklist.</div>
+            {/* AC6: Confirmation message displays the recipients sent to */}
+            {completionData&&<div style={{display:"inline-block",textAlign:"left",background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:8,padding:"14px 18px",marginBottom:20,maxWidth:520}}>
+              <div style={{fontSize:14,fontWeight:700,color:C.grey[800],fontFamily:font,marginBottom:8}}>Sent to {completionData.recipients.length} recipient{completionData.recipients.length>1?"s":""}:</div>
+              {completionData.recipients.map((r,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:8,fontSize:14,color:C.grey[700],fontFamily:font,marginBottom:4}}><CheckCircleIcon size={14} color={C.success[400]}/><span>{r.label}{r.sub?` · ${r.sub}`:""}</span></div>)}
+              <div style={{marginTop:10,paddingTop:10,borderTop:`0.5px solid ${C.grey[300]}`,fontSize:13,color:C.grey[500],fontFamily:font}}>Treatment recorded: {completionData.medication} · {completionData.dose} × {completionData.numberOfDoses} dose{completionData.numberOfDoses>1?"s":""}</div>
+            </div>}
             {CAN_CLINICAL_NAVIGATION&&(()=>{const decision=getFollowUpDecision(p.id);const latestScheduled=getFollowUps().filter(v=>v.patientId===p.id&&v.status==="Scheduled").sort((a,b)=>new Date(b.followUpAt)-new Date(a.followUpAt))[0];const pad=n=>String(n).padStart(2,"0");const fmtDt=iso=>{const d=new Date(iso);if(isNaN(d))return"";return `${pad(d.getMonth()+1)}/${pad(d.getDate())}/${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;};if(decision==="scheduled"&&latestScheduled){return <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}><div style={{display:"flex",alignItems:"center",gap:8,fontSize:15,fontWeight:600,color:C.success[400],fontFamily:font}}><CalendarClock size={16} color={C.success[400]}/>Follow-up scheduled · {fmtDt(latestScheduled.followUpAt)}</div><Button variant="link" size="md" leftIcon={<CalendarClock size={14}/>} onClick={()=>setFuModalOpen(true)}>Schedule another</Button></div>;}if(decision==="not_needed"){return <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}><div style={{fontSize:15,fontWeight:600,color:C.grey[500],fontFamily:font}}>No follow-up needed</div><Button variant="link" size="md" onClick={()=>setFuModalOpen(true)}>Change</Button></div>;}return <div style={{display:"flex",justifyContent:"center"}}><Button variant="link" size="md" leftIcon={<CalendarClock size={14}/>} onClick={()=>setFuModalOpen(true)}>Schedule Follow-Up</Button></div>;})()}
             {fuModalOpen&&<ScheduleFollowUpModal patient={p} onClose={()=>setFuModalOpen(false)}/>}
             </div>
         : <div>
             <StepHeader eyebrow="Epic InBasket & Patient Portal" title="Communicate Optimization Recommendations"/>
 
-            {/* Recipients */}
+            {/* AC1: Select Recipients — standard checkboxes (no required flags) */}
             <div style={{fontSize:14,fontWeight:700,color:C.grey[800],fontFamily:font,marginBottom:10}}>Select Recipients</div>
-            {[
-              {k:"attending",l:"Attending Physician",req:true},
-              {k:"surgeon",l:"Surgeon",req:false},
-              {k:"anesthesiologist",l:"Anesthesiologist",req:false},
-              {k:"obgyn",l:"OB/GYN",req:false},
-              {k:"infusion",l:"Infusion Center",req:true},
-              {k:"patient",l:"Patient (Portal)",req:true},
-            ].map(({k,l,req})=>(
-              <div key={k} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:recipients[k]&&req?C.orange[100]:recipients[k]?C.primary[100]:C.grey[100],border:`0.5px solid ${recipients[k]&&req?C.orange[400]+"33":recipients[k]?C.primary[500]+"33":C.grey[300]}`,borderRadius:8,marginBottom:6,cursor:"pointer"}} onClick={()=>setRecipients(r=>({...r,[k]:!r[k]}))}>
+            {standardRecipients.map(({k,l})=>(
+              <div key={k} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:recipients[k]?C.primary[100]:C.grey[100],border:`0.5px solid ${recipients[k]?C.primary[500]+"33":C.grey[300]}`,borderRadius:8,marginBottom:6,cursor:"pointer"}} onClick={()=>setRecipients(r=>({...r,[k]:!r[k]}))}>
                 <div style={{width:18,height:18,borderRadius:3,border:`1.5px solid ${recipients[k]?C.primary[500]:C.grey[400]}`,background:recipients[k]?C.primary[500]:"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                   {recipients[k]&&<span style={{fontSize:12,color:"#fff",fontWeight:700}}>✓</span>}
                 </div>
                 <span style={{fontSize:16,fontWeight:600,color:C.grey[800],fontFamily:font,flex:1}}>{l}</span>
-                {req&&<span style={{fontSize:12,fontWeight:700,color:C.orange[400],background:C.orange[100],borderRadius:3,padding:"1px 6px",fontFamily:font}}>Required</span>}
               </div>
             ))}
+
+            {/* AC2: Search Recipients by name or NPI */}
+            <div style={{marginTop:16,marginBottom:10}}>
+              <div style={{fontSize:14,fontWeight:700,color:C.grey[800],fontFamily:font,marginBottom:8}}>Search Recipients</div>
+              <div style={{position:"relative",marginBottom:8}}>
+                <SearchIcon size={15} color={C.grey[500]} style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/>
+                <input
+                  value={providerQuery}
+                  onChange={(e)=>handleProviderSearch(e.target.value)}
+                  placeholder="Search by provider name or NPI..."
+                  style={{width:"100%",boxSizing:"border-box",padding:"8px 10px 8px 32px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,fontSize:14,color:C.grey[800],background:C.grey[100],outline:"none",fontFamily:font}}
+                />
+              </div>
+              {providerQuery.trim()&&(
+                <div style={{border:`0.5px solid ${C.grey[300]}`,borderRadius:8,overflow:"hidden",marginBottom:8}}>
+                  {providerResults.length===0
+                    ? <div style={{padding:"12px",fontSize:14,color:C.grey[500],fontFamily:font,textAlign:"center"}}>No providers found</div>
+                    : providerResults.map(pr=>{
+                      const alreadyAdded=addedProviders.some(a=>a.id===pr.id||a.npi===pr.npi);
+                      return <div key={pr.id} onClick={()=>!alreadyAdded&&addProvider(pr)} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderBottom:`0.5px solid ${C.grey[300]}`,cursor:alreadyAdded?"default":"pointer",background:alreadyAdded?C.grey[200]:"#fff",opacity:alreadyAdded?0.6:1}} onMouseEnter={e=>{if(!alreadyAdded)e.currentTarget.style.background=C.primary[100];}} onMouseLeave={e=>{if(!alreadyAdded)e.currentTarget.style.background="#fff";}}>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:14,fontWeight:600,color:C.grey[800],fontFamily:font}}>{pr.name}</div>
+                        <div style={{fontSize:13,color:C.grey[500],fontFamily:font}}>NPI {pr.npi} · {pr.specialty}</div>
+                      </div>
+                      {alreadyAdded
+                        ? <span style={{fontSize:12,fontWeight:600,color:C.grey[500],fontFamily:font}}>Added</span>
+                        : <span style={{fontSize:12,fontWeight:600,color:C.primary[500],fontFamily:font}}>+ Add</span>}
+                    </div>;
+                  })}
+                </div>
+              )}
+              {/* Added providers as checked recipients */}
+              {addedProviders.map(pr=>(
+                <div key={pr.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:C.primary[100],border:`0.5px solid ${C.primary[500]}33`,borderRadius:8,marginBottom:6}}>
+                  <div style={{width:18,height:18,borderRadius:3,border:`1.5px solid ${C.primary[500]}`,background:C.primary[500],display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><span style={{fontSize:12,color:"#fff",fontWeight:700}}>✓</span></div>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:16,fontWeight:600,color:C.grey[800],fontFamily:font}}>{pr.name}</div>
+                    <div style={{fontSize:13,color:C.grey[500],fontFamily:font}}>NPI {pr.npi} · {pr.specialty}</div>
+                  </div>
+                  <button type="button" onClick={()=>removeProvider(pr.id)} aria-label={`Remove ${pr.name}`} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:28,height:28,border:`1px solid ${C.grey[300]}`,borderRadius:5,background:"#fff",color:C.grey[500],cursor:"pointer"}}><X size={14}/></button>
+                </div>
+              ))}
+            </div>
+
+            {/* AC3: Epic Message Pool selector */}
+            <div style={{marginTop:16,marginBottom:10}}>
+              <div style={{fontSize:14,fontWeight:700,color:C.grey[800],fontFamily:font,marginBottom:8}}>Epic Message Pool</div>
+              {activePools.length===0
+                ? <div style={{fontSize:14,color:C.grey[500],fontFamily:font,padding:"10px 12px",background:C.grey[100],border:`0.5px solid ${C.grey[300]}`,borderRadius:8}}>No active pools configured. An admin can add pools in Settings &gt; Config.</div>
+                : <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {activePools.map(pool=>{
+                    const sel=selectedPoolIds.includes(pool.id);
+                    return <div key={pool.id} onClick={()=>togglePool(pool.id)} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:sel?C.primary[100]:C.grey[100],border:`0.5px solid ${sel?C.primary[500]+"33":C.grey[300]}`,borderRadius:8,cursor:"pointer"}}>
+                      <div style={{width:18,height:18,borderRadius:3,border:`1.5px solid ${sel?C.primary[500]:C.grey[400]}`,background:sel?C.primary[500]:"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{sel&&<span style={{fontSize:12,color:"#fff",fontWeight:700}}>✓</span>}</div>
+                      <Inbox size={16} color={C.grey[500]}/>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:16,fontWeight:600,color:C.grey[800],fontFamily:font}}>{pool.name}</div>
+                        <div style={{fontSize:13,color:C.grey[500],fontFamily:font}}>Pool ID: {pool.poolId}</div>
+                      </div>
+                    </div>;
+                  })}
+                </div>}
+            </div>
+
+            {/* Active recipient list summary */}
+            {allRecipients.length>0&&<div style={{marginTop:12,marginBottom:12,padding:"10px 14px",background:C.success[100],border:`0.5px solid ${C.success[400]}44`,borderRadius:8}}>
+              <div style={{fontSize:13,fontWeight:700,color:C.success[400],fontFamily:font,marginBottom:4}}>{allRecipients.length} recipient{allRecipients.length>1?"s":""} selected</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                {allRecipients.map((r,i)=><span key={i} style={{fontSize:12,fontWeight:600,color:C.grey[700],background:"#fff",border:`0.5px solid ${C.grey[300]}`,borderRadius:4,padding:"2px 8px",fontFamily:font}}>{r.label}</span>)}
+              </div>
+            </div>}
 
             {/* Message Preview */}
             <div style={{marginTop:14,marginBottom:14}}>
@@ -778,10 +901,11 @@ const CarePlanZone=({p})=>{
               </div>
             </div>
 
-            {/* FHIR note — consistent green box */}
-            <EvidenceBox refs={["Delivered via Epic FHIR R4 InBasket API","Patient Portal notification — real-time within Epic"]}/>
+            {/* AC5: Send validation error */}
+            {sendError&&<div role="alert" style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",marginBottom:12,background:C.error[100],border:`0.5px solid ${C.error[400]}55`,borderRadius:8,fontSize:14,color:C.error[400],fontFamily:font}}><AlertTriangle size={15}/> {sendError}</div>}
 
-            <StepActions onBack={()=>setStep(2)} onNext={()=>setSent(true)} nextLabel="Send to All Selected Recipients →" nextOrange={true}/>
+            {/* AC5: Send button disabled when no recipients selected. AC8: Back retains selections. */}
+            <StepActions onBack={()=>setStep(2)} onNext={handleSend} nextLabel="Send to All Selected Recipients →" nextOrange={true}/>
           </div>
       )}
       </div>
@@ -1005,6 +1129,8 @@ const PatientRow=({p,onOpen})=>{
 
 export default function App(){
   const [screen,setScreen]=useState("worklist");const [activePatient,setActivePatient]=useState(null);const [defaultZone,setDefaultZone]=useState("overview");
+  const [completedPatients,setCompletedPatientsState]=useState(()=>getCompletedPatients());
+  useEffect(()=>{const h=()=>setCompletedPatientsState(getCompletedPatients());window.addEventListener("case-completions-updated",h);window.addEventListener("storage",h);return()=>{window.removeEventListener("case-completions-updated",h);window.removeEventListener("storage",h);};},[]);
   const [search,setSearch]=useState("");const [ctFilter,setCtFilter]=useState("All Case Types");const [sevFilter,setSevFilter]=useState("All Severity");
   const [,setTick]=useState(0);
   const scrollRef=useRef(null);
@@ -1012,6 +1138,7 @@ export default function App(){
   useEffect(()=>{const handler=()=>setTick(t=>t+1);window.addEventListener("storage",handler);window.addEventListener("care-coordination-updated",handler);window.addEventListener("follow-ups-updated",handler);return ()=>{window.removeEventListener("storage",handler);window.removeEventListener("care-coordination-updated",handler);window.removeEventListener("follow-ups-updated",handler);};},[]);
   useEffect(()=>{if(screen==="worklist"&&scrollRef.current&&savedScroll.current){scrollRef.current.scrollTop=savedScroll.current;}},[screen]);
   if(screen==="users")return <FeatureUsers onBack={()=>setScreen("worklist")}/>;
+  if(screen==="config")return <EpicPoolConfig onBack={()=>setScreen("worklist")}/>;
   if(screen==="followup")return(
     <div style={{display:"flex",flexDirection:"column",height:"100dvh",fontFamily:font,background:C.grey[200],overflow:"hidden"}}>
       <div style={{height:56,flexShrink:0,background:C.grey[100],borderBottom:`0.5px solid ${C.grey[300]}`,display:"flex",alignItems:"center",padding:"0 24px"}}>
@@ -1023,7 +1150,7 @@ export default function App(){
           </button>
           <div style={{display:"flex",alignItems:"center",gap:5,padding:"5px 12px",borderRadius:6,opacity:0.5,cursor:"default"}}><Pregnant size={13} color={C.grey[500]}/><span style={{fontSize:14,fontWeight:400,color:C.grey[500],fontFamily:font}}>HerCare Co-Pilot</span></div>
         </div>
-        <div style={{marginLeft:"auto"}}><BloodHealthAppNav onNavigate={(target)=>{if(target==="users")setScreen("users");if(target==="followup")setScreen("followup");}} currentScreen={screen}/></div>
+        <div style={{marginLeft:"auto"}}><BloodHealthAppNav onNavigate={(target)=>{if(target==="users")setScreen("users");if(target==="followup")setScreen("followup");if(target==="config")setScreen("config");}} currentScreen={screen}/></div>
       </div>
       <FollowUpWorklist patients={PATIENTS}/>
     </div>
@@ -1031,7 +1158,8 @@ export default function App(){
   if(screen==="workspace"&&activePatient)return <PatientWorkspace patient={activePatient} allPatients={PATIENTS} onBack={()=>setScreen("worklist")} onSelectPatient={p=>setActivePatient(p)} defaultZone={defaultZone}/>;
   const COLS=["PATIENT","LAB VALUES","TRS","RISK IDENTIFIERS","PROVIDER"];
   const SEV_RANK={"Severe":0,"Moderate":1,"Mild":2,"No Anemia":3};
-  const filtered=PATIENTS.filter(p=>(!search||p.name.toLowerCase().includes(search.toLowerCase())||p.id.toLowerCase().includes(search.toLowerCase())||p.provider.toLowerCase().includes(search.toLowerCase()))&&(ctFilter==="All Case Types"||p.caseType===ctFilter));
+  const completedSet=new Set(completedPatients);
+  const filtered=PATIENTS.filter(p=>(!completedSet.has(p.id))&&(!search||p.name.toLowerCase().includes(search.toLowerCase())||p.id.toLowerCase().includes(search.toLowerCase())||p.provider.toLowerCase().includes(search.toLowerCase()))&&(ctFilter==="All Case Types"||p.caseType===ctFilter));
   const sorted=sevFilter==="All Severity"?filtered:[...filtered].sort((a,b)=>{const ra=SEV_RANK[getAnemiaGrade(a.labs[0].value).label]??99;const rb=SEV_RANK[getAnemiaGrade(b.labs[0].value).label]??99;if(ra===rb)return 0;return sevFilter===getAnemiaGrade(a.labs[0].value).label?-1:sevFilter===getAnemiaGrade(b.labs[0].value).label?1:ra-rb;});
   return(
   <div style={{display:"flex",flexDirection:"column",height:"100dvh",fontFamily:font,background:C.grey[200],overflow:"hidden"}}>

@@ -885,14 +885,6 @@ const CarePlanZone=({p})=>{
                 </div>}
             </div>
 
-            {/* Active recipient list summary */}
-            {allRecipients.length>0&&<div style={{marginTop:12,marginBottom:12,padding:"10px 14px",background:C.success[100],border:`0.5px solid ${C.success[400]}44`,borderRadius:8}}>
-              <div style={{fontSize:13,fontWeight:700,color:C.success[400],fontFamily:font,marginBottom:4}}>{allRecipients.length} recipient{allRecipients.length>1?"s":""} selected</div>
-              <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
-                {allRecipients.map((r,i)=><span key={i} style={{fontSize:12,fontWeight:600,color:C.grey[700],background:"#fff",border:`0.5px solid ${C.grey[300]}`,borderRadius:4,padding:"2px 8px",fontFamily:font}}>{r.label}</span>)}
-              </div>
-            </div>}
-
             {/* Message Preview */}
             <div style={{marginTop:14,marginBottom:14}}>
               <div style={{fontSize:14,fontWeight:700,color:C.grey[800],fontFamily:font,marginBottom:8}}>Message Preview</div>

@@ -33,6 +33,7 @@ const getAnemiaGrade=(hgb)=>{const h=parseFloat(hgb);if(h>13.0)return{label:"No 
 // Delta-Hb% risk: ≥50% drop from baseline = significantly elevated mortality risk
 const getDeltaRisk=(draws)=>{if(!draws||draws.length<2)return null;const baseline=draws[0].value;const current=draws[draws.length-1].value;if(current>=baseline)return null;const pct=Math.round(((baseline-current)/baseline)*100);return{pct,isRisk:pct>=50};};
 const CASE_TYPES=["All Case Types","CARDIAC","ENT","GASTRO INTESTINAL","GENERAL SURGERY","NEUROSURGERY","ORTHO","PLASTICS/RECONSTRUCTION","SPINE","THORACIC","UROLOGY/GU","VASCULAR","WOMEN'S HEALTH-SURGICAL"];
+const FACILITIES=["hc1 Surgery Center","North Aux Hospital","North Facility"];
 
 const BloodDrop=({size=15,color})=><svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none"><path d="M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0c0-4.5-7-13-7-13z"/></svg>;
 const Pregnant=({size=15,color})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="4" r="2"/><path d="M9 8h3l1 4c1.5 0 3 1.5 3 3.5S14.5 19 13 19H9"/><path d="M9 8l-1 5"/><path d="M8 13l-1 6"/></svg>;
@@ -92,37 +93,64 @@ const calcTRS=(p)=>{
 
 const PATIENTS=[
   // SEVERE (HGB ≤8.0) — with >50% ΔHb% risk flag
-  {id:"CM-8834",name:"Carlos Medina",age:59,dob:"03/12/1967",sex:"Male",weight:"82 kg",bmi:"27.4",npi:"5544332211",domain:"Anemia",caseType:"GENERAL SURGERY",procedureWithin2Weeks:false,redoOrNonIsolated:true,significantComorbidities:true,anticoagulants:false,
+  {id:"CM-8834",name:"Carlos Medina",facility:"hc1 Surgery Center",age:59,dob:"03/12/1967",sex:"Male",weight:"82 kg",bmi:"27.4",npi:"5544332211",domain:"Anemia",caseType:"GENERAL SURGERY",procedureWithin2Weeks:false,redoOrNonIsolated:true,significantComorbidities:true,anticoagulants:false,
    procedure:"Laparoscopic Colectomy",
    labs:[{label:"HGB",value:"7.4",unit:"g/dL",status:"critical",draws:[{date:"Apr 4",value:9.8},{date:"Apr 5",value:9.1},{date:"Apr 6",value:8.4},{date:"Apr 8",value:7.9},{date:"Apr 9",value:7.4}]},{label:"Ferritin",value:"8",unit:"ng/mL",status:"critical"},{label:"TIBC",value:"480",unit:"mcg/dL",status:"high"},{label:"Transferrin Sat",value:"4",unit:"%",status:"critical"},{label:"Reticulocytes",value:"0.8",unit:"%",status:"low"},{label:"WBC",value:"14.2",unit:"K/uL",status:"high"},{label:"Platelets",value:"310",unit:"K/uL",status:"low"},{label:"Creatinine",value:"1.4",unit:"mg/dL",status:"high"}],
    conditions:["Post-op Colectomy","T2DM"],order:"Rapid Response – Hgb drop 2.4 g/dL / 24h",provider:"Dr. Nguyen",providerRole:"Attending",unit:"6-South ICU Step-Down",admitDate:"Apr 6, 2026",severity:"Severe",carePlanStatus:"pending",aiNote:"Immediate transfusion threshold review. Hgb trajectory suggests acute blood loss in post-surgical context.",aiConfidence:88,diagnosis:"Acute Anemia — Iron Deficiency with Active Blood Loss",icdCodes:["D62","D50.0","K63.5"],transfusionHistory:[{date:"None recorded"}],allergies:["NKDA"],medications:["Metoprolol 25mg BID","Metformin 1000mg BID","Piperacillin-Tazobactam 3.375g IV q6h"]},
   // MODERATE (HGB 8.1–11.0)
-  {id:"DM-5521",name:"Dorothy Marsh",age:72,dob:"08/30/1954",sex:"Female",weight:"67 kg",bmi:"24.1",npi:"5544332212",domain:"Anemia",caseType:"ORTHO",procedureWithin2Weeks:false,redoOrNonIsolated:false,significantComorbidities:true,anticoagulants:false,
+  {id:"DM-5521",name:"Dorothy Marsh",facility:"hc1 Surgery Center",age:72,dob:"08/30/1954",sex:"Female",weight:"67 kg",bmi:"24.1",npi:"5544332212",domain:"Anemia",caseType:"ORTHO",procedureWithin2Weeks:false,redoOrNonIsolated:false,significantComorbidities:true,anticoagulants:false,
    procedure:"Total Knee Arthroplasty",
    labs:[{label:"HGB",value:"10.1",unit:"g/dL",status:"high",draws:[{date:"Mar 12",value:11.8},{date:"Mar 26",value:10.8},{date:"Apr 2",value:10.1}]},{label:"Ferritin",value:"14",unit:"ng/mL",status:"high"},{label:"TIBC",value:"395",unit:"mcg/dL",status:"high"},{label:"Transferrin Sat",value:"16",unit:"%",status:"high"},{label:"Reticulocytes",value:"1.1",unit:"%",status:"low"},{label:"WBC",value:"7.8",unit:"K/uL",status:"low"},{label:"Platelets",value:"240",unit:"K/uL",status:"low"},{label:"Creatinine",value:"1.9",unit:"mg/dL",status:"high"}],
    conditions:["RA","CKD 3","Anemia of Chronic Disease"],order:"IV Iron optimization – surgery in 18 days",provider:"Dr. Patel",providerRole:"Attending",unit:"Hematology Outpatient",admitDate:"Apr 2, 2026",severity:"Moderate",carePlanStatus:"in-progress",aiNote:"Pre-surgical optimization window is 18 days. IV iron indicated.",aiConfidence:92,diagnosis:"Pre-surgical Iron Deficiency Anemia — Chronic Disease",icdCodes:["D63.1","D50.9","M79.3"],transfusionHistory:[{date:"Feb 2024",product:"2u pRBC"},{date:"Nov 2023",product:"1u pRBC"}],allergies:["Sulfa drugs"],medications:["Methotrexate 15mg weekly","Folic Acid 1mg daily","Lisinopril 10mg daily","Hydroxychloroquine 200mg BID"]},
   // MODERATE — cardiac, recovering
-  {id:"JK-2210",name:"James Kowalski",age:66,dob:"01/14/1960",sex:"Male",weight:"95 kg",bmi:"30.2",npi:"5544332213",domain:"Anemia",caseType:"CARDIAC",procedureWithin2Weeks:false,redoOrNonIsolated:false,significantComorbidities:true,anticoagulants:true,
+  {id:"JK-2210",name:"James Kowalski",facility:"North Aux Hospital",age:66,dob:"01/14/1960",sex:"Male",weight:"95 kg",bmi:"30.2",npi:"5544332213",domain:"Anemia",caseType:"CARDIAC",procedureWithin2Weeks:false,redoOrNonIsolated:false,significantComorbidities:true,anticoagulants:true,
    procedure:"Coronary Artery Bypass Graft",
    labs:[{label:"HGB",value:"8.9",unit:"g/dL",status:"high",draws:[{date:"Apr 6",value:7.2},{date:"Apr 9",value:8.9}]},{label:"Ferritin",value:"42",unit:"ng/mL",status:"low"},{label:"TIBC",value:"310",unit:"mcg/dL",status:"low"},{label:"Transferrin Sat",value:"28",unit:"%",status:"low"},{label:"Reticulocytes",value:"2.4",unit:"%",status:"high"},{label:"WBC",value:"8.1",unit:"K/uL",status:"low"},{label:"Platelets",value:"188",unit:"K/uL",status:"low"},{label:"BNP",value:"480",unit:"pg/mL",status:"high"}],
    conditions:["CHF","CKD 2"],order:"Transfusion threshold re-evaluation",provider:"Dr. Singh",providerRole:"Cardiologist",unit:"Cardiology 4-West",admitDate:"Apr 5, 2026",severity:"Moderate",carePlanStatus:"generated",aiNote:"Transfusion response adequate. CHF context suggests conservative threshold.",aiConfidence:85,diagnosis:"Post-transfusion Anemia — Chronic Disease in CHF",icdCodes:["D63.1","I50.32","N18.2"],transfusionHistory:[{date:"Apr 8, 2026",product:"2u pRBC",response:"Hgb +1.7"},{date:"Jan 2026",product:"1u pRBC"}],allergies:["NKDA"],medications:["Furosemide 40mg BID","Carvedilol 12.5mg BID","Spironolactone 25mg daily","Empagliflozin 10mg daily"]},
   // MILD (HGB 11.1–12.9)
-  {id:"RP-4401",name:"Rita Patel",age:81,dob:"05/21/1945",sex:"Female",weight:"58 kg",bmi:"21.3",npi:"5544332214",domain:"Anemia",caseType:"WOMEN'S HEALTH-SURGICAL",procedureWithin2Weeks:true,redoOrNonIsolated:false,significantComorbidities:true,anticoagulants:false,
+  {id:"RP-4401",name:"Rita Patel",facility:"North Aux Hospital",age:81,dob:"05/21/1945",sex:"Female",weight:"58 kg",bmi:"21.3",npi:"5544332214",domain:"Anemia",caseType:"WOMEN'S HEALTH-SURGICAL",procedureWithin2Weeks:true,redoOrNonIsolated:false,significantComorbidities:true,anticoagulants:false,
    procedure:"Hysterectomy",
    labs:[{label:"HGB",value:"11.8",unit:"g/dL",status:"high",draws:[{date:"Apr 6",value:12.4},{date:"Apr 9",value:11.8}]},{label:"Ferritin",value:"22",unit:"ng/mL",status:"high"},{label:"TIBC",value:"350",unit:"mcg/dL",status:"high"},{label:"Transferrin Sat",value:"21",unit:"%",status:"high"},{label:"Reticulocytes",value:"1.8",unit:"%",status:"low"},{label:"WBC",value:"6.1",unit:"K/uL",status:"low"},{label:"Platelets",value:"182",unit:"K/uL",status:"low"},{label:"LDH",value:"210",unit:"U/L",status:"low"}],
    conditions:["AML remission","Pre-surgical optimization"],order:"Oral Iron + Monitor CBC pre-op",provider:"Dr. Kim",providerRole:"Hematologist",unit:"Hematology Oncology",admitDate:"Mar 30, 2026",severity:"Mild",carePlanStatus:"pending",aiNote:"Mild anemia in pre-surgical setting. Oral iron and monitoring appropriate.",aiConfidence:79,diagnosis:"Mild Anemia — Pre-surgical Iron Optimization",icdCodes:["D50.9","C91.00"],transfusionHistory:[{date:"None recent"}],allergies:["Penicillin"],medications:["Acyclovir 400mg BID","Ferrous sulfate 325mg BID"]},
   // NO ANEMIA (HGB >13.0) — baseline surveillance
-  {id:"TW-1180",name:"Thomas Webb",age:54,dob:"11/03/1971",sex:"Male",weight:"88 kg",bmi:"28.6",npi:"5544332215",domain:"Anemia",caseType:"SPINE",procedureWithin2Weeks:true,redoOrNonIsolated:false,significantComorbidities:false,anticoagulants:false,
+  {id:"TW-1180",name:"Thomas Webb",facility:"North Facility",age:54,dob:"11/03/1971",sex:"Male",weight:"88 kg",bmi:"28.6",npi:"5544332215",domain:"Anemia",caseType:"SPINE",procedureWithin2Weeks:true,redoOrNonIsolated:false,significantComorbidities:false,anticoagulants:false,
    procedure:"Lumbar Laminectomy",
    labs:[{label:"HGB",value:"13.8",unit:"g/dL",status:"low",draws:[{date:"Apr 7",value:13.8}]},{label:"Ferritin",value:"68",unit:"ng/mL",status:"low"},{label:"TIBC",value:"280",unit:"mcg/dL",status:"low"},{label:"Transferrin Sat",value:"31",unit:"%",status:"low"},{label:"Reticulocytes",value:"1.6",unit:"%",status:"low"},{label:"WBC",value:"6.9",unit:"K/uL",status:"low"},{label:"Platelets",value:"262",unit:"K/uL",status:"low"},{label:"Creatinine",value:"0.9",unit:"mg/dL",status:"low"}],
    conditions:["Pre-surgical surveillance","Lumbar stenosis"],order:"Baseline CBC — procedure in 10 days",provider:"Dr. Adams",providerRole:"Attending",unit:"Spine Outpatient",admitDate:"Apr 7, 2026",severity:"No Anemia",carePlanStatus:"generated",aiNote:"No anemia. Baseline surveillance prior to elective spinal procedure.",aiConfidence:96,diagnosis:"No Anemia — Pre-operative Baseline",icdCodes:["Z01.89","M48.06"],transfusionHistory:[{date:"None"}],allergies:["NKDA"],medications:["Aspirin 81mg daily"]},
   // MODERATE — missing weight and ferritin to demonstrate disclaimer logic
-  {id:"LF-3301",name:"Linda Foster",age:63,dob:"06/18/1963",sex:"Female",bmi:"—",npi:"5544332216",domain:"Anemia",caseType:"GASTRO INTESTINAL",procedureWithin2Weeks:true,redoOrNonIsolated:false,significantComorbidities:true,anticoagulants:false,
+  {id:"LF-3301",name:"Linda Foster",facility:"North Facility",age:63,dob:"06/18/1963",sex:"Female",bmi:"—",npi:"5544332216",domain:"Anemia",caseType:"GASTRO INTESTINAL",procedureWithin2Weeks:true,redoOrNonIsolated:false,significantComorbidities:true,anticoagulants:false,
    procedure:"Small Bowel Resection",
    labs:[{label:"HGB",value:"9.2",unit:"g/dL",status:"high",draws:[{date:"Apr 5",value:10.6},{date:"Apr 9",value:9.2}]},{label:"Ferritin",value:"—",unit:"ng/mL",status:"low",missing:true},{label:"TIBC",value:"410",unit:"mcg/dL",status:"high"},{label:"Transferrin Sat",value:"14",unit:"%",status:"high"},{label:"Reticulocytes",value:"1.3",unit:"%",status:"low"},{label:"WBC",value:"7.1",unit:"K/uL",status:"low"},{label:"Platelets",value:"198",unit:"K/uL",status:"low"},{label:"Creatinine",value:"1.1",unit:"mg/dL",status:"low"}],
    conditions:["Crohn's Disease","Anemia of Chronic Disease"],order:"IV Iron optimization – surgery in 12 days",provider:"Dr. Okafor",providerRole:"Attending",unit:"GI Surgery Outpatient",admitDate:"Apr 9, 2026",severity:"Moderate",carePlanStatus:"pending",aiNote:"Pre-surgical anemia with incomplete iron studies. Weight and ferritin pending — risk score may be underestimated.",aiConfidence:71,diagnosis:"Moderate Anemia — Iron Deficiency with Crohn's Disease",icdCodes:["D50.8","K50.90"],transfusionHistory:[{date:"None recorded"}],allergies:["NKDA"],medications:["Prednisone 20mg daily","Azathioprine 100mg daily","Calcium 600mg daily"]},
 ];
 PATIENTS.forEach(p=>{p._trs=calcTRS(p);});
+
+const FacilityFilter=({selected,onChange})=>{
+  const [open,setOpen]=useState(false);
+  const containerRef=useRef(null);
+  useEffect(()=>{
+    if(!open)return;
+    const close=(event)=>{if(containerRef.current&&!containerRef.current.contains(event.target))setOpen(false);};
+    document.addEventListener("mousedown",close);
+    return()=>document.removeEventListener("mousedown",close);
+  },[open]);
+  const allSelected=selected.length===FACILITIES.length;
+  const toggle=(facility)=>onChange(selected.includes(facility)?selected.filter(value=>value!==facility):[...selected,facility]);
+  return <div ref={containerRef} style={{position:"relative",width:210,flexShrink:0}}>
+    <button type="button" onClick={()=>setOpen(value=>!value)} aria-expanded={open} style={{width:"100%",height:40,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"4px 10px 4px 14px",background:C.grey[100],border:`1px solid ${open?C.primary[500]:C.grey[400]}`,borderRadius:6,cursor:"pointer",textAlign:"left",fontFamily:font}}>
+      <span style={{display:"flex",flexDirection:"column",gap:1,minWidth:0}}><span style={{fontSize:12,color:C.primary[500],lineHeight:1}}>Facility*</span><span style={{fontSize:15,color:C.grey[800],whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{allSelected?"All Facilities":selected.length===0?"No facilities":selected.length===1?selected[0]:`${selected.length} facilities`}</span></span>
+      <ChevronDown size={15} color={C.primary[500]} style={{transform:open?"rotate(180deg)":"none",transition:"transform 0.15s",flexShrink:0}}/>
+    </button>
+    {open&&<div style={{position:"absolute",top:44,left:0,width:"100%",background:C.grey[100],border:`1px solid ${C.grey[300]}`,borderRadius:6,boxShadow:"0 8px 20px rgba(0,0,0,0.14)",zIndex:500,padding:"6px 0"}}>
+      <button type="button" onClick={()=>onChange(allSelected?[]:FACILITIES)} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"9px 12px",border:0,background:"transparent",color:C.grey[500],fontSize:14,cursor:"pointer",fontFamily:font,textAlign:"left"}}>
+        <span style={{width:16,height:16,display:"inline-flex",alignItems:"center",justifyContent:"center",border:`1px solid ${allSelected?C.primary[500]:C.grey[400]}`,borderRadius:2,background:allSelected?C.primary[500]:C.grey[100],color:"#fff",fontSize:13,fontWeight:700}}>{allSelected?"✓":"−"}</span> Select All
+      </button>
+      {FACILITIES.map(facility=><button key={facility} type="button" onClick={()=>toggle(facility)} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"9px 12px",border:0,background:selected.includes(facility)?C.grey[200]:"transparent",color:C.grey[800],fontSize:15,cursor:"pointer",fontFamily:font,textAlign:"left"}}>
+        <span style={{width:16,height:16,display:"inline-flex",alignItems:"center",justifyContent:"center",border:`1px solid ${selected.includes(facility)?C.primary[500]:C.grey[400]}`,borderRadius:2,background:selected.includes(facility)?C.primary[500]:C.grey[100],color:"#fff",fontSize:13,fontWeight:700}}>{selected.includes(facility)?"✓":""}</span><span>{facility}</span>
+      </button>)}
+    </div>}
+  </div>;
+};
 
 const TRSDrawer=({p,onClose})=>{
   const t=p._trs;const tc=TRC[t.trsSev];
@@ -1123,7 +1151,7 @@ export default function App(){
   const [screen,setScreen]=useState("worklist");const [activePatient,setActivePatient]=useState(null);const [defaultZone,setDefaultZone]=useState("overview");
   const [completedPatients,setCompletedPatientsState]=useState(()=>getCompletedPatients());
   useEffect(()=>{const h=()=>setCompletedPatientsState(getCompletedPatients());window.addEventListener("case-completions-updated",h);window.addEventListener("storage",h);return()=>{window.removeEventListener("case-completions-updated",h);window.removeEventListener("storage",h);};},[]);
-  const [search,setSearch]=useState("");const [ctFilter,setCtFilter]=useState("All Case Types");const [sevFilter,setSevFilter]=useState("All Severity");
+  const [search,setSearch]=useState("");const [selectedFacilities,setSelectedFacilities]=useState(FACILITIES);const [ctFilter,setCtFilter]=useState("All Case Types");const [sevFilter,setSevFilter]=useState("All Severity");
   const [,setTick]=useState(0);
   const scrollRef=useRef(null);
   const savedScroll=useRef(0);
@@ -1151,7 +1179,7 @@ export default function App(){
   const COLS=["PATIENT","LAB VALUES","TRS","RISK IDENTIFIERS","PROVIDER"];
   const SEV_RANK={"Severe":0,"Moderate":1,"Mild":2,"No Anemia":3};
   const completedSet=new Set(completedPatients);
-  const filtered=PATIENTS.filter(p=>(!completedSet.has(p.id))&&(!search||p.name.toLowerCase().includes(search.toLowerCase())||p.id.toLowerCase().includes(search.toLowerCase())||p.provider.toLowerCase().includes(search.toLowerCase()))&&(ctFilter==="All Case Types"||p.caseType===ctFilter));
+  const filtered=PATIENTS.filter(p=>(!completedSet.has(p.id))&&(selectedFacilities.includes(p.facility))&&(!search||p.name.toLowerCase().includes(search.toLowerCase())||p.id.toLowerCase().includes(search.toLowerCase())||p.provider.toLowerCase().includes(search.toLowerCase()))&&(ctFilter==="All Case Types"||p.caseType===ctFilter));
   const sorted=sevFilter==="All Severity"?filtered:[...filtered].sort((a,b)=>{const ra=SEV_RANK[getAnemiaGrade(a.labs[0].value).label]??99;const rb=SEV_RANK[getAnemiaGrade(b.labs[0].value).label]??99;if(ra===rb)return 0;return sevFilter===getAnemiaGrade(a.labs[0].value).label?-1:sevFilter===getAnemiaGrade(b.labs[0].value).label?1:ra-rb;});
   return(
   <div style={{display:"flex",flexDirection:"column",height:"100dvh",fontFamily:font,background:C.grey[200],overflow:"hidden"}}>
@@ -1168,6 +1196,7 @@ export default function App(){
 
       <div style={{background:C.grey[100],borderRadius:12,border:`0.5px solid ${C.grey[300]}`,boxShadow:"0 1px 8px rgba(0,0,0,0.06)",overflow:"hidden",display:"flex",flexDirection:"column",flex:1,minHeight:0}}>
         <div style={{padding:"12px 20px",borderBottom:`0.5px solid ${C.grey[300]}`,display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+          <FacilityFilter selected={selectedFacilities} onChange={setSelectedFacilities}/>
           <div style={{position:"relative",width:260}}><Search size={13} color={C.grey[500]} style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search patients, MRN, provider..." style={{width:"100%",boxSizing:"border-box",padding:"7px 10px 7px 30px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,fontSize:14,color:C.grey[800],background:C.grey[100],outline:"none",fontFamily:font}}/></div>
           <div style={{flex:1}}/><Filter size={13} color={C.grey[500]}/><span style={{fontSize:14,color:C.grey[500],fontFamily:font}}>Filter by:</span>
           {[{v:ctFilter,s:setCtFilter,o:CASE_TYPES},{v:sevFilter,s:setSevFilter,o:["All Severity","Severe","Moderate","Mild","No Anemia"]}].map((dd,i)=><div key={i} style={{position:"relative"}}><select value={dd.v} onChange={e=>dd.s(e.target.value)} style={{appearance:"none",padding:"6px 26px 6px 10px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,fontSize:14,color:C.grey[700],background:C.grey[100],cursor:"pointer",outline:"none",fontFamily:font}}>{dd.o.map(o=><option key={o}>{o}</option>)}</select><ChevronDown size={10} color={C.grey[500]} style={{position:"absolute",right:7,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/></div>)}

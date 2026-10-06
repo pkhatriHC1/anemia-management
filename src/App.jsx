@@ -135,11 +135,12 @@ const FacilityFilter=({selected,onChange})=>{
     return()=>document.removeEventListener("mousedown",close);
   },[open]);
   const allSelected=selected.length===FACILITIES.length;
+  const selectionLabel=allSelected?"ALL":selected.length===0?"No facilities":selected.join(", ");
   const toggle=(facility)=>onChange(selected.includes(facility)?selected.filter(value=>value!==facility):[...selected,facility]);
   return <div ref={containerRef} style={{position:"relative",width:170,flexShrink:0}}>
     <button type="button" onClick={()=>setOpen(value=>!value)} aria-expanded={open} style={{position:"relative",width:"100%",height:42,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 8px 4px 10px",background:"#fff",border:`1px solid ${open?C.primary[500]:C.grey[400]}`,borderRadius:3,cursor:"pointer",textAlign:"left",fontFamily:font}}>
       <span style={{position:"absolute",top:-7,left:10,padding:"0 4px",background:"#fff",fontSize:11,color:C.grey[500],lineHeight:1}}>Facility*</span>
-      <span style={{fontSize:13,color:C.grey[800],whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.2}}>{allSelected?"All Facilities":selected.length===0?"No facilities":selected.length===1?selected[0]:`${selected.length} facilities`}</span>
+      <span style={{fontSize:13,color:C.grey[800],whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.2}}>{selectionLabel}</span>
       <ChevronDown size={12} color={C.grey[400]} style={{transform:open?"rotate(180deg)":"none",transition:"transform 0.15s",flexShrink:0}}/>
     </button>
     {open&&<div style={{position:"absolute",top:44,left:0,width:"100%",background:C.grey[100],border:`1px solid ${C.grey[300]}`,borderRadius:6,boxShadow:"0 8px 20px rgba(0,0,0,0.14)",zIndex:500,padding:"6px 0"}}>

@@ -1155,7 +1155,6 @@ const PatientWorkspace=({patient,allPatients,onBack,onSelectPatient,defaultZone=
     </div>
     <div style={{display:"flex",flex:1,overflow:"hidden"}}>
       <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",minWidth:0}}>
-        <PatientHeader p={patient} onOpenIQ={()=>setIqOpen(o=>!o)} onOpenCC={()=>setZone("cc")} onBack={onBack}/>
         <ZoneTabs active={zone} onChange={setZone} pendingCount={getPendingCount(patient.id)}/>
         <div style={{flex:1,display:"flex",overflow:"hidden",minHeight:0}}>
           <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",minWidth:0}}>

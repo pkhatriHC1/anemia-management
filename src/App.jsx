@@ -886,8 +886,11 @@ const CarePlanZone=({p})=>{
                 </div>
                 <div style={{flex:1,fontFamily:font}}>
                   <div style={{fontSize:16,fontWeight:600,color:C.grey[800]}}>{name}</div>
-                  <div style={{fontSize:13,color:C.grey[500]}}>NPI {npi}</div>
-                  <div style={{fontSize:13,fontWeight:600,color:C.grey[600],marginTop:2}}>{l}</div>
+                  <div style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:C.grey[500]}}>
+                    <span>NPI {npi}</span>
+                    <span style={{color:C.grey[300]}}>·</span>
+                    <span style={{fontWeight:600,color:C.grey[600]}}>{l}</span>
+                  </div>
                 </div>
               </div>
             ))}

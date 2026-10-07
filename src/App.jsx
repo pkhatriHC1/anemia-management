@@ -602,8 +602,8 @@ const CarePlanZone=({p})=>{
 
   // ── Recipient list helpers (AC1-AC3) ──
   const standardRecipients=[
-    {k:"attending",l:"Attending Physician",req:false},
-    {k:"surgeon",l:"Surgeon",req:false},
+    {k:"attending",name:p.provider,npi:p.npi,l:"Attending Physician",req:false},
+    {k:"surgeon",name:p.provider,npi:p.npi,l:"Surgeon",req:false},
   ];
   const activePools=getActiveEpicPools();
   const allRecipients=[
@@ -879,12 +879,16 @@ const CarePlanZone=({p})=>{
 
             {/* AC1: Select Recipients — standard checkboxes (no required flags) */}
             <div style={{fontSize:14,fontWeight:700,color:C.grey[800],fontFamily:font,marginBottom:10}}>Select Recipients</div>
-            {standardRecipients.map(({k,l})=>(
+            {standardRecipients.map(({k,name,npi,l})=>(
               <div key={k} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:recipients[k]?C.primary[100]:C.grey[100],border:`0.5px solid ${recipients[k]?C.primary[500]+"33":C.grey[300]}`,borderRadius:8,marginBottom:6,cursor:"pointer"}} onClick={()=>setRecipients(r=>({...r,[k]:!r[k]}))}>
                 <div style={{width:18,height:18,borderRadius:3,border:`1.5px solid ${recipients[k]?C.primary[500]:C.grey[400]}`,background:recipients[k]?C.primary[500]:"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                   {recipients[k]&&<span style={{fontSize:12,color:"#fff",fontWeight:700}}>✓</span>}
                 </div>
-                <span style={{fontSize:16,fontWeight:600,color:C.grey[800],fontFamily:font,flex:1}}>{l}</span>
+                <div style={{flex:1,fontFamily:font}}>
+                  <div style={{fontSize:16,fontWeight:600,color:C.grey[800]}}>{name}</div>
+                  <div style={{fontSize:13,color:C.grey[500]}}>NPI {npi}</div>
+                  <div style={{fontSize:13,fontWeight:600,color:C.grey[600],marginTop:2}}>{l}</div>
+                </div>
               </div>
             ))}
 

@@ -11,7 +11,7 @@ import { FollowUpWorklist } from "./components/hc1/FollowUp/FollowUpWorklist";
 import { FollowUpDetailModal } from "./components/hc1/FollowUp/FollowUpDetailModal";
 import { ScheduleFollowUpModal } from "./components/hc1/FollowUp/ScheduleFollowUpModal";
 import { CAN_CLINICAL_NAVIGATION, getFollowUpDecision, getFollowUps } from "./components/hc1/FollowUp/followUpStore";
-import { CalendarClock, Calendar, Search as SearchIcon, X, Inbox, CheckCircle as CheckCircleIcon } from "lucide-react";
+import { CalendarClock, Calendar, Search as SearchIcon, X, Inbox, CheckCircle as CheckCircleIcon, UserPlus } from "lucide-react";
 import { EpicPoolConfig } from "./components/hc1/Notify/EpicPoolConfig";
 import { searchProviders, getActiveEpicPools, completeCase, getCompletedPatients, addAuditEntry } from "./components/hc1/Notify/notifyStores";
 
@@ -527,6 +527,7 @@ const CarePlanZone=({p})=>{
   const [poolDropdownOpen,setPoolDropdownOpen]=useState(false);
   const [completedPatients,setCompletedPatientsList]=useState(()=>getCompletedPatients());
   const [sendError,setSendError]=useState("");
+  const [addRecipientOpen,setAddRecipientOpen]=useState(false);
   const [completionData,setCompletionData]=useState(null);
   const [manualMode,setManualMode]=useState(false);
   const [manualTargetHgb,setManualTargetHgb]=useState("13");
@@ -892,51 +893,70 @@ const CarePlanZone=({p})=>{
                     <span style={{fontWeight:600,color:C.grey[600]}}>{l}</span>
                   </div>
                 </div>
+                {recipients[k]&&<button type="button" onClick={(e)=>{e.stopPropagation();setRecipients(r=>({...r,[k]:false}));}} aria-label={`Remove ${name}`} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:28,height:28,border:`1px solid ${C.grey[300]}`,borderRadius:5,background:"#fff",color:C.grey[500],cursor:"pointer"}}><X size={14}/></button>}
+              </div>
+            ))}
+            {addedProviders.map(pr=>(
+              <div key={pr.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:C.primary[100],border:`0.5px solid ${C.primary[500]}33`,borderRadius:8,marginBottom:6}}>
+                <div style={{width:18,height:18,borderRadius:3,border:`1.5px solid ${C.primary[500]}`,background:C.primary[500],display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><span style={{fontSize:12,color:"#fff",fontWeight:700}}>✓</span></div>
+                <div style={{flex:1,fontFamily:font}}>
+                  <div style={{fontSize:16,fontWeight:600,color:C.grey[800]}}>{pr.name}</div>
+                  <div style={{fontSize:13,color:C.grey[500]}}>NPI {pr.npi} · {pr.specialty}</div>
+                </div>
+                <button type="button" onClick={()=>removeProvider(pr.id)} aria-label={`Remove ${pr.name}`} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:28,height:28,border:`1px solid ${C.grey[300]}`,borderRadius:5,background:"#fff",color:C.grey[500],cursor:"pointer"}}><X size={14}/></button>
               </div>
             ))}
 
-            {/* AC2: Search Recipients by name or NPI */}
-            <div style={{marginTop:16,marginBottom:10}}>
-              <div style={{fontSize:14,fontWeight:700,color:C.grey[800],fontFamily:font,marginBottom:8}}>Search Recipients</div>
-              <div style={{position:"relative",marginBottom:8}}>
-                <SearchIcon size={15} color={C.grey[500]} style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/>
-                <input
-                  value={providerQuery}
-                  onChange={(e)=>handleProviderSearch(e.target.value)}
-                  placeholder="Search by provider name or NPI..."
-                  style={{width:"100%",boxSizing:"border-box",padding:"8px 10px 8px 32px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,fontSize:14,color:C.grey[800],background:C.grey[100],outline:"none",fontFamily:font}}
-                />
-              </div>
-              {providerQuery.trim()&&(
-                <div style={{border:`0.5px solid ${C.grey[300]}`,borderRadius:8,overflow:"hidden",marginBottom:8}}>
-                  {providerResults.length===0
-                    ? <div style={{padding:"12px",fontSize:14,color:C.grey[500],fontFamily:font,textAlign:"center"}}>No providers found</div>
-                    : providerResults.map(pr=>{
-                      const alreadyAdded=addedProviders.some(a=>a.id===pr.id||a.npi===pr.npi);
-                      return <div key={pr.id} onClick={()=>!alreadyAdded&&addProvider(pr)} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderBottom:`0.5px solid ${C.grey[300]}`,cursor:alreadyAdded?"default":"pointer",background:alreadyAdded?C.grey[200]:"#fff",opacity:alreadyAdded?0.6:1}} onMouseEnter={e=>{if(!alreadyAdded)e.currentTarget.style.background=C.primary[100];}} onMouseLeave={e=>{if(!alreadyAdded)e.currentTarget.style.background="#fff";}}>
-                      <div style={{flex:1}}>
-                        <div style={{fontSize:14,fontWeight:600,color:C.grey[800],fontFamily:font}}>{pr.name}</div>
-                        <div style={{fontSize:13,color:C.grey[500],fontFamily:font}}>NPI {pr.npi} · {pr.specialty}</div>
-                      </div>
-                      {alreadyAdded
-                        ? <span style={{fontSize:12,fontWeight:600,color:C.grey[500],fontFamily:font}}>Added</span>
-                        : <span style={{fontSize:12,fontWeight:600,color:C.primary[500],fontFamily:font}}>+ Add</span>}
-                    </div>;
-                  })}
-                </div>
-              )}
-              {/* Added providers as checked recipients */}
-              {addedProviders.map(pr=>(
-                <div key={pr.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:C.primary[100],border:`0.5px solid ${C.primary[500]}33`,borderRadius:8,marginBottom:6}}>
-                  <div style={{width:18,height:18,borderRadius:3,border:`1.5px solid ${C.primary[500]}`,background:C.primary[500],display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><span style={{fontSize:12,color:"#fff",fontWeight:700}}>✓</span></div>
-                  <div style={{flex:1}}>
-                    <div style={{fontSize:16,fontWeight:600,color:C.grey[800],fontFamily:font}}>{pr.name}</div>
-                    <div style={{fontSize:13,color:C.grey[500],fontFamily:font}}>NPI {pr.npi} · {pr.specialty}</div>
-                  </div>
-                  <button type="button" onClick={()=>removeProvider(pr.id)} aria-label={`Remove ${pr.name}`} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:28,height:28,border:`1px solid ${C.grey[300]}`,borderRadius:5,background:"#fff",color:C.grey[500],cursor:"pointer"}}><X size={14}/></button>
-                </div>
-              ))}
+            {/* AC2: Add Recipients button — opens search modal */}
+            <div style={{marginTop:12,marginBottom:10}}>
+              <button type="button" onClick={()=>{setProviderQuery("");setProviderResults([]);setAddRecipientOpen(true);}} style={{display:"flex",alignItems:"center",gap:8,padding:"10px 16px",border:`1px solid ${C.primary[500]}`,borderRadius:8,background:C.primary[100],color:C.primary[600],fontSize:14,fontWeight:600,fontFamily:font,cursor:"pointer",transition:"background 0.15s"}} onMouseEnter={e=>e.currentTarget.style.background=C.primary[200]} onMouseLeave={e=>e.currentTarget.style.background=C.primary[100]}>
+                <UserPlus size={16} color={C.primary[600]} strokeWidth={2}/>
+                Add Recipients
+              </button>
             </div>
+
+            {addRecipientOpen&&createPortal(
+              <div onClick={()=>setAddRecipientOpen(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:500}}>
+                <div onClick={e=>e.stopPropagation()} style={{width:460,maxWidth:"90vw",maxHeight:"80vh",display:"flex",flexDirection:"column",background:"#fff",borderRadius:12,boxShadow:"0 12px 40px rgba(0,0,0,0.2)",overflow:"hidden"}}>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 18px",borderBottom:`0.5px solid ${C.grey[300]}`,flexShrink:0}}>
+                    <div style={{fontSize:18,fontWeight:700,color:C.grey[800],fontFamily:font}}>Add Recipients</div>
+                    <button type="button" onClick={()=>setAddRecipientOpen(false)} aria-label="Close" style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:30,height:30,border:`1px solid ${C.grey[300]}`,borderRadius:6,background:"#fff",color:C.grey[500],cursor:"pointer"}}><X size={16}/></button>
+                  </div>
+                  <div style={{padding:"14px 18px",flexShrink:0}}>
+                    <div style={{position:"relative"}}>
+                      <SearchIcon size={15} color={C.grey[500]} style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/>
+                      <input
+                        value={providerQuery}
+                        onChange={(e)=>handleProviderSearch(e.target.value)}
+                        placeholder="Search by provider name or NPI..."
+                        autoFocus
+                        style={{width:"100%",boxSizing:"border-box",padding:"8px 10px 8px 32px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,fontSize:14,color:C.grey[800],background:C.grey[100],outline:"none",fontFamily:font}}
+                      />
+                    </div>
+                  </div>
+                  <div style={{flex:1,overflowY:"auto",padding:"0 18px 14px",minHeight:0}}>
+                    {providerQuery.trim()===""
+                      ? <div style={{padding:"24px 0",fontSize:14,color:C.grey[500],fontFamily:font,textAlign:"center"}}>Start typing to search for providers by name or NPI.</div>
+                      : providerResults.length===0
+                        ? <div style={{padding:"24px 0",fontSize:14,color:C.grey[500],fontFamily:font,textAlign:"center"}}>No providers found</div>
+                        : providerResults.map(pr=>{
+                            const alreadyAdded=addedProviders.some(a=>a.id===pr.id||a.npi===pr.npi);
+                            return <div key={pr.id} onClick={()=>!alreadyAdded&&addProvider(pr)} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,marginBottom:6,cursor:alreadyAdded?"default":"pointer",background:alreadyAdded?C.grey[200]:"#fff",opacity:alreadyAdded?0.6:1}} onMouseEnter={e=>{if(!alreadyAdded)e.currentTarget.style.background=C.primary[100];}} onMouseLeave={e=>{if(!alreadyAdded)e.currentTarget.style.background="#fff";}}>
+                              <div style={{flex:1,fontFamily:font}}>
+                                <div style={{fontSize:14,fontWeight:600,color:C.grey[800]}}>{pr.name}</div>
+                                <div style={{fontSize:13,color:C.grey[500]}}>NPI {pr.npi} · {pr.specialty}</div>
+                              </div>
+                              {alreadyAdded
+                                ? <span style={{fontSize:12,fontWeight:600,color:C.grey[500],fontFamily:font}}>Added</span>
+                                : <span style={{fontSize:12,fontWeight:600,color:C.primary[500],fontFamily:font}}>+ Add</span>}
+                            </div>;
+                          })}
+                  </div>
+                  <div style={{padding:"12px 18px",borderTop:`0.5px solid ${C.grey[300]}`,display:"flex",justifyContent:"flex-end",flexShrink:0}}>
+                    <Button variant="primary" size="sm" onClick={()=>setAddRecipientOpen(false)}>Done</Button>
+                  </div>
+                </div>
+              </div>,document.body)}
 
             {/* AC3: Epic Message Pool selector */}
             <div style={{marginTop:16,marginBottom:10}}>

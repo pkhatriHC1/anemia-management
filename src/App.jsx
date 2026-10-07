@@ -510,24 +510,6 @@ const StepHeader=({eyebrow,title})=>(
   </div>
 );
 
-const ClinicalContextStrip=({p})=>{
-  const hgb=p.labs[0];
-  const ferritin=p.labs.find(l=>l.label==="Ferritin");
-  const tsat=p.labs.find(l=>l.label==="Transferrin Sat");
-  const items=[
-    {label:"HGB",value:`${hgb.value} ${hgb.unit}`,color:hgb.status==="critical"?C.error[400]:C.orange[400]},
-    {label:"Ferritin",value:ferritin?.missing?"Missing":`${ferritin?.value||"—"} ng/mL`,color:ferritin?.missing?C.orange[400]:C.grey[800]},
-    {label:"TSAT",value:tsat?.missing?"Missing":`${tsat?.value||"—"}%`,color:tsat?.missing?C.orange[400]:C.grey[800]},
-    {label:"TRS",value:`${p._trs.score}/10`,color:TRC[p._trs.trsSev]},
-    {label:"Procedure",value:p.procedure,color:C.grey[800]},
-    {label:"Surgery Date",value:p.admitDate||"—",color:C.grey[800]},
-  ];
-  return <div style={{margin:"0 16px 12px",background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:8,padding:"8px 12px",display:"flex",alignItems:"center",gap:0,flexWrap:"wrap"}}>
-    <div style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.grey[500],fontFamily:font,marginRight:14,whiteSpace:"nowrap"}}>Patient context</div>
-    {items.map((item,i)=><div key={item.label} style={{display:"flex",alignItems:"baseline",gap:5,padding:"0 14px",borderLeft:i===0?"none":`1px solid ${C.grey[300]}`,fontFamily:font}}><span style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:C.grey[500]}}>{item.label}</span><span className="tabular-nums-hc1" style={{fontSize:13,fontWeight:600,color:item.color,whiteSpace:"nowrap"}}>{item.value}</span></div>)}
-  </div>;
-};
-
 const CarePlanZone=({p})=>{
   const [step,setStep]=useState(0);
   const [sent,setSent]=useState(false);
@@ -675,8 +657,6 @@ const CarePlanZone=({p})=>{
       {steps.map((lbl,i)=><div key={lbl} style={{display:"flex",alignItems:"center",flex:i<3?1:0,gap:6}}><div style={{display:"flex",alignItems:"center",gap:6,cursor:"pointer"}} onClick={()=>setStep(i)}><SC i={i}/><span style={{fontSize:14,fontWeight:600,fontFamily:font,whiteSpace:"nowrap",color:i<step?C.success[400]:i===step?C.primary[500]:C.grey[500]}}>{lbl}</span></div>{i<3&&<div style={{flex:1,height:2,background:i<step?C.success[400]:C.grey[300],margin:"0 6px"}}/>}</div>)}
       </div>
     </div>
-
-    <ClinicalContextStrip p={p}/>
 
     <div style={{flex:1,overflowY:"auto",padding:"0 16px 16px",minHeight:0}}>
       <div style={{background:"#fff",border:`0.5px solid ${C.grey[300]}`,borderRadius:10,padding:18}}>
@@ -1155,6 +1135,7 @@ const PatientWorkspace=({patient,allPatients,onBack,onSelectPatient,defaultZone=
     </div>
     <div style={{display:"flex",flex:1,overflow:"hidden"}}>
       <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",minWidth:0}}>
+        <PatientHeader p={patient} onOpenIQ={()=>setIqOpen(o=>!o)} onOpenCC={()=>setZone("cc")} onBack={onBack}/>
         <ZoneTabs active={zone} onChange={setZone} pendingCount={getPendingCount(patient.id)}/>
         <div style={{flex:1,display:"flex",overflow:"hidden",minHeight:0}}>
           <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",minWidth:0}}>

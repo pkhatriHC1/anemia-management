@@ -1050,6 +1050,7 @@ const PatientHeader=({p,onOpenIQ,onOpenCC,onBack})=>{
         <span title="Back to Worklist" style={{display:"inline-flex",alignItems:"center",cursor:"pointer",flexShrink:0}} onClick={onBack} onMouseEnter={e=>e.currentTarget.querySelector("svg").style.color=C.primary[500]} onMouseLeave={e=>e.currentTarget.querySelector("svg").style.color=C.grey[500]}><ArrowLeft size={20} color={C.grey[500]} strokeWidth={2} style={{transition:"color 0.15s"}}/></span>
         <span style={{fontSize:20,fontWeight:700,color:C.grey[800],fontFamily:font}}>{p.name}</span>
         <SevChip tier={ag.tier}/>
+        {CAN_CLINICAL_NAVIGATION&&soonestOverdue&&<button ref={chipRef} type="button" onClick={openChip} title={`Overdue follow-up · ${formatFollowUp(soonest.followUpAt)} · ${(soonest.specialties||[]).join(", ")||"No specialty listed"}`} aria-label={`Overdue follow-up on ${formatFollowUp(soonest.followUpAt)}`} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",padding:2,border:0,borderRadius:4,background:"transparent",color:C.error[400],cursor:"pointer"}} onMouseEnter={e=>e.currentTarget.style.background=C.error[100]} onMouseLeave={e=>e.currentTarget.style.background="transparent"}><CalendarClock size={16} color={C.error[400]} strokeWidth={2}/></button>}
       </div>
       <div style={{display:"flex",alignItems:"center",gap:4,marginBottom:8,flexWrap:"wrap"}}>
         <Stethoscope size={11} color={C.grey[500]}/><span style={{fontSize:14,fontWeight:600,color:C.grey[700],fontFamily:font}}>{p.provider}</span>
@@ -1064,7 +1065,7 @@ const PatientHeader=({p,onOpenIQ,onOpenCC,onBack})=>{
       </div>
       <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
         {p.conditions.map((c,i)=><span key={i} style={{fontSize:14,color:C.grey[600],background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:4,padding:"3px 9px",fontFamily:font}}>{c}</span>)}
-        {CAN_CLINICAL_NAVIGATION&&soonest&&<button ref={chipRef} type="button" onClick={openChip} style={{display:"inline-flex",alignItems:"center",gap:5,fontSize:14,color:soonestOverdue?C.error[400]:C.grey[700],background:soonestOverdue?C.error[100]:C.primary[100],border:`0.5px solid ${soonestOverdue?C.error[400]:C.primary[300]}`,borderRadius:4,padding:"3px 9px",fontFamily:font,cursor:"pointer"}}><CalendarClock size={13} color={soonestOverdue?C.error[400]:C.primary[500]}/><span>Follow-up · {formatFollowUp(soonest.followUpAt)}{soonestOverdue&&" · Overdue"}{scheduledVisits.length>1&&` +${scheduledVisits.length-1}`}</span></button>}
+        {CAN_CLINICAL_NAVIGATION&&soonest&&!soonestOverdue&&<button ref={chipRef} type="button" onClick={openChip} style={{display:"inline-flex",alignItems:"center",gap:5,fontSize:14,color:C.grey[700],background:C.primary[100],border:`0.5px solid ${C.primary[300]}`,borderRadius:4,padding:"3px 9px",fontFamily:font,cursor:"pointer"}}><CalendarClock size={13} color={C.primary[500]}/><span>Follow-up · {formatFollowUp(soonest.followUpAt)}{scheduledVisits.length>1&&` +${scheduledVisits.length-1}`}</span></button>}
       </div>
     </div>
     <div style={{display:"flex",alignItems:"center",gap:8}}>

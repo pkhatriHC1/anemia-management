@@ -11,7 +11,7 @@ import { FollowUpWorklist } from "./components/hc1/FollowUp/FollowUpWorklist";
 import { FollowUpDetailModal } from "./components/hc1/FollowUp/FollowUpDetailModal";
 import { ScheduleFollowUpModal } from "./components/hc1/FollowUp/ScheduleFollowUpModal";
 import { CAN_CLINICAL_NAVIGATION, getFollowUpDecision, getFollowUps } from "./components/hc1/FollowUp/followUpStore";
-import { CalendarClock, Calendar, Search as SearchIcon, X, Inbox, CheckCircle as CheckCircleIcon, UserPlus } from "lucide-react";
+import { CalendarClock, Calendar, Search as SearchIcon, X, Inbox, CheckCircle as CheckCircleIcon, UserPlus, Pencil, Save } from "lucide-react";
 import { EpicPoolConfig } from "./components/hc1/Notify/EpicPoolConfig";
 import { searchProviders, getActiveEpicPools, completeCase, getCompletedPatients, addAuditEntry } from "./components/hc1/Notify/notifyStores";
 
@@ -528,12 +528,19 @@ const CarePlanZone=({p})=>{
   const [completedPatients,setCompletedPatientsList]=useState(()=>getCompletedPatients());
   const [sendError,setSendError]=useState("");
   const [addRecipientOpen,setAddRecipientOpen]=useState(false);
+  const [msgEditing,setMsgEditing]=useState(false);
+  const s=p.severity;
+  const treatmentMed=s==="Critical"?"Supportive care + Iron supplement after stabilization":"IV Iron Ferric Carboxymaltose";
+  const treatmentDose=s==="Critical"?"Ferric Carboxymaltose 750–1000mg IV":"750mg IV";
+  const treatmentDoses=s==="Critical"?1:2;
+
+  const msgPreview=`Subject: New Anemia Optimization Recommendations: ${p.name}\n\nA new evidence-based optimization recommendation has been initiated for ${p.name} (MRN: ${p.id}).\n\nDiagnosis: ${attestedDx}\nTreatment: ${treatmentMed}\nDosage: ${treatmentDose} × ${treatmentDoses} dose${treatmentDoses>1?"s":""}\n\nPlease review in Epic and coordinate care as needed.\n\n— Anemia Management CDS`;
+  const [msgText,setMsgText]=useState(msgPreview);
   const [completionData,setCompletionData]=useState(null);
   const [manualMode,setManualMode]=useState(false);
   const [manualTargetHgb,setManualTargetHgb]=useState("13");
   const [manualInput,setManualInput]=useState("13");
   const steps=["Diagnose","Optimization Recommendations","Prior Auth","Notify"];
-  const s=p.severity;
   // ── Prior Auth: 5-criteria evaluation per AC3 ──
   const hgbVal=parseFloat(p.labs[0].value);
   const ferLab=p.labs.find(l=>l.label==="Ferritin");
@@ -595,11 +602,6 @@ const CarePlanZone=({p})=>{
       : `${wtNum} kg × (${DEFAULT_TARGET_HGB} − ${actualHgb}) × 2.4 + ${ironStores} mg`;
   }
 
-  const treatmentMed=s==="Critical"?"Supportive care + Iron supplement after stabilization":"IV Iron Ferric Carboxymaltose";
-  const treatmentDose=s==="Critical"?"Ferric Carboxymaltose 750–1000mg IV":"750mg IV";
-  const treatmentDoses=s==="Critical"?1:2;
-
-  const msgPreview=`Subject: New Anemia Optimization Recommendations: ${p.name}\n\nA new evidence-based optimization recommendation has been initiated for ${p.name} (MRN: ${p.id}).\n\nDiagnosis: ${attestedDx}\nTreatment: ${treatmentMed}\nDosage: ${treatmentDose} × ${treatmentDoses} dose${treatmentDoses>1?"s":""}\n\nPlease review in Epic and coordinate care as needed.\n\n— Anemia Management CDS`;
 
   // ── Recipient list helpers (AC1-AC3) ──
   const standardRecipients=[
@@ -641,11 +643,11 @@ const CarePlanZone=({p})=>{
       dose:treatmentDose,
       numberOfDoses:treatmentDoses,
       recipients:recipientLog,
-      messageContent:msgPreview,
+      messageContent:msgText,
       followUpScheduled:getFollowUpDecision(p.id)==="scheduled"||getFollowUps().some(v=>v.patientId===p.id&&v.status==="Scheduled"),
     };
     completeCase(p.id,data);
-    addAuditEntry({patientId:p.id,patientName:p.name,action:"Notify — Sent to recipients",recipients:recipientLog,messageContent:msgPreview,medication:treatmentMed,dose:treatmentDose,numberOfDoses:treatmentDoses});
+    addAuditEntry({patientId:p.id,patientName:p.name,action:"Notify — Sent to recipients",recipients:recipientLog,messageContent:msgText,medication:treatmentMed,dose:treatmentDose,numberOfDoses:treatmentDoses});
     setCompletionData({...data,recipients:recipientLog});
     setSent(true);
   };
@@ -978,11 +980,19 @@ const CarePlanZone=({p})=>{
                 </div>}
             </div>
 
-            {/* Message Preview */}
+            {/* Message Preview — editable */}
             <div style={{marginTop:14,marginBottom:14}}>
-              <div style={{fontSize:14,fontWeight:700,color:C.grey[800],fontFamily:font,marginBottom:8}}>Message Preview</div>
+              <div style={{display:"flex",alignItems:"center",marginBottom:8}}>
+                <div style={{fontSize:14,fontWeight:700,color:C.grey[800],fontFamily:font}}>Message Preview</div>
+                <div style={{flex:1}}/>
+                {msgEditing
+                  ? <button type="button" onClick={()=>setMsgEditing(false)} style={{display:"inline-flex",alignItems:"center",gap:5,padding:"5px 12px",border:`1px solid ${C.primary[500]}`,borderRadius:6,background:C.primary[500],color:"#fff",fontSize:13,fontWeight:600,fontFamily:font,cursor:"pointer",transition:"background 0.15s"}} onMouseEnter={e=>e.currentTarget.style.background=C.primary[600]} onMouseLeave={e=>e.currentTarget.style.background=C.primary[500]}><Save size={14} color="#fff" strokeWidth={2}/>Save</button>
+                  : <button type="button" onClick={()=>setMsgEditing(true)} style={{display:"inline-flex",alignItems:"center",gap:5,padding:"5px 12px",border:`1px solid ${C.primary[500]}`,borderRadius:6,background:C.primary[100],color:C.primary[600],fontSize:13,fontWeight:600,fontFamily:font,cursor:"pointer",transition:"background 0.15s"}} onMouseEnter={e=>e.currentTarget.style.background=C.primary[200]} onMouseLeave={e=>e.currentTarget.style.background=C.primary[100]}><Pencil size={14} color={C.primary[600]} strokeWidth={2}/>Edit</button>}
+              </div>
               <div style={{background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:8,padding:12}}>
-                <pre style={{fontSize:14,color:C.grey[700],fontFamily:font,margin:0,whiteSpace:"pre-wrap",lineHeight:1.6}}>{msgPreview}</pre>
+                {msgEditing
+                  ? <textarea value={msgText} onChange={e=>setMsgText(e.target.value)} rows={10} autoFocus style={{width:"100%",boxSizing:"border-box",border:`1px solid ${C.primary[400]}`,borderRadius:6,padding:"9px 12px",fontSize:14,fontFamily:font,color:C.grey[800],background:"#fff",resize:"vertical",outline:"none",lineHeight:1.6,whiteSpace:"pre-wrap"}}/>
+                  : <pre style={{fontSize:14,color:C.grey[700],fontFamily:font,margin:0,whiteSpace:"pre-wrap",lineHeight:1.6}}>{msgText}</pre>}
               </div>
             </div>
 

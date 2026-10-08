@@ -35,7 +35,7 @@ const getAnemiaGrade=(hgb)=>{const h=parseFloat(hgb);if(h>13.0)return{label:"No 
 const getDeltaRisk=(draws)=>{if(!draws||draws.length<2)return null;const baseline=draws[0].value;const current=draws[draws.length-1].value;if(current>=baseline)return null;const pct=Math.round(((baseline-current)/baseline)*100);return{pct,isRisk:pct>=50};};
 const CASE_TYPES=["All Case Types","CARDIAC","ENT","GASTRO INTESTINAL","GENERAL SURGERY","NEUROSURGERY","ORTHO","PLASTICS/RECONSTRUCTION","SPINE","THORACIC","UROLOGY/GU","VASCULAR","WOMEN'S HEALTH-SURGICAL"];
 const FACILITIES=["hc1 Surgery Center","North Aux Hospital","North Facility"];
-const STATUS_OPTIONS=["Active","Inactive","Completed","Cancelled","Follow Up"];
+const STATUS_OPTIONS=["All","Active","Inactive","Completed","Cancelled","Follow Up"];
 const DATE_OPTIONS=["Surgery Date","Custom Date Range"];
 
 const BloodDrop=({size=15,color})=><svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none"><path d="M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0c0-4.5-7-13-7-13z"/></svg>;
@@ -1227,9 +1227,9 @@ export default function App(){
   const [screen,setScreen]=useState("worklist");const [activePatient,setActivePatient]=useState(null);const [defaultZone,setDefaultZone]=useState("overview");
   const [completedPatients,setCompletedPatientsState]=useState(()=>getCompletedPatients());
   useEffect(()=>{const h=()=>setCompletedPatientsState(getCompletedPatients());window.addEventListener("case-completions-updated",h);window.addEventListener("storage",h);return()=>{window.removeEventListener("case-completions-updated",h);window.removeEventListener("storage",h);};},[]);
-  const [search,setSearch]=useState("");const [selectedFacilities,setSelectedFacilities]=useState(FACILITIES);const [selectedCaseTypes,setSelectedCaseTypes]=useState(CASE_TYPES.slice(1));const [sevFilter,setSevFilter]=useState("All Severity");const [dateFilter,setDateFilter]=useState("Surgery Date");const [startDate,setStartDate]=useState("");const [endDate,setEndDate]=useState("");const [statusFilter,setStatusFilter]=useState("Active");
+  const [search,setSearch]=useState("");const [selectedFacilities,setSelectedFacilities]=useState(FACILITIES);const [selectedCaseTypes,setSelectedCaseTypes]=useState(CASE_TYPES.slice(1));const [sevFilter,setSevFilter]=useState("All Severity");const [dateFilter,setDateFilter]=useState("Surgery Date");const [startDate,setStartDate]=useState("");const [endDate,setEndDate]=useState("");const [statusFilter,setStatusFilter]=useState("All");
   const [,setTick]=useState(0);
-  const resetFilters=()=>{setSearch("");setSelectedCaseTypes(CASE_TYPES.slice(1));setSevFilter("All Severity");setDateFilter("Surgery Date");setStartDate("");setEndDate("");setStatusFilter("Active");};
+  const resetFilters=()=>{setSearch("");setSelectedCaseTypes(CASE_TYPES.slice(1));setSevFilter("All Severity");setDateFilter("Surgery Date");setStartDate("");setEndDate("");setStatusFilter("All");};
   const scrollRef=useRef(null);
   const savedScroll=useRef(0);
   useEffect(()=>{const handler=()=>setTick(t=>t+1);window.addEventListener("storage",handler);window.addEventListener("care-coordination-updated",handler);window.addEventListener("follow-ups-updated",handler);return ()=>{window.removeEventListener("storage",handler);window.removeEventListener("care-coordination-updated",handler);window.removeEventListener("follow-ups-updated",handler);};},[]);
@@ -1256,7 +1256,8 @@ export default function App(){
   const COLS=["PATIENT","LAB VALUES","TRS","RISK IDENTIFIERS","PROVIDER"];
   const SEV_RANK={"Severe":0,"Moderate":1,"Mild":2,"No Anemia":3};
   const completedSet=new Set(completedPatients);
-  const filtered=PATIENTS.filter(p=>{const surgeryDate=dateInputValue(p.admitDate);const dateMatches=dateFilter!=="Custom Date Range"||((!startDate||surgeryDate>=startDate)&&(!endDate||surgeryDate<=endDate));return (!completedSet.has(p.id))&&(selectedFacilities.includes(p.facility))&&(!search||p.name.toLowerCase().includes(search.toLowerCase())||p.id.toLowerCase().includes(search.toLowerCase())||p.provider.toLowerCase().includes(search.toLowerCase()))&&selectedCaseTypes.includes(p.caseType)&&dateMatches&&(statusFilter==="Active"?!completedSet.has(p.id):(p.caseStatus||"Active")===statusFilter);});
+  const filtered=PATIENTS.filter(p=>{const surgeryDate=dateInputValue(p.admitDate);const dateMatches=dateFilter!=="Custom Date Range"||((!startDate||surgeryDate>=startDate)&&(!endDate||surgeryDate<=endDate));const statusMatch=statusFilter==="All"?true:statusFilter==="Completed"?completedSet.has(p.id):!completedSet.has(p.id)&&(p.caseStatus||"Active")===statusFilter;
+  return statusMatch&&(selectedFacilities.includes(p.facility))&&(!search||p.name.toLowerCase().includes(search.toLowerCase())||p.id.toLowerCase().includes(search.toLowerCase())||p.provider.toLowerCase().includes(search.toLowerCase()))&&selectedCaseTypes.includes(p.caseType)&&dateMatches;});
   const sorted=sevFilter==="All Severity"?filtered:[...filtered].sort((a,b)=>{const ra=SEV_RANK[getAnemiaGrade(a.labs[0].value).label]??99;const rb=SEV_RANK[getAnemiaGrade(b.labs[0].value).label]??99;if(ra===rb)return 0;return sevFilter===getAnemiaGrade(a.labs[0].value).label?-1:sevFilter===getAnemiaGrade(b.labs[0].value).label?1:ra-rb;});
   return(
   <div style={{display:"flex",flexDirection:"column",height:"100dvh",fontFamily:font,background:C.grey[200],overflow:"hidden"}}>

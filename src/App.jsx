@@ -13,7 +13,7 @@ import { ScheduleFollowUpModal } from "./components/hc1/FollowUp/ScheduleFollowU
 import { CAN_CLINICAL_NAVIGATION, getFollowUpDecision, getFollowUps } from "./components/hc1/FollowUp/followUpStore";
 import { CalendarClock, Calendar, Search as SearchIcon, X, Inbox, CheckCircle as CheckCircleIcon, UserPlus, Pencil, Save } from "lucide-react";
 import { EpicPoolConfig } from "./components/hc1/Notify/EpicPoolConfig";
-import { searchProviders, getActiveEpicPools, completeCase, getCompletedPatients, addAuditEntry } from "./components/hc1/Notify/notifyStores";
+import { searchProviders, getActiveEpicPools, completeCase, getCompletedPatients, addAuditEntry, getAuditTrail } from "./components/hc1/Notify/notifyStores";
 
 const C={grey:{100:"#FFFFFF",200:"#F7F7F7",300:"#E7E7E7",400:"#CFD1D1",500:"#A8ADAD",600:"#737E7F",700:"#545D5E",800:"#273233"},primary:{100:"#ECF4F5",200:"#CFE4E6",300:"#9EC9CD",400:"#56A0A8",500:"#0D7782",600:"#0B626B"},secondary:{100:"#E1F3F5",200:"#CFEBEE",300:"#AFDCE1",400:"#75CAD3",500:"#3CA6B0",600:"#1D828C"},orange:{100:"#FFEFE0",400:"#F58126"},yellow:{100:"#FFECC1",400:"#FFC432"},error:{100:"#F4DFE4",400:"#B00A2F"},success:{100:"#D7E7D6",400:"#388032"},red:{100:"#EFB0AB",400:"#C6473C"}};
 const font="var(--hc-font-sans)";
@@ -35,7 +35,7 @@ const getAnemiaGrade=(hgb)=>{const h=parseFloat(hgb);if(h>13.0)return{label:"No 
 const getDeltaRisk=(draws)=>{if(!draws||draws.length<2)return null;const baseline=draws[0].value;const current=draws[draws.length-1].value;if(current>=baseline)return null;const pct=Math.round(((baseline-current)/baseline)*100);return{pct,isRisk:pct>=50};};
 const CASE_TYPES=["All Case Types","CARDIAC","ENT","GASTRO INTESTINAL","GENERAL SURGERY","NEUROSURGERY","ORTHO","PLASTICS/RECONSTRUCTION","SPINE","THORACIC","UROLOGY/GU","VASCULAR","WOMEN'S HEALTH-SURGICAL"];
 const FACILITIES=["hc1 Surgery Center","North Aux Hospital","North Facility"];
-const STATUS_OPTIONS=["Active","Inactive","Completed","Cancelled","Follow Up"];
+const STATUS_OPTIONS=["Active","Inactive","Completed","Cancelled","Follow Up","Notified"];
 const DATE_OPTIONS=["Surgery Date","Custom Date Range"];
 
 const BloodDrop=({size=15,color})=><svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none"><path d="M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0c0-4.5-7-13-7-13z"/></svg>;
@@ -1256,7 +1256,7 @@ export default function App(){
   const COLS=["PATIENT","LAB VALUES","TRS","RISK IDENTIFIERS","PROVIDER"];
   const SEV_RANK={"Severe":0,"Moderate":1,"Mild":2,"No Anemia":3};
   const completedSet=new Set(completedPatients);
-  const filtered=PATIENTS.filter(p=>{const surgeryDate=dateInputValue(p.admitDate);const dateMatches=dateFilter!=="Custom Date Range"||((!startDate||surgeryDate>=startDate)&&(!endDate||surgeryDate<=endDate));const statusMatch=statusFilter==="Completed"?completedSet.has(p.id):!completedSet.has(p.id)&&(p.caseStatus||"Active")===statusFilter;
+  const filtered=PATIENTS.filter(p=>{const surgeryDate=dateInputValue(p.admitDate);const dateMatches=dateFilter!=="Custom Date Range"||((!startDate||surgeryDate>=startDate)&&(!endDate||surgeryDate<=endDate));const statusMatch=statusFilter==="Completed"?completedSet.has(p.id):statusFilter==="Notified"?getAuditTrail(p.id).some(e=>e.action&&e.action.startsWith("Notify"))&&!completedSet.has(p.id):!completedSet.has(p.id)&&(p.caseStatus||"Active")===statusFilter;
   return statusMatch&&(selectedFacilities.includes(p.facility))&&(!search||p.name.toLowerCase().includes(search.toLowerCase())||p.id.toLowerCase().includes(search.toLowerCase())||p.provider.toLowerCase().includes(search.toLowerCase()))&&selectedCaseTypes.includes(p.caseType)&&dateMatches;});
   const sorted=[...filtered].sort((a,b)=>{if(sortBy==="Visit Date"){const da=new Date(a.admitDate).getTime()||0;const db=new Date(b.admitDate).getTime()||0;return da-db;}const ra=SEV_RANK[getAnemiaGrade(a.labs[0].value).label]??99;const rb=SEV_RANK[getAnemiaGrade(b.labs[0].value).label]??99;if(ra===rb){const da=new Date(a.admitDate).getTime()||0;const db=new Date(b.admitDate).getTime()||0;return db-da;}return ra-rb;});
   return(

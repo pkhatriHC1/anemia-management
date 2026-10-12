@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
-import { Search, Filter, ChevronDown, CalendarPlus, MoreHorizontal, Calendar, Eye, Pencil, CalendarClock, Check, X, CalendarPlus as NewFollowUp } from "lucide-react";
+import { Search, Filter, ChevronDown, CalendarPlus, MoreHorizontal, Calendar, Eye, Pencil, CalendarClock, Check, X, User, CalendarPlus as NewFollowUp } from "lucide-react";
 import { Button } from "../Button";
 import { Badge } from "../Badge";
 import { getFollowUps, SPECIALTIES, CAN_CLINICAL_NAVIGATION } from "./followUpStore";
@@ -132,13 +132,20 @@ const RowMenu = ({ visit, anchorEl, onAction, onClose }) => {
 
   const items = visit.status === "Scheduled"
     ? [
+        { label: "Open patient", icon: User, action: "open-patient" },
         { label: "View details", icon: Eye, action: "view" },
         { label: "Edit", icon: Pencil, action: "edit" },
         { label: "Reschedule", icon: CalendarClock, action: "reschedule" },
         { label: "Mark Completed", icon: Check, action: "complete" },
         { label: "Cancel visit", icon: X, action: "cancel", danger: true },
       ]
+    : visit.status === "Cancelled"
+    ? [
+        { label: "Open patient", icon: User, action: "open-patient" },
+        { label: "View details", icon: Eye, action: "view" },
+      ]
     : [
+        { label: "Open patient", icon: User, action: "open-patient" },
         { label: "View details", icon: Eye, action: "view" },
         { label: "Schedule new follow-up", icon: NewFollowUp, action: "schedule-new" },
       ];
@@ -184,7 +191,7 @@ const RowMenu = ({ visit, anchorEl, onAction, onClose }) => {
   );
 };
 
-export const FollowUpWorklist = ({ patients = [] }) => {
+export const FollowUpWorklist = ({ patients = [], onOpenPatient }) => {
   const [visits, setVisits] = useState(() => getFollowUps());
   const [search, setSearch] = useState("");
   const [specialtyFilter, setSpecialtyFilter] = useState("All Specialties");
@@ -285,6 +292,10 @@ export const FollowUpWorklist = ({ patients = [] }) => {
   const handleMenuAction = (visit, action) => {
     setOpenMenuId(null);
     setMenuAnchor(null);
+    if (action === "open-patient") {
+      onOpenPatient?.(visit.patientId);
+      return;
+    }
     if (action === "schedule-new") {
       setDetailVisit(visit);
       setDetailMode("view");
@@ -568,11 +579,21 @@ export const FollowUpWorklist = ({ patients = [] }) => {
                           style={{
                             fontSize: 14,
                             fontWeight: 600,
-                            color: C.grey[800],
                             fontFamily: font,
                           }}
                         >
-                          {v.patientName}
+                          <span
+                            style={{
+                              color: "var(--hc-color-text-link)",
+                              cursor: "pointer",
+                              textDecoration: "none",
+                            }}
+                            onClick={(e) => { e.stopPropagation(); onOpenPatient?.(v.patientId); }}
+                            onMouseEnter={(e) => { e.currentTarget.style.textDecoration = "underline"; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.textDecoration = "none"; }}
+                          >
+                            {v.patientName}
+                          </span>
                         </div>
                         <div
                           style={{
@@ -703,6 +724,7 @@ export const FollowUpWorklist = ({ patients = [] }) => {
           key={detailVisit.id + "-" + detailMode}
           visit={detailVisit}
           initialMode={detailMode}
+          onOpenPatient={onOpenPatient}
           onClose={() => { setDetailVisit(null); setDetailMode("view"); }}
         />
       )}

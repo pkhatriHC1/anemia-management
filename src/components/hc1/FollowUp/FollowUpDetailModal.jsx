@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
-import { X, CalendarClock, Check, AlertTriangle, LogOut } from "lucide-react";
+import { X, CalendarClock, Check, AlertTriangle, LogOut, User } from "lucide-react";
 import { Button } from "../Button";
 import { Badge } from "../Badge";
 import { DateTimePicker } from "./DateTimePicker";
@@ -83,7 +83,7 @@ const SectionLabel = ({ children }) => (
   </div>
 );
 
-export const FollowUpDetailModal = ({ visit, onClose, initialMode = "view" }) => {
+export const FollowUpDetailModal = ({ visit, onClose, initialMode = "view", onOpenPatient }) => {
   const [mode, setMode] = useState(initialMode);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [localVisit, setLocalVisit] = useState(visit);
@@ -512,6 +512,13 @@ export const FollowUpDetailModal = ({ visit, onClose, initialMode = "view" }) =>
     }
     // view mode
     if (isFinished) {
+      if (v.status === "Cancelled") {
+        return (
+          <Footer>
+            <Button variant="secondary" size="md" onClick={onClose}>Close</Button>
+          </Footer>
+        );
+      }
       return (
         <Footer>
           <Button variant="secondary" size="md" onClick={onClose}>Close</Button>
@@ -584,6 +591,7 @@ export const FollowUpDetailModal = ({ visit, onClose, initialMode = "view" }) =>
                 {headerSubtitle}
               </div>
             </div>
+            <Button variant="secondary" size="sm" leftIcon={<User size={14} />} onClick={() => { onClose?.(); onOpenPatient?.(v.patientId); }}>Open Patient</Button>
             <Button variant="icon" onClick={onClose} aria-label="Close">
               <X size={16} />
             </Button>

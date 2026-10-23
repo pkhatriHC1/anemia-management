@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Search, Filter, ChevronDown, ArrowRight, ChevronLeft, MessageSquare, ClipboardList, User, Hash, Stethoscope, CircleAlert as AlertCircle, TriangleAlert as AlertTriangle, Info, ShieldCheck, Activity, ArrowLeft, Calculator, RotateCcw } from "lucide-react";
+import { Search, Filter, ChevronDown, ArrowRight, ChevronLeft, MessageSquare, ClipboardList, User, Hash, Stethoscope, TriangleAlert as AlertTriangle, Info, Activity, ArrowLeft, Calculator, RotateCcw } from "lucide-react";
 import { Button } from "./components/hc1/Button";
 import { Badge } from "./components/hc1/Badge";
 import { Gauge as HC1Gauge } from "./components/hc1/Gauge";
@@ -11,7 +11,7 @@ import { FollowUpWorklist } from "./components/hc1/FollowUp/FollowUpWorklist";
 import { FollowUpDetailModal } from "./components/hc1/FollowUp/FollowUpDetailModal";
 import { ScheduleFollowUpModal } from "./components/hc1/FollowUp/ScheduleFollowUpModal";
 import { CAN_CLINICAL_NAVIGATION, getFollowUpDecision, getFollowUps } from "./components/hc1/FollowUp/followUpStore";
-import { CalendarClock, Calendar, Search as SearchIcon, X, Inbox, CheckCircle as CheckCircleIcon, UserPlus, Pencil, Save } from "lucide-react";
+import { CalendarClock, Calendar, Search as SearchIcon, X, Inbox, CheckCircle as CheckCircleIcon, UserPlus, Pencil, Save, FlaskConicalOff, Trash2 } from "lucide-react";
 import { EpicPoolConfig } from "./components/hc1/Notify/EpicPoolConfig";
 import { searchProviders, getActiveEpicPools, completeCase, getCompletedPatients, addAuditEntry, getAuditTrail } from "./components/hc1/Notify/notifyStores";
 
@@ -23,8 +23,7 @@ const dateInputValue=(s)=>{const d=new Date(s);if(isNaN(d))return "";return `${d
 const SEV4_TIER={severe:"critical",moderate:"high",mild:"medium",normal:"normal"};
 const SEV4_LABEL={severe:"SEVERE",moderate:"MODERATE",mild:"MILD",normal:"NORMAL"};
 const SEV4_VARIANT={critical:"danger",high:"warning",medium:"warning",normal:"success"};
-const SEV4_ICON={critical:AlertCircle,high:AlertTriangle,medium:AlertTriangle,normal:ShieldCheck};
-const SevChip=({tier})=>{const t=SEV4_TIER[tier]||"normal";const Icon=SEV4_ICON[t];return <Badge variant={SEV4_VARIANT[t]} appearance="soft" size="sm" leadingIcon={<Icon strokeWidth={1.5}/>}>{SEV4_LABEL[tier]||"NORMAL"}</Badge>;};
+const SevChip=({tier})=>{const t=SEV4_TIER[tier]||"normal";return <Badge variant={SEV4_VARIANT[t]} appearance="soft" size="sm">{SEV4_LABEL[tier]||"NORMAL"}</Badge>;};
 // Map TRS trsSev → 4-tier: very-high → severe, high → moderate, medium → mild, low → normal
 const trsTier=(sev)=>sev==="very-high"?"severe":sev==="high"?"moderate":sev==="medium"?"mild":"normal";
 const TRC={"very-high":C.error[400],"high":C.orange[400],"medium":"#92600A","low":C.success[400]};
@@ -36,7 +35,6 @@ const getDeltaRisk=(draws)=>{if(!draws||draws.length<2)return null;const baselin
 const CASE_TYPES=["All Case Types","CARDIAC","ENT","GASTRO INTESTINAL","GENERAL SURGERY","NEUROSURGERY","ORTHO","PLASTICS/RECONSTRUCTION","SPINE","THORACIC","UROLOGY/GU","VASCULAR","WOMEN'S HEALTH-SURGICAL"];
 const FACILITIES=["hc1 Surgery Center","North Aux Hospital","North Facility"];
 const STATUS_OPTIONS=["Active","Inactive","Completed","Cancelled","Follow Up","Notified"];
-const DATE_OPTIONS=["Surgery Date","Custom Date Range"];
 
 const BloodDrop=({size=15,color})=><svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none"><path d="M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0c0-4.5-7-13-7-13z"/></svg>;
 const Pregnant=({size=15,color})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="4" r="2"/><path d="M9 8h3l1 4c1.5 0 3 1.5 3 3.5S14.5 19 13 19H9"/><path d="M9 8l-1 5"/><path d="M8 13l-1 6"/></svg>;
@@ -45,9 +43,8 @@ const CheckCircle=({size=24,color})=><svg width={size} height={size} viewBox="0 
 
 const normSev=(s)=>s==="critical"?"critical":s==="high"||s==="borderline"?"high":"low";
 const LAB_VARIANT={critical:"danger",high:"warning",low:"neutral"};
-const LAB_ICON={critical:AlertCircle,high:AlertTriangle,low:Info};
 const LAB_LABEL={critical:"Critical",high:"High",low:"Low"};
-const StatusChip=({status})=>{const t=normSev(status);const Icon=LAB_ICON[t];return <Badge variant={LAB_VARIANT[t]} appearance="soft" size="sm" leadingIcon={<Icon strokeWidth={1.5}/>}>{LAB_LABEL[t]}</Badge>;};
+const StatusChip=({status})=>{const t=normSev(status);return <Badge variant={LAB_VARIANT[t]} appearance="soft" size="sm">{LAB_LABEL[t]}</Badge>;};
 // Small right-aligned step action row: optional back button + primary/cta action on the right.
 // nextOrange=true marks execute/irreversible steps (Approve & Create Orders, Activate Order,
 // Send to All Recipients). Nav-only steps stay primary.
@@ -111,12 +108,12 @@ const PATIENTS=[
    labs:[{label:"HGB",value:"8.9",unit:"g/dL",status:"high",draws:[{date:"Apr 6",value:7.2},{date:"Apr 9",value:8.9}]},{label:"Ferritin",value:"42",unit:"ng/mL",status:"low"},{label:"TIBC",value:"310",unit:"mcg/dL",status:"low"},{label:"Transferrin Sat",value:"28",unit:"%",status:"low"},{label:"Reticulocytes",value:"2.4",unit:"%",status:"high"},{label:"WBC",value:"8.1",unit:"K/uL",status:"low"},{label:"Platelets",value:"188",unit:"K/uL",status:"low"},{label:"BNP",value:"480",unit:"pg/mL",status:"high"}],
    conditions:["CHF","CKD 2"],order:"Transfusion threshold re-evaluation",provider:"Dr. Singh",providerRole:"Cardiologist",unit:"Cardiology 4-West",admitDate:"Apr 5, 2026",severity:"Moderate",carePlanStatus:"generated",aiNote:"Transfusion response adequate. CHF context suggests conservative threshold.",aiConfidence:85,diagnosis:"Post-transfusion Anemia — Chronic Disease in CHF",icdCodes:["D63.1","I50.32","N18.2"],transfusionHistory:[{date:"Apr 8, 2026",product:"2u pRBC",response:"Hgb +1.7"},{date:"Jan 2026",product:"1u pRBC"}],allergies:["NKDA"],medications:["Furosemide 40mg BID","Carvedilol 12.5mg BID","Spironolactone 25mg daily","Empagliflozin 10mg daily"]},
   // MILD (HGB 11.1–12.9)
-  {id:"RP-4401",name:"Rita Patel",facility:"North Aux Hospital",age:81,dob:"05/21/1945",sex:"Female",weight:"58 kg",bmi:"21.3",npi:"5544332214",domain:"Anemia",caseType:"WOMEN'S HEALTH-SURGICAL",procedureWithin2Weeks:true,redoOrNonIsolated:false,significantComorbidities:true,anticoagulants:false,caseStatus:"Inactive",
+  {id:"RP-4401",name:"Rita Patel",facility:"North Aux Hospital",age:81,dob:"05/21/1945",sex:"Female",weight:"58 kg",bmi:"21.3",npi:"5544332214",domain:"Anemia",caseType:"WOMEN'S HEALTH-SURGICAL",procedureWithin2Weeks:true,redoOrNonIsolated:false,significantComorbidities:true,anticoagulants:false,caseStatus:"Active",
    procedure:"Hysterectomy",
    labs:[{label:"HGB",value:"11.8",unit:"g/dL",status:"high",draws:[{date:"Apr 6",value:12.4},{date:"Apr 9",value:11.8}]},{label:"Ferritin",value:"22",unit:"ng/mL",status:"high"},{label:"TIBC",value:"350",unit:"mcg/dL",status:"high"},{label:"Transferrin Sat",value:"21",unit:"%",status:"high"},{label:"Reticulocytes",value:"1.8",unit:"%",status:"low"},{label:"WBC",value:"6.1",unit:"K/uL",status:"low"},{label:"Platelets",value:"182",unit:"K/uL",status:"low"},{label:"LDH",value:"210",unit:"U/L",status:"low"}],
    conditions:["AML remission","Pre-surgical optimization"],order:"Oral Iron + Monitor CBC pre-op",provider:"Dr. Kim",providerRole:"Hematologist",unit:"Hematology Oncology",admitDate:"Mar 30, 2026",severity:"Mild",carePlanStatus:"pending",aiNote:"Mild anemia in pre-surgical setting. Oral iron and monitoring appropriate.",aiConfidence:79,diagnosis:"Mild Anemia — Pre-surgical Iron Optimization",icdCodes:["D50.9","C91.00"],transfusionHistory:[{date:"None recent"}],allergies:["Penicillin"],medications:["Acyclovir 400mg BID","Ferrous sulfate 325mg BID"]},
   // NO ANEMIA (HGB >13.0) — baseline surveillance
-  {id:"TW-1180",name:"Thomas Webb",facility:"North Facility",age:54,dob:"11/03/1971",sex:"Male",weight:"88 kg",bmi:"28.6",npi:"5544332215",domain:"Anemia",caseType:"SPINE",procedureWithin2Weeks:true,redoOrNonIsolated:false,significantComorbidities:false,anticoagulants:false,caseStatus:"Follow Up",
+  {id:"TW-1180",name:"Thomas Webb",facility:"North Facility",age:54,dob:"11/03/1971",sex:"Male",weight:"88 kg",bmi:"28.6",npi:"5544332215",domain:"Anemia",caseType:"SPINE",procedureWithin2Weeks:true,redoOrNonIsolated:false,significantComorbidities:false,anticoagulants:false,caseStatus:"Active",
    procedure:"Lumbar Laminectomy",
    labs:[{label:"HGB",value:"13.8",unit:"g/dL",status:"low",draws:[{date:"Apr 7",value:13.8}]},{label:"Ferritin",value:"68",unit:"ng/mL",status:"low"},{label:"TIBC",value:"280",unit:"mcg/dL",status:"low"},{label:"Transferrin Sat",value:"31",unit:"%",status:"low"},{label:"Reticulocytes",value:"1.6",unit:"%",status:"low"},{label:"WBC",value:"6.9",unit:"K/uL",status:"low"},{label:"Platelets",value:"262",unit:"K/uL",status:"low"},{label:"Creatinine",value:"0.9",unit:"mg/dL",status:"low"}],
    conditions:["Pre-surgical surveillance","Lumbar stenosis"],order:"Baseline CBC — procedure in 10 days",provider:"Dr. Adams",providerRole:"Attending",unit:"Spine Outpatient",admitDate:"Apr 7, 2026",severity:"No Anemia",carePlanStatus:"generated",aiNote:"No anemia. Baseline surveillance prior to elective spinal procedure.",aiConfidence:96,diagnosis:"No Anemia — Pre-operative Baseline",icdCodes:["Z01.89","M48.06"],transfusionHistory:[{date:"None"}],allergies:["NKDA"],medications:["Aspirin 81mg daily"]},
@@ -141,10 +138,10 @@ const FacilityFilter=({selected,onChange})=>{
   const selectionLabel=allSelected?"ALL":selected.length===0?"No facilities":selected.join(", ");
   const toggle=(facility)=>onChange(selected.includes(facility)?selected.filter(value=>value!==facility):[...selected,facility]);
   return <div ref={containerRef} style={{position:"relative",width:170,flexShrink:0}}>
-    <button type="button" onClick={()=>setOpen(value=>!value)} aria-expanded={open} style={{position:"relative",width:"100%",height:42,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 8px 4px 10px",background:"#fff",border:`1px solid ${open?C.primary[500]:C.grey[400]}`,borderRadius:3,cursor:"pointer",textAlign:"left",fontFamily:font}}>
-      <span style={{position:"absolute",top:-7,left:10,padding:"0 4px",background:"#fff",fontSize:11,color:C.grey[500],lineHeight:1}}>Facility*</span>
-      <span style={{fontSize:13,color:C.grey[800],whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.2}}>{selectionLabel}</span>
-      <ChevronDown size={12} color={C.grey[400]} style={{transform:open?"rotate(180deg)":"none",transition:"transform 0.15s",flexShrink:0}}/>
+    <button type="button" onClick={()=>setOpen(value=>!value)} aria-expanded={open} style={{position:"relative",width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 26px 6px 10px",background:C.grey[100],border:`0.5px solid ${C.grey[300]}`,borderRadius:8,cursor:"pointer",textAlign:"left",fontFamily:font}}>
+      <span style={{position:"absolute",top:-7,left:10,padding:"0 4px",background:C.grey[100],fontSize:11,color:C.grey[500],lineHeight:1,fontFamily:font}}>Facility*</span>
+      <span style={{fontSize:14,color:C.grey[700],whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.2}}>{selectionLabel}</span>
+      <ChevronDown size={10} color={C.grey[500]} style={{transform:open?"rotate(180deg)":"none",transition:"transform 0.15s",flexShrink:0}}/>
     </button>
     {open&&<div style={{position:"absolute",top:44,left:0,width:"100%",background:C.grey[100],border:`1px solid ${C.grey[300]}`,borderRadius:6,boxShadow:"0 8px 20px rgba(0,0,0,0.14)",zIndex:500,padding:"6px 0"}}>
       <button type="button" onClick={()=>onChange(allSelected?[]:FACILITIES)} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"9px 12px",border:0,background:"transparent",color:C.grey[500],fontSize:14,cursor:"pointer",fontFamily:font,textAlign:"left"}}>
@@ -171,7 +168,7 @@ const CaseTypeFilter=({selected,onChange})=>{
   const selectionLabel=allSelected?"ALL":selected.length===0?"No case types":selected.length===1?selected[0]:`${selected.length} selected`;
   const toggle=(caseType)=>onChange(selected.includes(caseType)?selected.filter(value=>value!==caseType):[...selected,caseType]);
   return <div ref={containerRef} style={{position:"relative",width:170,flexShrink:0}}>
-    <button type="button" onClick={()=>setOpen(value=>!value)} aria-expanded={open} style={{position:"relative",width:"100%",height:42,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 8px 4px 10px",background:C.grey[100],border:`1px solid ${open?C.primary[500]:C.grey[300]}`,borderRadius:8,cursor:"pointer",textAlign:"left",fontFamily:font}}>
+    <button type="button" onClick={()=>setOpen(value=>!value)} aria-expanded={open} style={{position:"relative",width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 26px 6px 10px",background:C.grey[100],border:`0.5px solid ${C.grey[300]}`,borderRadius:8,cursor:"pointer",textAlign:"left",fontFamily:font}}>
       <span style={{position:"absolute",zIndex:1,top:-7,left:10,padding:"0 4px",background:C.grey[100],fontSize:11,color:C.grey[500],lineHeight:1,fontFamily:font}}>Case Type*</span>
       <span style={{fontSize:14,color:C.grey[700],whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.2}}>{selectionLabel}</span>
       <ChevronDown size={10} color={C.grey[500]} style={{transform:open?"rotate(180deg)":"none",transition:"transform 0.15s",flexShrink:0}}/>
@@ -197,10 +194,10 @@ const StatusFilter=({value,onChange})=>{
     return()=>document.removeEventListener("mousedown",close);
   },[open]);
   return <div ref={containerRef} style={{position:"relative",width:150,flexShrink:0}}>
-    <button type="button" onClick={()=>setOpen(v=>!v)} aria-expanded={open} style={{position:"relative",width:"100%",height:42,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 8px 4px 10px",background:"#fff",border:`1px solid ${open?C.primary[500]:C.grey[400]}`,borderRadius:3,cursor:"pointer",textAlign:"left",fontFamily:font}}>
-      <span style={{position:"absolute",top:-7,left:10,padding:"0 4px",background:"#fff",fontSize:11,color:C.grey[500],lineHeight:1}}>Status*</span>
-      <span style={{fontSize:13,color:C.grey[800],whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.2}}>{value}</span>
-      <ChevronDown size={12} color={C.grey[400]} style={{transform:open?"rotate(180deg)":"none",transition:"transform 0.15s",flexShrink:0}}/>
+    <button type="button" onClick={()=>setOpen(v=>!v)} aria-expanded={open} style={{position:"relative",width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 26px 6px 10px",background:C.grey[100],border:`0.5px solid ${C.grey[300]}`,borderRadius:8,cursor:"pointer",textAlign:"left",fontFamily:font}}>
+      <span style={{position:"absolute",top:-7,left:10,padding:"0 4px",background:C.grey[100],fontSize:11,color:C.grey[500],lineHeight:1,fontFamily:font}}>Status*</span>
+      <span style={{fontSize:14,color:C.grey[700],whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.2}}>{value}</span>
+      <ChevronDown size={10} color={C.grey[500]} style={{transform:open?"rotate(180deg)":"none",transition:"transform 0.15s",flexShrink:0}}/>
     </button>
     {open&&<div style={{position:"absolute",top:44,left:0,width:"100%",background:C.grey[100],border:`1px solid ${C.grey[300]}`,borderRadius:6,boxShadow:"0 8px 20px rgba(0,0,0,0.14)",zIndex:500,padding:"6px 0"}}>
       {STATUS_OPTIONS.map(opt=><button key={opt} type="button" onClick={()=>{onChange(opt);setOpen(false);}} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"9px 12px",border:0,background:value===opt?C.grey[200]:"transparent",color:C.grey[800],fontSize:15,cursor:"pointer",fontFamily:font,textAlign:"left"}}>
@@ -381,31 +378,34 @@ const OverviewZone=({p,onNavigate})=>{
         {/* Ferritin */}
         <div style={{padding:"16px 20px",borderRight:`1px solid ${C.grey[200]}`}}>
           <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:C.grey[600],fontFamily:font,marginBottom:8}}>Ferritin</div>
-          <div style={{display:"flex",alignItems:"baseline",gap:4,marginBottom:6}}>
-            <span className="tabular-nums-hc1" style={{fontSize:32,fontWeight:500,color:ferColor,fontFamily:font,lineHeight:1,letterSpacing:"-0.02em"}}>{ferMissing?"—":ferLab.value}</span>
-            <span style={{fontSize:14,color:C.grey[600],fontFamily:font,fontWeight:500}}>ng/mL</span>
-          </div>
-          {ferMissing? <span style={{fontSize:12,fontWeight:700,color:C.orange[400],fontFamily:font}}>Missing</span> : <StatusChip status={ferLab.status}/>}
+          {ferMissing
+            ? <div style={{display:"flex",alignItems:"flex-start",marginBottom:6}}><FlaskConicalOff size={28} strokeWidth={1.5} color={C.grey[400]}/></div>
+            : <div style={{display:"flex",alignItems:"baseline",gap:4,marginBottom:6}}>
+              <span className="tabular-nums-hc1" style={{fontSize:32,fontWeight:500,color:ferColor,fontFamily:font,lineHeight:1,letterSpacing:"-0.02em"}}>{ferLab.value}</span>
+              <span style={{fontSize:14,color:C.grey[600],fontFamily:font,fontWeight:500}}>ng/mL</span>
+            </div>}
         </div>
 
         {/* TSAT */}
         <div style={{padding:"16px 20px",borderRight:`1px solid ${C.grey[200]}`}}>
           <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:C.grey[600],fontFamily:font,marginBottom:8}}>TSAT</div>
-          <div style={{display:"flex",alignItems:"baseline",gap:4,marginBottom:6}}>
-            <span className="tabular-nums-hc1" style={{fontSize:32,fontWeight:500,color:tsatColor,fontFamily:font,lineHeight:1,letterSpacing:"-0.02em"}}>{tsatMissing?"—":tsatLab.value}</span>
-            <span style={{fontSize:14,color:C.grey[600],fontFamily:font,fontWeight:500}}>%</span>
-          </div>
-          {tsatMissing? <span style={{fontSize:12,fontWeight:700,color:C.orange[400],fontFamily:font}}>Missing</span> : <StatusChip status={tsatLab.status}/>}
+          {tsatMissing
+            ? <div style={{display:"flex",alignItems:"flex-start",marginBottom:6}}><FlaskConicalOff size={28} strokeWidth={1.5} color={C.grey[400]}/></div>
+            : <div style={{display:"flex",alignItems:"baseline",gap:4,marginBottom:6}}>
+              <span className="tabular-nums-hc1" style={{fontSize:32,fontWeight:500,color:tsatColor,fontFamily:font,lineHeight:1,letterSpacing:"-0.02em"}}>{tsatLab.value}</span>
+              <span style={{fontSize:14,color:C.grey[600],fontFamily:font,fontWeight:500}}>%</span>
+            </div>}
         </div>
 
         {/* Weight */}
         <div style={{padding:"16px 20px",borderRight:`1px solid ${C.grey[200]}`}}>
           <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:C.grey[600],fontFamily:font,marginBottom:8}}>Weight</div>
-          <div style={{display:"flex",alignItems:"baseline",gap:4,marginBottom:6}}>
-            <span className="tabular-nums-hc1" style={{fontSize:32,fontWeight:500,color:wtColor,fontFamily:font,lineHeight:1,letterSpacing:"-0.02em"}}>{wtMissing?"—":wtVal}</span>
-            <span style={{fontSize:14,color:C.grey[600],fontFamily:font,fontWeight:500}}>kg</span>
-          </div>
-          {wtMissing? <span style={{fontSize:12,fontWeight:700,color:C.orange[400],fontFamily:font}}>Missing</span> : null}
+          {wtMissing
+            ? <div style={{display:"flex",alignItems:"flex-start",marginBottom:6}}><FlaskConicalOff size={28} strokeWidth={1.5} color={C.grey[400]}/></div>
+            : <div style={{display:"flex",alignItems:"baseline",gap:4,marginBottom:6}}>
+              <span className="tabular-nums-hc1" style={{fontSize:32,fontWeight:500,color:wtColor,fontFamily:font,lineHeight:1,letterSpacing:"-0.02em"}}>{wtVal}</span>
+              <span style={{fontSize:14,color:C.grey[600],fontFamily:font,fontWeight:500}}>kg</span>
+            </div>}
         </div>
 
         {/* TRS — gauge only, no numeric */}
@@ -534,13 +534,14 @@ const CarePlanZone=({p})=>{
   const treatmentDose=s==="Critical"?"Ferric Carboxymaltose 750–1000mg IV":"750mg IV";
   const treatmentDoses=s==="Critical"?1:2;
 
-  const msgPreview=`Subject: New Anemia Optimization Recommendations: ${p.name}\n\nA new evidence-based optimization recommendation has been initiated for ${p.name} (MRN: ${p.id}).\n\nDiagnosis: ${attestedDx}\nTreatment: ${treatmentMed}\nDosage: ${treatmentDose} × ${treatmentDoses} dose${treatmentDoses>1?"s":""}\n\nPlease review in Epic and coordinate care as needed.\n\n— Anemia Management CDS`;
+  const msgPreview=`Subject: New Anemia Optimization Recommendations: ${p.name}\n\nA new evidence-based optimization recommendation has been initiated for ${p.name} (MRN: ${p.id}).\n\nDiagnosis: ${attestedDx}\nTreatment: ${treatmentMed}\nDosage: ${treatmentDose} × ${treatmentDoses} dose${treatmentDoses>1?"s":""}${clinicalNotes.trim()?`\nClinical Notes: ${clinicalNotes.trim()}`:""}\n\nPlease review in Epic and coordinate care as needed.\n\n— Anemia Management CDS`;
   const [msgText,setMsgText]=useState(msgPreview);
+  useEffect(()=>{if(!msgEditing)setMsgText(msgPreview);},[clinicalNotes,attestedDx,msgEditing]);
   const [completionData,setCompletionData]=useState(null);
   const [manualMode,setManualMode]=useState(false);
   const [manualTargetHgb,setManualTargetHgb]=useState("13");
   const [manualInput,setManualInput]=useState("13");
-  const steps=["Diagnose","Optimization Recommendations","Prior Auth","Notify"];
+  const steps=["Optimization Recommendations","Prior Auth","Notify"];
   // ── Prior Auth: 5-criteria evaluation per AC3 ──
   const hgbVal=parseFloat(p.labs[0].value);
   const ferLab=p.labs.find(l=>l.label==="Ferritin");
@@ -657,28 +658,21 @@ const CarePlanZone=({p})=>{
     {/* Stepper — fixed, never scrolls */}
     <div style={{padding:"12px 16px",flexShrink:0}}>
       <div style={{display:"flex",alignItems:"center",background:"#fff",border:`0.5px solid ${C.grey[300]}`,borderRadius:10,padding:"10px 16px"}}>
-      {steps.map((lbl,i)=><div key={lbl} style={{display:"flex",alignItems:"center",flex:i<3?1:0,gap:6}}><div style={{display:"flex",alignItems:"center",gap:6,cursor:"pointer"}} onClick={()=>setStep(i)}><SC i={i}/><span style={{fontSize:14,fontWeight:600,fontFamily:font,whiteSpace:"nowrap",color:i<step?C.success[400]:i===step?C.primary[500]:C.grey[500]}}>{lbl}</span></div>{i<3&&<div style={{flex:1,height:2,background:i<step?C.success[400]:C.grey[300],margin:"0 6px"}}/>}</div>)}
+      {steps.map((lbl,i)=><div key={lbl} style={{display:"flex",alignItems:"center",flex:i<2?1:0,gap:6}}><div style={{display:"flex",alignItems:"center",gap:6,cursor:"pointer"}} onClick={()=>setStep(i)}><SC i={i}/><span style={{fontSize:14,fontWeight:600,fontFamily:font,whiteSpace:"nowrap",color:i<step?C.success[400]:i===step?C.primary[500]:C.grey[500]}}>{lbl}</span></div>{i<2&&<div style={{flex:1,height:2,background:i<step?C.success[400]:C.grey[300],margin:"0 6px"}}/>}</div>)}
       </div>
     </div>
 
     <div style={{flex:1,overflowY:"auto",padding:"0 16px 16px",minHeight:0}}>
       <div style={{background:"#fff",border:`0.5px solid ${C.grey[300]}`,borderRadius:10,padding:18}}>
 
-      {/* ── STEP 1: DIAGNOSE ── */}
+      {/* ── STEP 1: OPTIMIZATION RECOMMENDATIONS ── */}
       {step===0&&<div>
-        <StepHeader eyebrow="AI Diagnosis & Recommendation" title="Review AI Diagnosis & Treatment"/>
+        <StepHeader eyebrow="Evidence-Based Optimization Recommendations" title={attestedDx.split("—")[0].trim()}/>
 
-        {/* AI recommendation — dark gradient */}
-        <div style={{background:`linear-gradient(135deg,${C.primary[600]},${C.primary[500]},${C.secondary[600]})`,borderRadius:10,padding:16,marginBottom:14,position:"relative",overflow:"hidden"}}>
-          <div style={{position:"absolute",inset:0,opacity:0.05,backgroundImage:"radial-gradient(rgba(255,255,255,0.9) 1px,transparent 1px)",backgroundSize:"18px 18px",pointerEvents:"none"}}/>
-          <div style={{position:"relative"}}>
-            <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:"rgba(255,255,255,0.5)",fontFamily:font,marginBottom:6}}>AI Diagnosis & Recommendation · {p.aiConfidence}% Confidence</div>
-            <div style={{fontSize:18,fontWeight:700,color:"#fff",fontFamily:font,marginBottom:6}}>{p.diagnosis}</div>
-            <div style={{fontSize:14,color:"rgba(255,255,255,0.65)",fontFamily:font,lineHeight:1.6,marginBottom:12}}>
-              Patient meets criteria: Hgb {p.labs[0].value} g/dL{hgbDrop?` (drop ${hgbDrop} g/dL)`:''}.  Evidence-based protocol per AABB 2020 Transfusion Guidelines.
-            </div>
-            <div style={{display:"flex",gap:4}}>{p.icdCodes.map(c=><span key={c} style={{fontSize:14,fontWeight:600,color:"rgba(255,255,255,0.85)",background:"rgba(255,255,255,0.12)",border:"0.5px solid rgba(255,255,255,0.2)",borderRadius:4,padding:"2px 7px",fontFamily:font}}>{c}</span>)}</div>
-          </div>
+        {/* Treatment Goals */}
+        <div style={{background:C.grey[200],borderRadius:8,padding:"10px 14px",marginBottom:14}}>
+          <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.07em",color:C.grey[500],fontFamily:font,marginBottom:4}}>Treatment Goals</div>
+          <div style={{fontSize:16,color:C.grey[800],fontFamily:font}}>{s==="Critical"?"Hemodynamic stability, Hgb stabilization, identify/treat cause":s==="High"?"Optimize pre-surgical Hgb ≥11 g/dL within 18 days":"Maintain Hgb ≥8.5 g/dL, reduce transfusion exposure"}</div>
         </div>
 
         {/* Attested Diagnosis — EDITABLE */}
@@ -693,25 +687,12 @@ const CarePlanZone=({p})=>{
           <textarea value={clinicalNotes} onChange={e=>setClinicalNotes(e.target.value)} placeholder="Add any modifications or clinical reasoning..." rows={3} style={{width:"100%",boxSizing:"border-box",border:`1px solid ${C.grey[300]}`,borderRadius:6,padding:"9px 12px",fontSize:14,fontFamily:font,color:C.grey[800],resize:"none",outline:"none"}}/>
         </div>
 
-        <StepActions onNext={()=>setStep(1)} nextLabel="Attest & Generate Optimization Recommendations →"/>
-      </div>}
-
-      {/* ── STEP 2: CARE PLAN ── */}
-      {step===1&&<div>
-        <StepHeader eyebrow="Evidence-Based Optimization Recommendations" title={attestedDx.split("—")[0].trim()}/>
-
-        {/* Treatment Goals */}
-        <div style={{background:C.grey[200],borderRadius:8,padding:"10px 14px",marginBottom:14}}>
-          <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.07em",color:C.grey[500],fontFamily:font,marginBottom:4}}>Treatment Goals</div>
-          <div style={{fontSize:16,color:C.grey[800],fontFamily:font}}>{s==="Critical"?"Hemodynamic stability, Hgb stabilization, identify/treat cause":s==="High"?"Optimize pre-surgical Hgb ≥11 g/dL within 18 days":"Maintain Hgb ≥8.5 g/dL, reduce transfusion exposure"}</div>
-        </div>
-
         {/* Interventions — no color coding, uniform style */}
         <div style={{fontSize:14,fontWeight:700,color:C.grey[800],fontFamily:font,marginBottom:10}}>Interventions</div>
 
         {/* Intervention 1: Medication Recommendation — Ganzoni calculated dose (AC3–AC12) */}
         <div style={{background:"#fff",border:`0.5px solid ${C.grey[300]}`,borderLeft:`3px solid ${C.primary[500]}`,borderRadius:"0 8px 8px 0",padding:"10px 14px",marginBottom:8}}>
-          <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:C.grey[500],fontFamily:font,marginBottom:3}}>1. Medication Recommendation</div>
+          <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:C.grey[500],fontFamily:font,marginBottom:3}}>Medication Recommendation</div>
           <div style={{fontSize:16,fontWeight:600,color:C.grey[800],fontFamily:font,marginBottom:8}}>{s==="Critical"?"Supportive care + Iron supplement after stabilization":"IV Iron infusion"}</div>
 
           {/* AC8: Manual Target HGB input */}
@@ -774,17 +755,11 @@ const CarePlanZone=({p})=>{
               </div>}
         </div>
 
-        {/* Interventions 2 & 3 — static */}
-        {[
-          {num:"2.",group:"Monitoring",title:"Lab Monitoring",detail:s==="Critical"?"CBC q6–12h until stable, then daily × 3":"Recheck Hgb + Ferritin in 7–10 days"},
-          {num:"3.",group:"Therapeutics",title:"Iron Therapy",detail:s==="Critical"?"Ferric Carboxymaltose 1000mg IV post-stabilization":"Ferrous sulfate 325mg TID if oral tolerated"},
-        ].map(({num,group,title,detail})=>(
-          <div key={group} style={{background:"#fff",border:`0.5px solid ${C.grey[300]}`,borderLeft:`3px solid ${C.primary[500]}`,borderRadius:"0 8px 8px 0",padding:"10px 14px",marginBottom:8}}>
-            <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:C.grey[500],fontFamily:font,marginBottom:3}}>{num} {group}</div>
-            <div style={{fontSize:16,fontWeight:600,color:C.grey[800],fontFamily:font,marginBottom:2}}>{title}</div>
-            <div style={{fontSize:14,color:C.grey[600],fontFamily:font}}>{detail}</div>
-          </div>
-        ))}
+        {/* Considerations — combined monitoring & therapeutics */}
+        <div style={{background:"#fff",border:`0.5px solid ${C.grey[300]}`,borderLeft:`3px solid ${C.primary[500]}`,borderRadius:"0 8px 8px 0",padding:"10px 14px",marginBottom:8}}>
+          <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:C.grey[500],fontFamily:font,marginBottom:3}}>Considerations</div>
+          <div style={{fontSize:14,color:C.grey[600],fontFamily:font,lineHeight:1.5}}>Review patient-specific contraindications, drug interactions, and formulary availability before finalizing the order.</div>
+        </div>
 
         {/* Clinical Review Warning */}
         <div style={{background:C.yellow[100],border:`0.5px solid rgba(255,196,50,0.4)`,borderRadius:8,padding:"10px 14px",marginBottom:16}}>
@@ -792,11 +767,11 @@ const CarePlanZone=({p})=>{
           <div style={{fontSize:14,color:"#92600A",fontFamily:font,lineHeight:1.5}}>Please review for patient-specific contraindications, drug interactions, and appropriateness before approval.</div>
         </div>
 
-        <StepActions onBack={()=>setStep(0)} onNext={()=>setStep(2)} nextLabel="Check Prior Authorization →"/>
+        <StepActions onNext={()=>setStep(1)} nextLabel="Attest & Check Prior Authorization →"/>
       </div>}
 
-      {/* ── STEP 3: PRIOR AUTH ── */}
-      {step===2&&<div>
+      {/* ── STEP 2: PRIOR AUTH ── */}
+      {step===1&&<div>
         {/* AC1: Top label */}
         <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:C.secondary[500],fontFamily:font,marginBottom:4}}>Prior Authorization Analysis</div>
         <div style={{fontSize:20,fontWeight:700,color:C.grey[800],fontFamily:font,marginBottom:16}}>Approval Probability</div>
@@ -859,11 +834,11 @@ const CarePlanZone=({p})=>{
         </div>
 
         {/* AC8: Step Navigation — ghost back, orange CTA forward */}
-        <StepActions onBack={()=>setStep(1)} backGhost={true} onNext={()=>setStep(3)} nextLabel="Proceed to Notify →" nextOrange={true}/>
+        <StepActions onBack={()=>setStep(0)} backGhost={true} onNext={()=>setStep(2)} nextLabel="Proceed to Notify →" nextOrange={true}/>
       </div>}
 
-      {/* ── STEP 4: NOTIFY & SYNC ── */}
-      {step===3&&(sent
+      {/* ── STEP 3: NOTIFY & SYNC ── */}
+      {step===2&&(sent
         ? <div style={{textAlign:"center",padding:"32px 0"}}>
             <div style={{width:60,height:60,borderRadius:"50%",background:C.success[100],border:`2px solid ${C.success[400]}`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}><CheckCircle size={28} color={C.success[400]}/></div>
             <div style={{fontSize:24,fontWeight:700,color:C.grey[800],fontFamily:font,marginBottom:6}}>Optimization Recommendations Sent Successfully</div>
@@ -881,7 +856,12 @@ const CarePlanZone=({p})=>{
             <StepHeader eyebrow="Epic InBasket & Patient Portal" title="Communicate Optimization Recommendations"/>
 
             {/* AC1: Select Recipients — standard checkboxes (no required flags) */}
-            <div style={{fontSize:14,fontWeight:700,color:C.grey[800],fontFamily:font,marginBottom:10}}>Select Recipients</div>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+              <div style={{fontSize:14,fontWeight:700,color:C.grey[800],fontFamily:font}}>Select Recipients</div>
+              <Button variant="ghost" size="sm" onClick={()=>{setProviderQuery("");setProviderResults([]);setAddRecipientOpen(true);}} leftIcon={<UserPlus size={14} strokeWidth={2}/>}>
+                Add Recipients
+              </Button>
+            </div>
             {standardRecipients.map(({k,name,npi,l})=>(
               <div key={k} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:recipients[k]?C.primary[100]:C.grey[100],border:`0.5px solid ${recipients[k]?C.primary[500]+"33":C.grey[300]}`,borderRadius:8,marginBottom:6,cursor:"pointer"}} onClick={()=>setRecipients(r=>({...r,[k]:!r[k]}))}>
                 <div style={{width:18,height:18,borderRadius:3,border:`1.5px solid ${recipients[k]?C.primary[500]:C.grey[400]}`,background:recipients[k]?C.primary[500]:"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
@@ -895,7 +875,7 @@ const CarePlanZone=({p})=>{
                     <span style={{fontWeight:600,color:C.grey[600]}}>{l}</span>
                   </div>
                 </div>
-                {recipients[k]&&<button type="button" onClick={(e)=>{e.stopPropagation();setRecipients(r=>({...r,[k]:false}));}} aria-label={`Remove ${name}`} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:28,height:28,border:`1px solid ${C.grey[300]}`,borderRadius:5,background:"#fff",color:C.grey[500],cursor:"pointer"}}><X size={14}/></button>}
+                {recipients[k]&&<button type="button" onClick={(e)=>{e.stopPropagation();setRecipients(r=>({...r,[k]:false}));}} aria-label={`Remove ${name}`} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:28,height:28,border:`1px solid ${C.grey[300]}`,borderRadius:5,background:"#fff",color:C.grey[500],cursor:"pointer"}}><Trash2 size={14}/></button>}
               </div>
             ))}
             {addedProviders.map(pr=>(
@@ -905,17 +885,10 @@ const CarePlanZone=({p})=>{
                   <div style={{fontSize:16,fontWeight:600,color:C.grey[800]}}>{pr.name}</div>
                   <div style={{fontSize:13,color:C.grey[500]}}>NPI {pr.npi} · {pr.specialty}</div>
                 </div>
-                <button type="button" onClick={()=>removeProvider(pr.id)} aria-label={`Remove ${pr.name}`} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:28,height:28,border:`1px solid ${C.grey[300]}`,borderRadius:5,background:"#fff",color:C.grey[500],cursor:"pointer"}}><X size={14}/></button>
+                <button type="button" onClick={()=>removeProvider(pr.id)} aria-label={`Remove ${pr.name}`} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:28,height:28,border:`1px solid ${C.grey[300]}`,borderRadius:5,background:"#fff",color:C.grey[500],cursor:"pointer"}}><Trash2 size={14}/></button>
               </div>
             ))}
 
-            {/* AC2: Add Recipients button — opens search modal */}
-            <div style={{marginTop:12,marginBottom:10}}>
-              <button type="button" onClick={()=>{setProviderQuery("");setProviderResults([]);setAddRecipientOpen(true);}} style={{display:"flex",alignItems:"center",gap:8,padding:"10px 16px",border:`1px solid ${C.primary[500]}`,borderRadius:8,background:C.primary[100],color:C.primary[600],fontSize:14,fontWeight:600,fontFamily:font,cursor:"pointer",transition:"background 0.15s"}} onMouseEnter={e=>e.currentTarget.style.background=C.primary[200]} onMouseLeave={e=>e.currentTarget.style.background=C.primary[100]}>
-                <UserPlus size={16} color={C.primary[600]} strokeWidth={2}/>
-                Add Recipients
-              </button>
-            </div>
 
             {addRecipientOpen&&createPortal(
               <div onClick={()=>setAddRecipientOpen(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:500}}>
@@ -987,7 +960,7 @@ const CarePlanZone=({p})=>{
                 <div style={{flex:1}}/>
                 {msgEditing
                   ? <button type="button" onClick={()=>setMsgEditing(false)} style={{display:"inline-flex",alignItems:"center",gap:5,padding:"5px 12px",border:`1px solid ${C.primary[500]}`,borderRadius:6,background:C.primary[500],color:"#fff",fontSize:13,fontWeight:600,fontFamily:font,cursor:"pointer",transition:"background 0.15s"}} onMouseEnter={e=>e.currentTarget.style.background=C.primary[600]} onMouseLeave={e=>e.currentTarget.style.background=C.primary[500]}><Save size={14} color="#fff" strokeWidth={2}/>Save</button>
-                  : <button type="button" onClick={()=>setMsgEditing(true)} style={{display:"inline-flex",alignItems:"center",gap:5,padding:"5px 12px",border:`1px solid ${C.primary[500]}`,borderRadius:6,background:C.primary[100],color:C.primary[600],fontSize:13,fontWeight:600,fontFamily:font,cursor:"pointer",transition:"background 0.15s"}} onMouseEnter={e=>e.currentTarget.style.background=C.primary[200]} onMouseLeave={e=>e.currentTarget.style.background=C.primary[100]}><Pencil size={14} color={C.primary[600]} strokeWidth={2}/>Edit</button>}
+                  : <Button variant="ghost" size="sm" onClick={()=>setMsgEditing(true)} leftIcon={<Pencil size={14} strokeWidth={2}/>}>Edit</Button>}
               </div>
               <div style={{background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:8,padding:12}}>
                 {msgEditing
@@ -1000,7 +973,7 @@ const CarePlanZone=({p})=>{
             {sendError&&<div role="alert" style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",marginBottom:12,background:C.error[100],border:`0.5px solid ${C.error[400]}55`,borderRadius:8,fontSize:14,color:C.error[400],fontFamily:font}}><AlertTriangle size={15}/> {sendError}</div>}
 
             {/* AC5: Send button disabled when no recipients selected. AC8: Back retains selections. */}
-            <StepActions onBack={()=>setStep(2)} onNext={handleSend} nextLabel="Send to All Selected Recipients →" nextOrange={true}/>
+            <StepActions onBack={()=>setStep(1)} onNext={handleSend} nextLabel="Send to All Selected Recipients →" nextOrange={true}/>
           </div>
       )}
       </div>
@@ -1008,7 +981,7 @@ const CarePlanZone=({p})=>{
   </div>
 );};
 
-const PatientHeader=({p,onOpenIQ,onOpenCC,onBack,backLabel="Back to Worklist"})=>{
+const PatientHeader=({p,onOpenCC,onBack,backLabel="Back to Worklist",onScheduleFollowUp})=>{
   const ag=getAnemiaGrade(p.labs[0].value);
   const [scheduledVisits,setScheduledVisits]=useState(()=>getFollowUps().filter(v=>v.patientId===p.id&&v.status==="Scheduled").sort((a,b)=>new Date(a.followUpAt)-new Date(b.followUpAt)));
   const [popoverOpen,setPopoverOpen]=useState(false);
@@ -1047,7 +1020,7 @@ const PatientHeader=({p,onOpenIQ,onOpenCC,onBack,backLabel="Back to Worklist"})=
   <div style={{background:"#fff",borderBottom:`1px solid ${C.grey[300]}`,flexShrink:0,padding:"12px 20px",display:"flex",alignItems:"center",gap:16}}>
     <div style={{flex:1,minWidth:0}}>
       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:5}}>
-        <span title={backLabel} aria-label={backLabel} style={{display:"inline-flex",alignItems:"center",cursor:"pointer",flexShrink:0}} onClick={onBack} onMouseEnter={e=>e.currentTarget.querySelector("svg").style.color=C.primary[500]} onMouseLeave={e=>e.currentTarget.querySelector("svg").style.color=C.grey[500]}><ArrowLeft size={20} color={C.grey[500]} strokeWidth={2} style={{transition:"color 0.15s"}}/></span>
+        <button type="button" title={backLabel} aria-label={backLabel} onClick={onBack} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",border:0,background:"transparent",color:C.grey[500],cursor:"pointer",flexShrink:0,padding:6,borderRadius:6,transition:"color 0.15s, background 0.15s"}} onMouseEnter={e=>{e.currentTarget.style.color=C.primary[500];e.currentTarget.style.background=C.primary[100];}} onMouseLeave={e=>{e.currentTarget.style.color=C.grey[500];e.currentTarget.style.background="transparent";}}><ArrowLeft size={20} strokeWidth={2} style={{transition:"color 0.15s"}}/></button>
         <span style={{fontSize:20,fontWeight:700,color:C.grey[800],fontFamily:font}}>{p.name}</span>
         <SevChip tier={ag.tier}/>
         {CAN_CLINICAL_NAVIGATION&&soonestOverdue&&<button ref={chipRef} type="button" onClick={openChip} title={`Overdue follow-up · ${formatFollowUp(soonest.followUpAt)} · ${(soonest.specialties||[]).join(", ")||"No specialty listed"}`} aria-label={`Overdue follow-up on ${formatFollowUp(soonest.followUpAt)}`} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",padding:2,border:0,borderRadius:4,background:"transparent",color:C.error[400],cursor:"pointer"}} onMouseEnter={e=>e.currentTarget.style.background=C.error[100]} onMouseLeave={e=>e.currentTarget.style.background="transparent"}><CalendarClock size={16} color={C.error[400]} strokeWidth={2}/></button>}
@@ -1069,7 +1042,7 @@ const PatientHeader=({p,onOpenIQ,onOpenCC,onBack,backLabel="Back to Worklist"})=
       </div>
     </div>
     <div style={{display:"flex",alignItems:"center",gap:8}}>
-      <Button variant="primary" size="md" onClick={onOpenIQ} leftIcon={<span style={{fontSize:14,lineHeight:1}}>✦</span>}>IQ Assistant</Button>
+      <Button variant="primary" size="md" onClick={onScheduleFollowUp} leftIcon={<CalendarClock size={15} strokeWidth={2}/>}>Schedule Follow-Up</Button>
     </div>
   </div>
   {popoverOpen&&scheduledVisits.length>1&&createPortal(<div ref={popoverRef} style={{position:"fixed",left:popoverPos.left,top:popoverPos.top,width:300,background:C.grey[100],border:`1px solid ${C.grey[300]}`,borderRadius:8,boxShadow:"0 8px 22px rgba(31,55,57,0.14)",padding:"6px 0",zIndex:400}}><div style={{padding:"7px 12px 6px",fontSize:11,fontWeight:700,color:C.grey[500],textTransform:"uppercase",letterSpacing:"0.08em",fontFamily:font}}>Scheduled Follow-Ups</div>{scheduledVisits.map(v=><button key={v.id} type="button" onClick={()=>{setPopoverOpen(false);setDetailVisit(v);}} style={{display:"flex",flexDirection:"column",alignItems:"flex-start",gap:3,width:"100%",border:0,background:"transparent",padding:"9px 12px",cursor:"pointer",textAlign:"left",fontFamily:font}} onMouseEnter={e=>e.currentTarget.style.background=C.grey[200]} onMouseLeave={e=>e.currentTarget.style.background="transparent"}><span style={{fontSize:14,fontWeight:600,color:C.grey[800]}}>{formatFollowUp(v.followUpAt)}{new Date(v.followUpAt).getTime()<Date.now()&&<span style={{color:C.error[400],marginLeft:6}}>Overdue</span>}</span><span style={{fontSize:12,color:C.grey[600]}}>{(v.specialties||[]).join(", ")}</span></button>)}</div>,document.body)}
@@ -1077,7 +1050,7 @@ const PatientHeader=({p,onOpenIQ,onOpenCC,onBack,backLabel="Back to Worklist"})=
   </>
 );};
 
-const ZoneTabs=({active,onChange,pendingCount})=><div style={{background:C.grey[100],borderBottom:`0.5px solid ${C.grey[300]}`,display:"flex",padding:"0 20px",flexShrink:0}}>{[{id:"overview",label:"Clinical Decision Support",Icon:User},{id:"cp",label:"Optimization Recommendations",Icon:ClipboardList},{id:"cc",label:"Care Coordination",Icon:MessageSquare}].map(({id,label,Icon})=>{const a=active===id;return <div key={id} onClick={()=>onChange(id)} style={{display:"flex",alignItems:"center",gap:6,padding:"10px 16px 9px",borderBottom:a?`2px solid ${C.primary[500]}`:"2px solid transparent",cursor:"pointer",fontSize:16,fontWeight:a?600:400,color:a?C.grey[800]:C.grey[500],fontFamily:font,marginBottom:-1,transition:"all 0.12s",whiteSpace:"nowrap"}}><Icon size={14} strokeWidth={1.5} color={a?C.primary[500]:C.grey[500]}/>{label}{id==="cc"&&pendingCount>0&&<span title={`${pendingCount} pending care coordination messages`} aria-label={`${pendingCount} pending care coordination messages`} onClick={(e)=>{e.stopPropagation();onChange("cc");}} style={{display:"inline-flex",alignItems:"center",background:C.orange[100],color:C.orange[400],border:`1px solid ${C.orange[400]}80`,fontSize:11,fontWeight:700,borderRadius:999,padding:"2px 8px",cursor:"pointer",marginLeft:2,fontFamily:font,whiteSpace:"nowrap"}}>{pendingCount} Pending</span>}</div>;})}</div>;
+const ZoneTabs=({active,onChange,pendingCount})=><div style={{background:C.grey[100],borderBottom:`0.5px solid ${C.grey[300]}`,display:"flex",padding:"0 20px",flexShrink:0}}>{[{id:"overview",label:"Clinical Decision Support",Icon:User},{id:"cp",label:"Optimization Recommendations",Icon:ClipboardList},{id:"cc",label:"Care Coordination",Icon:MessageSquare}].map(({id,label,Icon})=>{const a=active===id;return <div key={id} onClick={()=>onChange(id)} style={{display:"flex",alignItems:"center",gap:6,padding:"10px 16px 9px",borderBottom:a?`2px solid ${C.primary[500]}`:"2px solid transparent",cursor:"pointer",fontSize:16,fontWeight:a?600:400,color:a?C.grey[800]:C.grey[500],fontFamily:font,marginBottom:-1,transition:"all 0.12s",whiteSpace:"nowrap"}}><Icon size={14} strokeWidth={1.5} color={a?C.primary[500]:C.grey[500]}/>{label}{id==="cc"&&pendingCount>0&&<span title={`${pendingCount} pending care coordination messages`} aria-label={`${pendingCount} pending care coordination messages`} onClick={(e)=>{e.stopPropagation();onChange("cc");}} style={{minWidth:16,height:16,borderRadius:999,display:"inline-grid",placeItems:"center",background:"#F4DFE4",color:"#B00A2F",fontSize:10,fontWeight:700,marginLeft:4,padding:"0 4px",cursor:"pointer",fontFamily:font}}>{pendingCount}</span>}</div>;})}</div>;
 
 const MiniWorklist=({patients,activeId,onSelect,onBack})=>(
   <div style={{width:240,flexShrink:0,background:"#fff",borderRight:`1px solid ${C.grey[300]}`,display:"flex",flexDirection:"column",overflow:"hidden",height:"100%"}}>
@@ -1159,8 +1132,7 @@ const IQAssistantPanel=({p,onClose,expanded,onToggleExpand})=>{
 
 const PatientWorkspace=({patient,allPatients,onBack,onSelectPatient,defaultZone="overview",backLabel="Back to Worklist"})=>{
   const [zone,setZone]=useState(defaultZone);
-  const [iqOpen,setIqOpen]=useState(false);
-  const [iqExpanded,setIqExpanded]=useState(false);
+  const [fuModalOpen,setFuModalOpen]=useState(false);
   return(
   <div style={{display:"flex",flexDirection:"column",height:"100dvh",fontFamily:font,background:C.grey[200],overflow:"hidden"}}>
     <div style={{height:56,flexShrink:0,background:C.grey[100],borderBottom:`0.5px solid ${C.grey[300]}`,display:"flex",alignItems:"center",padding:"0 24px"}}>
@@ -1173,7 +1145,7 @@ const PatientWorkspace=({patient,allPatients,onBack,onSelectPatient,defaultZone=
     </div>
     <div style={{display:"flex",flex:1,overflow:"hidden"}}>
       <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",minWidth:0}}>
-        <PatientHeader p={patient} onOpenIQ={()=>setIqOpen(o=>!o)} onOpenCC={()=>setZone("cc")} onBack={onBack} backLabel={backLabel}/>
+        <PatientHeader p={patient} onOpenCC={()=>setZone("cc")} onBack={onBack} backLabel={backLabel} onScheduleFollowUp={()=>setFuModalOpen(true)}/>
         <ZoneTabs active={zone} onChange={setZone} pendingCount={getPendingCount(patient.id)}/>
         <div style={{flex:1,display:"flex",overflow:"hidden",minHeight:0}}>
           <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",minWidth:0}}>
@@ -1181,10 +1153,10 @@ const PatientWorkspace=({patient,allPatients,onBack,onSelectPatient,defaultZone=
 {zone==="cp"&&<CarePlanZone p={patient}/>}
             {zone==="cc"&&<CareCoordination patient={patient}/>}
           </div>
-          {iqOpen&&<IQAssistantPanel p={patient} onClose={()=>setIqOpen(false)} expanded={iqExpanded} onToggleExpand={()=>setIqExpanded(e=>!e)}/>}
         </div>
       </div>
     </div>
+    {fuModalOpen&&<ScheduleFollowUpModal patient={patient} onClose={()=>setFuModalOpen(false)}/>}
   </div>
 );};
 
@@ -1200,19 +1172,21 @@ const PatientRow=({p,onOpen})=>{
   const dr=getDeltaRisk(p.labs[0].draws);
   return <>
     <tr style={{borderBottom:`0.5px solid ${C.grey[300]}`,cursor:"pointer"}} onMouseEnter={e=>e.currentTarget.style.background=C.grey[200]} onMouseLeave={e=>e.currentTarget.style.background="transparent"} onClick={()=>onOpen(p,"overview")}>
-      <td style={{padding:"12px 16px",minWidth:180}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:2}}><span style={{fontSize:16,fontWeight:600,color:C.grey[800],fontFamily:font}}>{p.name}</span><SevChip tier={ag.tier}/>{dr?.isRisk&&<span className="tabular-nums-hc1" style={{fontSize:12,fontWeight:700,color:C.error[400],background:C.error[100],borderRadius:2,padding:"1px 4px",fontFamily:font}}>ΔHb {dr.pct}% ⚠</span>}</div><span className="tabular-nums-hc1" style={{fontSize:14,color:C.grey[500],fontFamily:font,display:"block",marginBottom:2}}>MRN {p.id} · Age {p.age}</span><span className="tabular-nums-hc1" style={{fontSize:14,color:C.grey[500],fontFamily:font,display:"block",marginBottom:5}}>Surgery Date: {fmtCaseDate(p.admitDate)}</span><div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}><span style={{fontSize:12,fontWeight:600,color:C.grey[700],background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:4,padding:"2px 7px",fontFamily:font,letterSpacing:"0.05em",textTransform:"uppercase"}}>{p.caseType}</span>{getPendingCount(p.id)>0&&<span title={`${getPendingCount(p.id)} pending care coordination messages`} aria-label={`${getPendingCount(p.id)} pending care coordination messages`} onClick={(e)=>{e.stopPropagation();onOpen(p,"cc");}} style={{display:"inline-flex",alignItems:"center",background:C.orange[100],color:C.orange[400],border:`1px solid ${C.orange[400]}80`,borderRadius:999,padding:"2px 8px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:font,whiteSpace:"nowrap"}}>{getPendingCount(p.id)} Pending</span>}</div></td>
+      <td style={{padding:"12px 16px",minWidth:180}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:2}}><span style={{fontSize:16,fontWeight:600,color:C.grey[800],fontFamily:font}}>{p.name}</span><SevChip tier={ag.tier}/>{dr?.isRisk&&<span className="tabular-nums-hc1" style={{fontSize:12,fontWeight:700,color:C.error[400],background:C.error[100],borderRadius:2,padding:"1px 4px",fontFamily:font}}>ΔHb {dr.pct}% ⚠</span>}</div><span className="tabular-nums-hc1" style={{fontSize:14,color:C.grey[500],fontFamily:font,display:"block",marginBottom:2}}>MRN {p.id} · Age {p.age}</span><span className="tabular-nums-hc1" style={{fontSize:14,color:C.grey[500],fontFamily:font,display:"block",marginBottom:5}}>Surgery Date: {fmtCaseDate(p.admitDate)}</span><div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}><span style={{fontSize:12,fontWeight:600,color:C.grey[700],background:C.grey[200],border:`0.5px solid ${C.grey[300]}`,borderRadius:4,padding:"2px 7px",fontFamily:font,letterSpacing:"0.05em",textTransform:"uppercase"}}>{p.caseType}</span>{getPendingCount(p.id)>0&&<span title={`${getPendingCount(p.id)} pending care coordination messages`} aria-label={`${getPendingCount(p.id)} pending care coordination messages`} onClick={(e)=>{e.stopPropagation();onOpen(p,"cc");}} style={{minWidth:16,height:16,borderRadius:999,display:"inline-grid",placeItems:"center",background:"#F4DFE4",color:"#B00A2F",fontSize:10,fontWeight:700,padding:"0 4px",cursor:"pointer",fontFamily:font}}>{getPendingCount(p.id)}</span>}</div></td>
       <td style={{padding:"12px 16px",minWidth:190}}>
         <div style={{display:"flex",gap:14}}><div>
           <div style={{fontSize:12,fontWeight:700,color:C.grey[600],textTransform:"uppercase",letterSpacing:"0.07em",fontFamily:font,marginBottom:3}}>HGB</div>
           <div style={{display:"flex",alignItems:"baseline",gap:2}}><span className="tabular-nums-hc1" style={{fontSize:24,fontWeight:500,color:p.labs[0].status==="critical"?C.error[400]:p.labs[0].status==="high"||p.labs[0].status==="borderline"?C.orange[400]:C.grey[600],fontFamily:font,letterSpacing:"-0.01em"}}>{p.labs[0].value}</span><span style={{fontSize:14,color:C.grey[500],fontFamily:font}}>g/dL</span></div>
         </div><div style={{width:"0.5px",background:C.grey[300],alignSelf:"stretch"}}/><div>
           <div style={{fontSize:12,fontWeight:700,color:C.grey[600],textTransform:"uppercase",letterSpacing:"0.07em",fontFamily:font,marginBottom:3}}>Ferritin</div>
-          <div style={{display:"flex",alignItems:"baseline",gap:2}}><span className="tabular-nums-hc1" style={{fontSize:24,fontWeight:500,color:ferC,fontFamily:font,letterSpacing:"-0.01em"}}>{ferRowMissing?"—":ferLabRow.value}</span><span style={{fontSize:14,color:C.grey[500],fontFamily:font}}>ng/mL</span></div>
-          <div style={{marginTop:3}}>{ferRowMissing? <span style={{fontSize:12,fontWeight:700,color:C.orange[400],fontFamily:font}}>Missing</span> : <StatusChip status={ferLabRow.status}/>}</div>
+          {ferRowMissing
+            ? <div style={{display:"flex",alignItems:"flex-start"}}><FlaskConicalOff size={20} strokeWidth={1.5} color={C.grey[400]}/></div>
+            : <div style={{display:"flex",alignItems:"baseline",gap:2}}><span className="tabular-nums-hc1" style={{fontSize:24,fontWeight:500,color:ferC,fontFamily:font,letterSpacing:"-0.01em"}}>{ferLabRow.value}</span><span style={{fontSize:14,color:C.grey[500],fontFamily:font}}>ng/mL</span></div>}
         </div><div style={{width:"0.5px",background:C.grey[300],alignSelf:"stretch"}}/><div>
           <div style={{fontSize:12,fontWeight:700,color:C.grey[600],textTransform:"uppercase",letterSpacing:"0.07em",fontFamily:font,marginBottom:3}}>TSAT</div>
-          <div style={{display:"flex",alignItems:"baseline",gap:2}}><span className="tabular-nums-hc1" style={{fontSize:24,fontWeight:500,color:tsatC,fontFamily:font,letterSpacing:"-0.01em"}}>{tsatRowMissing?"—":tsatLabRow.value}</span><span style={{fontSize:14,color:C.grey[500],fontFamily:font}}>%</span></div>
-          <div style={{marginTop:3}}>{tsatRowMissing? <span style={{fontSize:12,fontWeight:700,color:C.orange[400],fontFamily:font}}>Missing</span> : <StatusChip status={tsatLabRow.status}/>}</div>
+          {tsatRowMissing
+            ? <div style={{display:"flex",alignItems:"flex-start"}}><FlaskConicalOff size={20} strokeWidth={1.5} color={C.grey[400]}/></div>
+            : <div style={{display:"flex",alignItems:"baseline",gap:2}}><span className="tabular-nums-hc1" style={{fontSize:24,fontWeight:500,color:tsatC,fontFamily:font,letterSpacing:"-0.01em"}}>{tsatLabRow.value}</span><span style={{fontSize:14,color:C.grey[500],fontFamily:font}}>%</span></div>}
         </div></div>
       </td>
       <td style={{padding:"12px 16px",minWidth:95}} onClick={e=>{e.stopPropagation();setTrsOpen(v=>!v);}}><div style={{cursor:"pointer",display:"inline-block"}}><TRSGauge value={p._trs.score} trsSev={p._trs.trsSev} size={52}/><div style={{marginTop:3}}><SevChip tier={trsTier(p._trs.trsSev)}/></div></div></td>
@@ -1227,9 +1201,9 @@ export default function App(){
   const [screen,setScreen]=useState("worklist");const [activePatient,setActivePatient]=useState(null);const [defaultZone,setDefaultZone]=useState("overview");const [returnTo,setReturnTo]=useState("worklist");
   const [completedPatients,setCompletedPatientsState]=useState(()=>getCompletedPatients());
   useEffect(()=>{const h=()=>setCompletedPatientsState(getCompletedPatients());window.addEventListener("case-completions-updated",h);window.addEventListener("storage",h);return()=>{window.removeEventListener("case-completions-updated",h);window.removeEventListener("storage",h);};},[]);
-  const [search,setSearch]=useState("");const [selectedFacilities,setSelectedFacilities]=useState(FACILITIES);const [selectedCaseTypes,setSelectedCaseTypes]=useState(CASE_TYPES.slice(1));const [sevFilter,setSevFilter]=useState("All Severity");const [dateFilter,setDateFilter]=useState("Surgery Date");const [startDate,setStartDate]=useState("");const [endDate,setEndDate]=useState("");const [statusFilter,setStatusFilter]=useState("Active");const [sortBy,setSortBy]=useState("Severity");
+  const [search,setSearch]=useState("");const [selectedFacilities,setSelectedFacilities]=useState(FACILITIES);const [selectedCaseTypes,setSelectedCaseTypes]=useState(CASE_TYPES.slice(1));const [sevFilter,setSevFilter]=useState("All Severity");const [startDate,setStartDate]=useState("");const [endDate,setEndDate]=useState("");const [statusFilter,setStatusFilter]=useState("Active");const [sortBy,setSortBy]=useState("Severity");
   const [,setTick]=useState(0);
-  const resetFilters=()=>{setSearch("");setSelectedCaseTypes(CASE_TYPES.slice(1));setSevFilter("All Severity");setDateFilter("Surgery Date");setStartDate("");setEndDate("");setStatusFilter("Active");setSortBy("Severity");};
+  const resetFilters=()=>{setSearch("");setSelectedCaseTypes(CASE_TYPES.slice(1));setSevFilter("All Severity");setStartDate("");setEndDate("");setStatusFilter("Active");setSortBy("Severity");};
   const openPatientFromFollowUp=(patientId)=>{const p=PATIENTS.find(pt=>pt.id===patientId);if(!p)return;setActivePatient(p);setDefaultZone("overview");setReturnTo("followup");setScreen("workspace");};
   const scrollRef=useRef(null);
   const savedScroll=useRef(0);
@@ -1257,7 +1231,7 @@ export default function App(){
   const COLS=["PATIENT","LAB VALUES","TRS","RISK IDENTIFIERS","PROVIDER"];
   const SEV_RANK={"Severe":0,"Moderate":1,"Mild":2,"No Anemia":3};
   const completedSet=new Set(completedPatients);
-  const filtered=PATIENTS.filter(p=>{const surgeryDate=dateInputValue(p.admitDate);const dateMatches=dateFilter!=="Custom Date Range"||((!startDate||surgeryDate>=startDate)&&(!endDate||surgeryDate<=endDate));const statusMatch=statusFilter==="Completed"?completedSet.has(p.id):statusFilter==="Notified"?getAuditTrail(p.id).some(e=>e.action&&e.action.startsWith("Notify"))&&!completedSet.has(p.id):!completedSet.has(p.id)&&(p.caseStatus||"Active")===statusFilter;
+  const filtered=PATIENTS.filter(p=>{const surgeryDate=dateInputValue(p.admitDate);const dateMatches=(!startDate||surgeryDate>=startDate)&&(!endDate||surgeryDate<=endDate);const statusMatch=statusFilter==="Completed"?completedSet.has(p.id):statusFilter==="Notified"?getAuditTrail(p.id).some(e=>e.action&&e.action.startsWith("Notify"))&&!completedSet.has(p.id):!completedSet.has(p.id)&&(p.caseStatus||"Active")===statusFilter;
   return statusMatch&&(selectedFacilities.includes(p.facility))&&(!search||p.name.toLowerCase().includes(search.toLowerCase())||p.id.toLowerCase().includes(search.toLowerCase())||p.provider.toLowerCase().includes(search.toLowerCase()))&&selectedCaseTypes.includes(p.caseType)&&dateMatches;});
   const sorted=[...filtered].sort((a,b)=>{if(sortBy==="Visit Date"){const da=new Date(a.admitDate).getTime()||0;const db=new Date(b.admitDate).getTime()||0;return da-db;}const ra=SEV_RANK[getAnemiaGrade(a.labs[0].value).label]??99;const rb=SEV_RANK[getAnemiaGrade(b.labs[0].value).label]??99;if(ra===rb){const da=new Date(a.admitDate).getTime()||0;const db=new Date(b.admitDate).getTime()||0;return db-da;}return ra-rb;});
   return(
@@ -1276,17 +1250,17 @@ export default function App(){
       <div style={{background:C.grey[100],borderRadius:12,border:`0.5px solid ${C.grey[300]}`,boxShadow:"0 1px 8px rgba(0,0,0,0.06)",overflow:"hidden",display:"flex",flexDirection:"column",flex:1,minHeight:0}}>
         <div style={{padding:"12px 20px",borderBottom:`0.5px solid ${C.grey[300]}`,display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
           <FacilityFilter selected={selectedFacilities} onChange={setSelectedFacilities}/>
-          <div style={{position:"relative",width:260,height:42}}><span style={{position:"absolute",zIndex:1,top:-7,left:10,padding:"0 4px",background:"#fff",fontSize:11,color:C.grey[500],lineHeight:1,fontFamily:font}}>Search *</span><Search size={13} color={C.grey[500]} style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search patients, MRN, provider..." style={{width:"100%",height:"100%",boxSizing:"border-box",padding:"8px 10px 4px 30px",border:`1px solid ${C.grey[400]}`,borderRadius:3,fontSize:14,color:C.grey[800],background:"#fff",outline:"none",fontFamily:font}}/></div>
+          <div style={{position:"relative",width:260}}><span style={{position:"absolute",zIndex:1,top:-7,left:10,padding:"0 4px",background:C.grey[100],fontSize:11,color:C.grey[500],lineHeight:1,fontFamily:font}}>Search *</span><Search size={13} color={C.grey[500]} style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search patients, MRN, provider..." style={{width:"100%",boxSizing:"border-box",padding:"6px 10px 6px 30px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,fontSize:14,color:C.grey[800],background:C.grey[100],outline:"none",fontFamily:font}}/></div>
           <div style={{flex:1}}/><Filter size={13} color={C.grey[500]}/><span style={{fontSize:14,color:C.grey[500],fontFamily:font}}>Filter by:</span>
           <CaseTypeFilter selected={selectedCaseTypes} onChange={setSelectedCaseTypes}/>
           <StatusFilter value={statusFilter} onChange={setStatusFilter}/>
-          {[{v:sevFilter,s:setSevFilter,o:["All Severity","Severe","Moderate","Mild","No Anemia"]}].map((dd,i)=><div key={i} style={{position:"relative"}}><select value={dd.v} onChange={e=>dd.s(e.target.value)} style={{appearance:"none",padding:"6px 26px 6px 10px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,fontSize:14,color:C.grey[700],background:C.grey[100],cursor:"pointer",outline:"none",fontFamily:font}}>{dd.o.map(o=><option key={o}>{o}</option>)}</select><ChevronDown size={10} color={C.grey[500]} style={{position:"absolute",right:7,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/></div>)}
-          <div style={{display:"flex",alignItems:"center",gap:8}}><div style={{position:"relative"}}><span style={{position:"absolute",zIndex:1,top:-7,left:10,padding:"0 4px",background:C.grey[100],fontSize:11,color:C.grey[500],lineHeight:1,fontFamily:font}}>Date*</span><select value={dateFilter} onChange={e=>setDateFilter(e.target.value)} style={{appearance:"none",padding:"6px 26px 6px 10px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,fontSize:14,color:C.grey[700],background:C.grey[100],cursor:"pointer",outline:"none",fontFamily:font}}>{DATE_OPTIONS.map(option=><option key={option}>{option}</option>)}</select><ChevronDown size={10} color={C.grey[500]} style={{position:"absolute",right:7,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/></div>{dateFilter==="Custom Date Range"&&<><input aria-label="Start date" type="date" value={startDate} onChange={e=>setStartDate(e.target.value)} style={{height:32,width:118,boxSizing:"border-box",padding:"4px 7px",border:`0.5px solid ${C.grey[300]}`,borderRadius:6,fontSize:12,color:C.grey[700],background:C.grey[100],fontFamily:font}}/><span style={{fontSize:12,color:C.grey[500],fontFamily:font}}>to</span><input aria-label="End date" type="date" value={endDate} min={startDate||undefined} onChange={e=>setEndDate(e.target.value)} style={{height:32,width:118,boxSizing:"border-box",padding:"4px 7px",border:`0.5px solid ${C.grey[300]}`,borderRadius:6,fontSize:12,color:C.grey[700],background:C.grey[100],fontFamily:font}}/></>}</div>
+          {[{v:sevFilter,s:setSevFilter,o:["All Severity","Severe","Moderate","Mild","No Anemia"]}].map((dd,i)=><div key={i} style={{position:"relative"}}><span style={{position:"absolute",zIndex:1,top:-7,left:10,padding:"0 4px",background:C.grey[100],fontSize:11,color:C.grey[500],lineHeight:1,fontFamily:font}}>Severity*</span><select value={dd.v} onChange={e=>dd.s(e.target.value)} style={{appearance:"none",padding:"6px 26px 6px 10px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,fontSize:14,color:C.grey[700],background:C.grey[100],cursor:"pointer",outline:"none",fontFamily:font}}>{dd.o.map(o=><option key={o}>{o}</option>)}</select><ChevronDown size={10} color={C.grey[500]} style={{position:"absolute",right:7,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/></div>)}
+          <div style={{display:"flex",alignItems:"center",gap:8}}><div style={{position:"relative"}}><span style={{position:"absolute",zIndex:1,top:-7,left:10,padding:"0 4px",background:C.grey[100],fontSize:11,color:C.grey[500],lineHeight:1,fontFamily:font}}>Start date*</span><input aria-label="Start date" type="date" value={startDate} onChange={e=>setStartDate(e.target.value)} style={{width:128,boxSizing:"border-box",padding:"6px 26px 6px 10px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,fontSize:14,color:C.grey[700],background:C.grey[100],fontFamily:font}}/></div><span style={{fontSize:12,color:C.grey[500],fontFamily:font}}>to</span><div style={{position:"relative"}}><span style={{position:"absolute",zIndex:1,top:-7,left:10,padding:"0 4px",background:C.grey[100],fontSize:11,color:C.grey[500],lineHeight:1,fontFamily:font}}>End date*</span><input aria-label="End date" type="date" value={endDate} min={startDate||undefined} onChange={e=>setEndDate(e.target.value)} style={{width:128,boxSizing:"border-box",padding:"6px 26px 6px 10px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,fontSize:14,color:C.grey[700],background:C.grey[100],fontFamily:font}}/></div></div>
           <div style={{position:"relative"}}><span style={{position:"absolute",zIndex:1,top:-7,left:10,padding:"0 4px",background:C.grey[100],fontSize:11,color:C.grey[500],lineHeight:1,fontFamily:font}}>Sort by*</span><select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{appearance:"none",padding:"6px 26px 6px 10px",border:`0.5px solid ${C.grey[300]}`,borderRadius:8,fontSize:14,color:C.grey[700],background:C.grey[100],cursor:"pointer",outline:"none",fontFamily:font}}><option>Severity</option><option>Visit Date</option></select><ChevronDown size={10} color={C.grey[500]} style={{position:"absolute",right:7,top:"50%",transform:"translateY(-50%)",pointerEvents:"none"}}/></div>
           <button type="button" onClick={resetFilters} title="Reset filters" aria-label="Reset filters" onMouseEnter={e=>e.currentTarget.style.background=C.grey[200]} onMouseLeave={e=>e.currentTarget.style.background=C.grey[100]} style={{width:36,height:36,display:"inline-flex",alignItems:"center",justifyContent:"center",padding:0,border:`1px solid ${C.grey[400]}`,borderRadius:8,background:C.grey[100],color:C.grey[700],cursor:"pointer",transition:"background 0.15s"}}><RotateCcw size={17} strokeWidth={1.8}/></button>
         </div>
         <div ref={scrollRef} style={{flex:1,overflowY:"auto",overflowX:"auto",minHeight:0}}><table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr style={{background:C.grey[200],borderBottom:`1px solid ${C.grey[300]}`}}>{COLS.map(h=><th key={h} style={{fontSize:14,fontWeight:700,letterSpacing:"0.06em",color:C.grey[600],textAlign:"left",padding:"10px 16px",textTransform:"uppercase",whiteSpace:"nowrap",fontFamily:font}}>{h}</th>)}</tr></thead><tbody>{sorted.length===0?<tr><td colSpan={COLS.length} style={{padding:24,textAlign:"center",fontSize:14,color:C.grey[500],fontFamily:font}}>No patients match</td></tr>:sorted.map(p=><PatientRow key={p.id} p={p} onOpen={(p,zone="overview")=>{if(scrollRef.current)savedScroll.current=scrollRef.current.scrollTop;setActivePatient(p);setDefaultZone(zone);setReturnTo("worklist");setScreen("workspace");}}/>)}</tbody></table></div>
-        <div style={{padding:"9px 16px",borderTop:`0.5px solid ${C.grey[300]}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:14,color:C.grey[500],fontFamily:font}}>Showing {sorted.length} of {PATIENTS.length} patients</span><div style={{display:"flex",alignItems:"center",gap:6}}><div style={{width:6,height:6,borderRadius:"50%",background:C.success[400]}}/><span style={{fontSize:14,color:C.success[400],fontFamily:font}}>FHIR R4 Live · Synced 2 min ago</span></div></div>
+        <div style={{padding:"9px 16px",borderTop:`0.5px solid ${C.grey[300]}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:14,color:C.grey[500],fontFamily:font}}>Showing {sorted.length} of {PATIENTS.length} patients</span></div>
       </div>
     </div>
   </div>

@@ -125,7 +125,6 @@ export const BloodHealthAppNav = ({ onNavigate, currentScreen }) => {
   const getMenuItems = (menu) => {
     if (menu === "reports") return REPORT_ITEMS;
     if (menu === "settings") return visibleSettings.map((s) => s.label);
-    if (menu === "profile") return ["Sign out"];
     return [];
   };
 
@@ -252,45 +251,16 @@ export const BloodHealthAppNav = ({ onNavigate, currentScreen }) => {
         )}
       </div>
 
-      <div style={{ position: "relative" }}>
-        <button
-          type="button"
-          aria-expanded={openMenu === "profile"}
-          aria-haspopup="menu"
-          onClick={() => { setOpenMenu(openMenu === "profile" ? null : "profile"); setFocusedIndex(0); }}
-          onKeyDown={(e) => handleTriggerKey(e, "profile")}
-          style={{ ...menuButtonStyle(openMenu === "profile"), padding: "4px 6px" }}
-        >
-          <div style={{ width: 26, height: 26, borderRadius: "50%", display: "grid", placeItems: "center", background: "#E4F1F0", color: "#0D7782", fontSize: 11, fontWeight: 700 }}>TH</div>
-          <div style={{ textAlign: "left", lineHeight: 1.2 }}>
-            <div style={{ fontWeight: 700, fontSize: 13 }}>Tiffany Hall</div>
-            <div style={{ color: "#7A8788", fontSize: 11 }}>{currentRole}</div>
-          </div>
-          <ChevronDown size={12} style={{ transform: openMenu === "profile" ? "rotate(180deg)" : "none", transition: "transform 0.15s" }} />
-        </button>
-        {openMenu === "profile" && (
-          <div role="menu" style={{ ...dropdownStyle, width: 220 }}>
-            <div style={{ padding: "10px 12px" }}>
-              <div style={{ fontWeight: 700, fontSize: 13, color: "#273233" }}>Tiffany Hall</div>
-              <div style={{ fontSize: 12, color: "#7A8788" }}>{currentRole}</div>
-              <div style={{ fontSize: 12, color: "#8A9697", marginTop: 2 }}>tiffany.hall@hc1.com</div>
-            </div>
-            <div style={{ height: 1, background: "#E2E8E8", margin: "4px 0" }} />
-            <button
-              type="button"
-              role="menuitem"
-              ref={(el) => (itemRefs.current[0] = el)}
-              style={{ ...itemButtonStyle, gap: 8 }}
-              onClick={() => setOpenMenu(null)}
-              onKeyDown={(e) => handleItemKey(e, "profile")}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "#F5F8F8"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-            >
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><LogOut size={14} strokeWidth={1.7} />Sign out</span>
-            </button>
-          </div>
-        )}
-      </div>
+      <button
+        type="button"
+        aria-label="Sign out"
+        onClick={() => setOpenMenu(null)}
+        style={{ ...menuButtonStyle(false), padding: "7px 8px" }}
+      >
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <LogOut size={15} strokeWidth={1.7} />Sign out
+        </span>
+      </button>
     </div>
   );
 };

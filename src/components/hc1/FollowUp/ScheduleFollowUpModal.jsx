@@ -26,8 +26,6 @@ const formatField = (iso) => {
 
 export const ScheduleFollowUpModal = ({ patient, patients, onClose, directMode = false, directPatient = null }) => {
   const isGlobal = !patient && !directMode;
-  const [step, setStep] = useState(directMode ? 2 : 1);
-  const [needed, setNeeded] = useState("yes");
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [specialties, setSpecialties] = useState([]);
   const [followUpAt, setFollowUpAt] = useState(null);
@@ -41,14 +39,12 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose, directMode =
   const previouslyFocused = useRef(null);
 
   const closeModal = useCallback(() => {
-    setStep(directMode ? 2 : 1);
-    setNeeded("yes");
     setSelectedPatient(null);
     setSpecialties([]);
     setFollowUpAt(null);
     setPickerOpen(false);
     onClose?.();
-  }, [onClose, directMode]);
+  }, [onClose]);
 
   useEffect(() => { pickerOpenRef.current = pickerOpen; }, [pickerOpen]);
 
@@ -155,20 +151,12 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose, directMode =
     closeModal();
   };
 
-  const handleDone = () => {
-    if (patient) {
-      setFollowUpDecision(patient.id, "not_needed");
-    }
-    closeModal();
-  };
-
-  const canConfirm = specialties.length >= 1 && followUpAt !== null;
-  const canContinueGlobal = selectedPatient !== null;
+  const canConfirm = !!effectivePatient && specialties.length >= 1 && followUpAt !== null;
 
   const subtitle = directMode
     ? `${directPatient?.name} · MRN ${directPatient?.id}`
     : isGlobal
-    ? (step === 1 ? "Select a patient" : `${effectivePatient?.name} · MRN ${effectivePatient?.id}`)
+    ? (effectivePatient ? `${effectivePatient.name} · MRN ${effectivePatient.id}` : "Select a patient")
     : `${patient.name} · MRN ${patient.id}`;
 
   return (
@@ -213,11 +201,6 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose, directMode =
               {subtitle}
             </div>
           </div>
-          {!directMode && (
-            <span style={{ fontSize: 13, fontWeight: 600, color: C.grey[500], fontFamily: font, whiteSpace: "nowrap" }}>
-              Step {step} of 2
-            </span>
-          )}
           <Button variant="icon" onClick={closeModal} aria-label="Close">
             <X size={16} />
           </Button>
@@ -225,7 +208,7 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose, directMode =
 
         {/* Body */}
         <div ref={bodyRef} style={{ flex: 1, overflowY: "auto", padding: "20px", minHeight: 0 }}>
-          {(step === 2 || directMode) && effectivePatient && duplicateVisits.length > 0 && (
+          {effectivePatient && duplicateVisits.length > 0 && (
             <div role="status" style={{ display: "flex", alignItems: "flex-start", gap: 9, padding: "11px 12px", marginBottom: 16, background: C.warning[100], border: `0.5px solid ${C.warning[400]}66`, borderRadius: 8 }}>
               <TriangleAlert size={17} color={C.warning[400]} style={{ flexShrink: 0, marginTop: 1 }} />
               <div style={{ fontSize: 14, lineHeight: 1.5, color: C.grey[800], fontFamily: font }}>
@@ -234,7 +217,7 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose, directMode =
               </div>
             </div>
           )}
-          {step === 1 && isGlobal && !directMode && (
+          {isGlobal && !directMode && (
             <PatientPickerStep
               patients={patients || []}
               selectedId={selectedPatient?.id}
@@ -242,48 +225,7 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose, directMode =
             />
           )}
 
-          {step === 1 && !isGlobal && !directMode && (
-            <div>
-              <label style={{ fontSize: 16, fontWeight: 700, color: C.grey[800], fontFamily: font, display: "block", marginBottom: 12 }}>
-                Non-Surgical Follow Up Appointment Needed?
-              </label>
-              <div role="radiogroup" aria-label="Non-Surgical Follow Up Appointment Needed?" style={{ display: "flex", gap: 0, border: `0.5px solid ${C.grey[300]}`, borderRadius: 8, overflow: "hidden", width: "fit-content" }}>
-                {[
-                  { val: "yes", label: "Yes" },
-                  { val: "no", label: "No" },
-                ].map(({ val, label }, i) => {
-                  const active = needed === val;
-                  return (
-                    <label
-                      key={val}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                        padding: "8px 20px",
-                        cursor: "pointer",
-                        background: active ? C.primary[500] : C.grey[100],
-                        borderLeft: i > 0 ? `0.5px solid ${C.grey[300]}` : "none",
-                        transition: "background 0.15s",
-                      }}
-                    >
-                      <input
-                        type="radio"
-                        name="followup-needed"
-                        value={val}
-                        checked={active}
-                        onChange={() => setNeeded(val)}
-                        style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}
-                      />
-                      <span style={{ fontSize: 15, fontWeight: 600, color: active ? "#fff" : C.grey[700], fontFamily: font }}>{label}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {(step === 2 || directMode) && (
+          {(
             <div>
               {/* Specialty checkboxes */}
               <fieldset style={{ border: 0, padding: 0, margin: 0, marginBottom: 18 }}>
@@ -406,32 +348,10 @@ export const ScheduleFollowUpModal = ({ patient, patients, onClose, directMode =
 
           {/* Footer */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 16, borderTop: `0.5px solid ${C.grey[300]}`, marginTop: 20, gap: 8 }}>
-            {step === 1 && !directMode ? (
-              isGlobal ? (
-                <>
-                  <Button variant="secondary" size="md" onClick={closeModal}>Cancel</Button>
-                  <Button variant="primary" size="md" onClick={() => setStep(2)} disabled={!canContinueGlobal}>
-                    Continue
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="secondary" size="md" onClick={closeModal}>Cancel</Button>
-                  <Button variant="primary" size="md" onClick={() => (needed === "yes" ? setStep(2) : handleDone())}>
-                    {needed === "yes" ? "Continue" : "Done"}
-                  </Button>
-                </>
-              )
-            ) : (
-              <>
-                {directMode
-                  ? <Button variant="secondary" size="md" onClick={closeModal}>Cancel</Button>
-                  : <Button variant="secondary" size="md" onClick={() => setStep(1)}>Back</Button>}
-                <Button variant="primary" size="md" onClick={handleConfirm} disabled={!canConfirm}>
-                  Confirm
-                </Button>
-              </>
-            )}
+            <Button variant="secondary" size="md" onClick={closeModal}>Cancel</Button>
+            <Button variant="primary" size="md" onClick={handleConfirm} disabled={!canConfirm}>
+              Confirm
+            </Button>
           </div>
         </div>
       </div>

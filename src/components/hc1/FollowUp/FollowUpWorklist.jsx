@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
-import { Search, Filter, ChevronDown, CalendarPlus, MoreHorizontal, Calendar, Eye, Pencil, CalendarClock, Check, X, User, CalendarPlus as NewFollowUp } from "lucide-react";
+import { Search, Filter, ChevronDown, CalendarPlus, MoreHorizontal, Calendar, Pencil, X } from "lucide-react";
 import { Button } from "../Button";
 import { Badge } from "../Badge";
 import { getFollowUps, SPECIALTIES, CAN_CLINICAL_NAVIGATION } from "./followUpStore";
@@ -132,22 +132,11 @@ const RowMenu = ({ visit, anchorEl, onAction, onClose }) => {
 
   const items = visit.status === "Scheduled"
     ? [
-        { label: "Open patient", icon: User, action: "open-patient" },
-        { label: "View details", icon: Eye, action: "view" },
         { label: "Edit", icon: Pencil, action: "edit" },
-        { label: "Reschedule", icon: CalendarClock, action: "reschedule" },
-        { label: "Mark Completed", icon: Check, action: "complete" },
-        { label: "Cancel visit", icon: X, action: "cancel", danger: true },
-      ]
-    : visit.status === "Cancelled"
-    ? [
-        { label: "Open patient", icon: User, action: "open-patient" },
-        { label: "View details", icon: Eye, action: "view" },
+        { label: "Cancel Visit", icon: X, action: "cancel", danger: true },
       ]
     : [
-        { label: "Open patient", icon: User, action: "open-patient" },
-        { label: "View details", icon: Eye, action: "view" },
-        { label: "Schedule new follow-up", icon: NewFollowUp, action: "schedule-new" },
+        { label: "Edit", icon: Pencil, action: "edit" },
       ];
 
   return createPortal(
@@ -218,8 +207,6 @@ export const FollowUpWorklist = ({ patients = [], onOpenPatient }) => {
       scheduled: all.filter((v) => v.status === "Scheduled").length,
       dueIn7: all.filter(isDueIn7).length,
       overdue: all.filter(isOverdue).length,
-      completed: all.filter((v) => v.status === "Completed").length,
-      cancelled: all.filter((v) => v.status === "Cancelled").length,
     };
   }, [visits]);
 
@@ -228,8 +215,8 @@ export const FollowUpWorklist = ({ patients = [], onOpenPatient }) => {
     "SPECIALTY",
     "FOLLOW-UP DATE",
     "REFERRING PROVIDER",
-    "STATUS",
-    "ACTIONS",
+    "SCHEDULED BY",
+    "",
   ];
 
   const filtered = useMemo(() => {
@@ -285,23 +272,11 @@ export const FollowUpWorklist = ({ patients = [], onOpenPatient }) => {
     { label: "Scheduled", value: counts.scheduled, color: C.primary[500] },
     { label: "Due in 7 days", value: counts.dueIn7, color: C.secondary[600] },
     { label: "Overdue", value: counts.overdue, color: counts.overdue > 0 ? C.error[400] : C.grey[600] },
-    { label: "Completed", value: counts.completed, color: C.success[400] },
-    { label: "Cancelled", value: counts.cancelled, color: C.grey[600] },
   ];
 
   const handleMenuAction = (visit, action) => {
     setOpenMenuId(null);
     setMenuAnchor(null);
-    if (action === "open-patient") {
-      onOpenPatient?.(visit.patientId);
-      return;
-    }
-    if (action === "schedule-new") {
-      setDetailVisit(visit);
-      setDetailMode("view");
-      // Open detail modal which has the Schedule New button in its footer
-      return;
-    }
     setDetailVisit(visit);
     setDetailMode(action);
   };
@@ -495,7 +470,7 @@ export const FollowUpWorklist = ({ patients = [], onOpenPatient }) => {
                       fontWeight: 700,
                       letterSpacing: "0.06em",
                       color: C.grey[600],
-                      textAlign: "left",
+                      textAlign: h ? "left" : "center",
                       padding: "10px 16px",
                       textTransform: "uppercase",
                       whiteSpace: "nowrap",
@@ -574,16 +549,13 @@ export const FollowUpWorklist = ({ patients = [], onOpenPatient }) => {
                       onClick={() => handleRowClick(v)}
                     >
                       {/* PATIENT */}
-                      <td style={{ padding: "12px 16px", minWidth: 140 }}>
-                        <div
-                          style={{
-                            fontSize: 14,
-                            fontWeight: 600,
-                            fontFamily: font,
-                          }}
-                        >
+                      <td style={{ padding: "12px 16px", minWidth: 160 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                           <span
                             style={{
+                              fontSize: 14,
+                              fontWeight: 600,
+                              fontFamily: font,
                               color: "var(--hc-color-text-link)",
                               cursor: "pointer",
                               textDecoration: "none",
@@ -594,6 +566,13 @@ export const FollowUpWorklist = ({ patients = [], onOpenPatient }) => {
                           >
                             {v.patientName}
                           </span>
+                          <Badge
+                            variant={STATUS_VARIANT[v.status] || "neutral"}
+                            appearance="soft"
+                            size="sm"
+                          >
+                            {v.status}
+                          </Badge>
                         </div>
                         <div
                           style={{
@@ -647,18 +626,17 @@ export const FollowUpWorklist = ({ patients = [], onOpenPatient }) => {
                       >
                         {v.referringProvider || "—"}
                       </td>
-                      {/* STATUS */}
-                      <td style={{ padding: "12px 16px", minWidth: 120 }}>
-                        <Badge
-                          variant={STATUS_VARIANT[v.status] || "neutral"}
-                          appearance="soft"
-                          size="sm"
-                        >
-                          {v.status}
-                        </Badge>
+                      {/* SCHEDULED BY */}
+                      <td style={{ padding: "12px 16px", minWidth: 140 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: C.grey[800], fontFamily: font }}>
+                          {v.createdBy || "—"}
+                        </div>
+                        <div style={{ fontSize: 12, color: C.grey[500], fontFamily: font, marginTop: 2 }}>
+                          {v.createdAt ? formatDateTime(v.createdAt) : ""}
+                        </div>
                       </td>
                       {/* ACTIONS */}
-                      <td style={{ padding: "12px 16px", minWidth: 60 }} onClick={(e) => e.stopPropagation()}>
+                      <td style={{ padding: "12px 16px", minWidth: 60, textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -708,12 +686,6 @@ export const FollowUpWorklist = ({ patients = [], onOpenPatient }) => {
           <span style={{ fontSize: 14, color: C.grey[500], fontFamily: font }}>
             Showing {filtered.length} of {visits.length} follow-ups
           </span>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.success[400] }} />
-            <span style={{ fontSize: 14, color: C.success[400], fontFamily: font }}>
-              FHIR R4 Live · Synced 2 min ago
-            </span>
-          </div>
         </div>
       </div>
       {modalOpen && (

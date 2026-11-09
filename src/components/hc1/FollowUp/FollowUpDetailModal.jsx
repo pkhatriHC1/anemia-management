@@ -6,6 +6,7 @@ import { Badge } from "../Badge";
 import { DateTimePicker } from "./DateTimePicker";
 import { ScheduleFollowUpModal } from "./ScheduleFollowUpModal";
 import { SPECIALTIES, updateFollowUp, historyEntry, getFollowUps } from "./followUpStore";
+import { MBH_CANCELLATION_REASONS } from "./visitCancellationStore";
 
 const C = {
   grey: { 100: "#FFFFFF", 200: "#F7F7F7", 300: "#E7E7E7", 400: "#CFD1D1", 500: "#A8ADAD", 600: "#737E7F", 700: "#545D5E", 800: "#273233" },
@@ -47,14 +48,7 @@ const ACTION_LABELS = {
   cancelled: "Visit cancelled",
 };
 
-const CANCEL_REASONS = [
-  "Patient declined",
-  "Patient unreachable",
-  "Seen elsewhere",
-  "Scheduled in error",
-  "Clinical status changed",
-  "Other",
-];
+
 
 const isOverdue = (v) => {
   if (v.status !== "Scheduled") return false;
@@ -452,7 +446,7 @@ export const FollowUpDetailModal = ({ visit, onClose, initialMode = "view", onOp
           }}
         >
           <option value="">Select a reason…</option>
-          {CANCEL_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
+          {MBH_CANCELLATION_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
         </select>
       </div>
 

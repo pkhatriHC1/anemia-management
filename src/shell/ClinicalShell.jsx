@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BarChart3, Briefcase, Building2, Calendar, ClipboardList, FlaskConical, GitMerge, Globe2, Settings, SlidersHorizontal, Stethoscope, Users } from "lucide-react";
+import { BarChart3, Briefcase, LogOut, Building2, Calendar, ClipboardList, FlaskConical, GitMerge, Globe2, Settings, SlidersHorizontal, Stethoscope, Users } from "lucide-react";
 import { AppShell, Badge, Sidebar } from "@hc1com/design-system";
 import { getFollowUps } from "../followup/followUpStore";
 
@@ -16,7 +16,12 @@ const SETTINGS_ITEMS = [
   { label: "Config", icon: SlidersHorizontal, screen: "config" },
 ];
 
-const USER = { name: "Tiffany Hall", role: "BloodHealth Admin" };
+/* Sign out in the prototype reloads the app, which resets the demo data (see main.jsx). */
+const USER = {
+  name: "Tiffany Hall",
+  role: "BloodHealth Admin",
+  menu: [{ label: "Sign out", icon: <LogOut />, destructive: true, onSelect: () => window.location.reload() }],
+};
 
 function countOverdue() {
   try {

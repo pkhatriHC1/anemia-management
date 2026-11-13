@@ -8,7 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@hc1com/design-system": "file:hc1com-design-system-0.18.4.tgz",
+    "@hc1com/design-system": "file:hc1com-design-system-0.18.5.tgz",
     "@radix-ui/react-avatar": "^1.2.7",
     "@radix-ui/react-checkbox": "^1.3.12",
     "@radix-ui/react-dialog": "^1.2.0",
